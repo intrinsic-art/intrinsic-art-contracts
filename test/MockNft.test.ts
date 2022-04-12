@@ -13,7 +13,7 @@ describe("Mock NFT Contract", function () {
     mockNFT = await ethers.getContract("MockNFT");
   });
 
-  it("Supports the expected ERC165 interface", async () => {
+  it("Returns the correct test string", async () => {
     expect(await mockNFT.testString()).to.eq("TestString");
   });
 });
