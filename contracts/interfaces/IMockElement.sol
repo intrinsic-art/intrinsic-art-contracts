@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 interface IMockElement {
-    function initialize(string calldata name, string calldata symbol) external;
-    function safeMint(address to) external;
+    function initialize(string memory name, string memory symbol) external;
+
+    function safeMint(address to, string memory uri) external;
 }
