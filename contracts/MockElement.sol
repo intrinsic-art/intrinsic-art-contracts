@@ -2,11 +2,17 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721BurnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
 import "./interfaces/IMockElement.sol";
 
-contract MockElement is IMockElement, Initializable, ERC721Upgradeable {
+contract MockElement is
+    IMockElement,
+    Initializable,
+    ERC721Upgradeable,
+    ERC721BurnableUpgradeable
+{
     using CountersUpgradeable for CountersUpgradeable.Counter;
 
     CountersUpgradeable.Counter private _tokenIdCounter;
