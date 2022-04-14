@@ -19,8 +19,8 @@ contract MockCanvas is
 
     CountersUpgradeable.Counter private _tokenIdCounter;
     string public script;
-    mapping(uint256 => bytes32) tokenIdTohash;
-    mapping(bytes32 => uint256) hashToTokenId;
+    mapping(uint256 => bytes32) public tokenIdTohash;
+    mapping(bytes32 => uint256) public hashToTokenId;
 
     function initialize(
         string memory _name,
