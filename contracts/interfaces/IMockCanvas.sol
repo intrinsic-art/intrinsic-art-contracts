@@ -2,15 +2,15 @@
 pragma solidity ^0.8.0;
 
 interface IMockCanvas {
-    function initialize(
-        string memory _name,
-        string memory _symbol,
-        string memory _script
+    function initialize(string memory _name, string memory _symbo) external;
+
+    function addProject(
+        string memory _projectName,
+        address _artistAddress,
+        uint256 _pricePerTokenInWei,
+        uint256 _maxInvocations,
+        bool _dynamic
     ) external;
 
-    function safeMint(address to) external;
-
-    function setTokenURI(uint256 tokenId, string memory uri) external;
-
-    function setScript(string memory _script) external;
+    function safeMint(address to, uint256 _projectId) external;
 }
