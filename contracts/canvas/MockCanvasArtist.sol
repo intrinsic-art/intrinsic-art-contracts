@@ -10,18 +10,18 @@ contract MockCanvasArtist is MockCanvasStorage {
     }
 
     function updateProject(
-        string calldata name,
-        string calldata artist,
-        string calldata description,
-        string calldata website,
-        string calldata license,
+        string memory name,
+        string memory artist,
+        string memory description,
+        string memory website,
+        string memory license,
         uint256 state,
         uint256 projectId,
         bool dynamic, // whether project dynamic(rendered after mint) or static
-        string calldata projectBaseURI, // if project is dynamic, tokenUri will be "{projectBaseUri}/{tokenId}"
+        string memory projectBaseURI, // if project is dynamic, tokenUri will be "{projectBaseUri}/{tokenId}"
         bool useIpfs, // if project is static, will use IPFS
-        string calldata projectBaseIpfsURI, // tokenUri will be "{projectBaseIpfsURI}/{ipfsHash}"
-        string calldata ipfsHash
+        string memory projectBaseIpfsURI, // tokenUri will be "{projectBaseIpfsURI}/{ipfsHash}"
+        string memory ipfsHash
     ) public onlyArtist(projectId) {
         projects[projectId].name = name;
         projects[projectId].artist = artist;
