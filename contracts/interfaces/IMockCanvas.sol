@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 interface IMockCanvas {
-    function initialize(string memory _name, string memory _symbo) external;
+    function initialize() external;
 
     function addProject(
         string memory _projectName,

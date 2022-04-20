@@ -30,11 +30,11 @@ contract MockCanvas is
 
     CountersUpgradeable.Counter private _projectIdCounter;
 
-    function initialize(string memory _name, string memory _symbol)
+    function initialize()
         external
         initializer
     {
-        __ERC721_init(_name, _symbol);
+        __ERC721_init("Elements","PROTON");
         __ERC721Burnable_init();
     }
 
