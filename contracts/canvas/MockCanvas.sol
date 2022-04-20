@@ -5,16 +5,16 @@ import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721BurnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 
 import "../interfaces/IMockCanvas.sol";
 import "./MockCanvasStorage.sol";
 import "./MockCanvasArtist.sol";
 
 // todo: deploy multiple projects in one transaction
-// todo: add programtic tokenURI / concat strings
 // todo: add payment system
 // todo: add more artist function
-// todo: add ramdomizer function 
+// todo: add ramdomizer function
 // todo: wrapping elements into Canvas
 // Will all tokens be sent to this address / track ownership
 contract MockCanvas is
@@ -26,13 +26,14 @@ contract MockCanvas is
     ERC721BurnableUpgradeable
 {
     using CountersUpgradeable for CountersUpgradeable.Counter;
+    using Strings for string;
 
     CountersUpgradeable.Counter private _projectIdCounter;
 
-    function initialize(
-        string memory _name,
-        string memory _symbol
-    ) external initializer {
+    function initialize(string memory _name, string memory _symbol)
+        external
+        initializer
+    {
         __ERC721_init(_name, _symbol);
         __ERC721Burnable_init();
     }
@@ -83,28 +84,48 @@ contract MockCanvas is
         projectIdToTokenIds[_projectId].push(tokenId);
     }
 
-    // function tokenURI(uint256 _tokenId) external
-    //           view returns (string memory) {
-    //     // if staticIpfsImageLink is present,
-    //     // then return "{projectBaseIpfsURI}/{staticIpfsImageLink}"
-    //     if (bytes(staticIpfsImageLink[_tokenId]).length > 0) {
-    //         return Strings.strConcat(
-    //           projects[tokenIdToProjectId[_tokenId]].projectBaseIpfsURI,
-    //           staticIpfsImageLink[_tokenId]);
-    //     }
+    function tokenURI(uint256 _tokenId)
+        public
+        view
+        override
+        returns (string memory)
+    {
+        // if staticIpfsImageLink is present,
+        // then return "{projectBaseIpfsURI}/{staticIpfsImageLink}"
+        if (bytes(staticIpfsImageLink[_tokenId]).length > 0) {
+            return
+                string(
+                    abi.encodePacked(
+                        projects[tokenIdToProjectId[_tokenId]]
+                            .projectBaseIpfsURI,
+                        staticIpfsImageLink[_tokenId]
+                    )
+                );
+        }
 
-    //     // if project is not dynamic and useIpfs is true,
-    //     // then return "{projectBaseIpfsURI}/{ipfsHash}"
-    //     if (!projects[tokenIdToProjectId[_tokenId]].dynamic
-    //         && projects[tokenIdToProjectId[_tokenId]].useIpfs) {
-    //         return Strings.strConcat(
-    //           projects[tokenIdToProjectId[_tokenId]].projectBaseIpfsURI,
-    //           projects[tokenIdToProjectId[_tokenId]].ipfsHash);
-    //     }
+        // if project is not dynamic and useIpfs is true,
+        // then return "{projectBaseIpfsURI}/{ipfsHash}"
+        if (
+            !projects[tokenIdToProjectId[_tokenId]].dynamic &&
+            projects[tokenIdToProjectId[_tokenId]].useIpfs
+        ) {
+            return
+                string(
+                    abi.encodePacked(
+                        projects[tokenIdToProjectId[_tokenId]]
+                            .projectBaseIpfsURI,
+                        projects[tokenIdToProjectId[_tokenId]].ipfsHash
+                    )
+                );
+        }
 
-    //     // else return "{projectBaseURI}/{_tokenId}"
-    //     return Strings.strConcat(
-    //       projects[tokenIdToProjectId[_tokenId]].projectBaseURI,
-    //       Strings.uint2str(_tokenId));
-    // }
+        // else return "{projectBaseURI}/{_tokenId}"
+        return
+            string(
+                abi.encodePacked(
+                    projects[tokenIdToProjectId[_tokenId]].projectBaseURI,
+                    Strings.toString(_tokenId)
+                )
+            );
+    }
 }
