@@ -9,7 +9,7 @@ contract MockCanvasArtist is MockCanvasStorage {
         _;
     }
 
-    function initProject(
+    function updateProject(
         string calldata name,
         string calldata artist,
         string calldata description,
@@ -22,7 +22,7 @@ contract MockCanvasArtist is MockCanvasStorage {
         bool useIpfs, // if project is static, will use IPFS
         string calldata projectBaseIpfsURI, // tokenUri will be "{projectBaseIpfsURI}/{ipfsHash}"
         string calldata ipfsHash
-    ) public onlyArtist(projectId){
+    ) public onlyArtist(projectId) {
         projects[projectId].name = name;
         projects[projectId].artist = artist;
         projects[projectId].description = description;
@@ -42,7 +42,7 @@ contract MockCanvasArtist is MockCanvasStorage {
         uint256[] memory scriptIndex,
         string memory scriptJSON,
         bool useHashString
-    ) public onlyArtist(projectId){
+    ) public onlyArtist(projectId) {
         require(scripts.length == scriptIndex.length);
         for (uint256 i; i < scripts.length; i++) {
             projects[projectId].scriptCount += 1;
