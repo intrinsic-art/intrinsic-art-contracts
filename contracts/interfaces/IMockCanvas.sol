@@ -7,7 +7,6 @@ interface IMockCanvas {
     function addProject(
         string memory _projectName,
         address _artistAddress,
-        uint256 _pricePerTokenInWei,
         uint256 _maxInvocations,
         bool _dynamic
     ) external;

@@ -11,12 +11,6 @@ import "../interfaces/IMockCanvas.sol";
 import "./MockCanvasStorage.sol";
 import "./MockCanvasArtist.sol";
 
-// todo: deploy multiple projects in one transaction
-// todo: add payment system
-// todo: add more artist function
-// todo: add ramdomizer function
-// todo: wrapping elements into Canvas
-// Will all tokens be sent to this address / track ownership
 contract MockCanvas is
     IMockCanvas,
     MockCanvasStorage,
@@ -41,7 +35,6 @@ contract MockCanvas is
     function addProject(
         string memory _projectName,
         address _artistAddress,
-        uint256 _pricePerTokenInWei,
         uint256 _maxInvocations,
         bool _dynamic
     ) public {
@@ -49,8 +42,6 @@ contract MockCanvas is
         _projectIdCounter.increment();
         projectIdToArtistAddress[projectId] = _artistAddress;
         projects[projectId].name = _projectName;
-        projectIdToCurrencySymbol[projectId] = "ETH";
-        projectIdToPricePerTokenInWei[projectId] = _pricePerTokenInWei;
         projects[projectId].state = uint256(State.Paused);
         projects[projectId].dynamic = _dynamic;
         projects[projectId].maxInvocations = _maxInvocations;
