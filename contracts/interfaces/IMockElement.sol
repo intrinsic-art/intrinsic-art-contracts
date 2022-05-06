@@ -17,4 +17,15 @@ interface IMockElement {
         uint256[] memory amounts,
         bytes memory data
     ) external;
+
+    /**
+     * @dev See {IERC1155-safeBatchTransferFrom}.
+     */
+    function safeBatchTransferFrom(
+        address from,
+        address to,
+        uint256[] memory ids,
+        uint256[] memory amounts,
+        bytes memory data
+    ) external;
 }
