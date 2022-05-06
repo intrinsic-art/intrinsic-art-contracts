@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "../interfaces/IMockElement.sol";
 
+// todo: onlyOwner of canvas can call this function
 contract MockCanvasWrapping is Initializable {
     IMockElement public mockElement;
 
@@ -47,7 +48,6 @@ contract MockCanvasWrapping is Initializable {
         );
     }
 
-    // add ownerOf
     function unWrap(
         address receiver,
         uint256[] memory elementIds,
