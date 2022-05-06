@@ -1,55 +1,46 @@
-//SPDX-License-Identifier: Unlicense
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721URIStorageUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721BurnableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
-import "./interfaces/IMockElement.sol";
+import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
+import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
 
-contract MockElement is
-    IMockElement,
-    Initializable,
-    ERC721Upgradeable,
-    ERC721URIStorageUpgradeable,
-    ERC721BurnableUpgradeable
-{
-    using CountersUpgradeable for CountersUpgradeable.Counter;
+contract MyToken is ERC1155, Ownable, ERC1155Burnable, ERC1155Supply {
+    constructor() ERC1155("") {}
 
-    CountersUpgradeable.Counter private _tokenIdCounter;
-
-    function initialize(string memory name, string memory symbol)
-        external
-        initializer
-    {
-        __ERC721_init(name, symbol);
-        __ERC721URIStorage_init();
-        __ERC721Burnable_init();
+    function setURI(string memory newuri) public onlyOwner {
+        _setURI(newuri);
     }
 
-    function safeMint(address to, string memory uri) public {
-        uint256 tokenId = _tokenIdCounter.current();
-        _tokenIdCounter.increment();
-        _safeMint(to, tokenId);
-        _setTokenURI(tokenId, uri);
+    function mint(
+        address account,
+        uint256 id,
+        uint256 amount,
+        bytes memory data
+    ) public onlyOwner {
+        _mint(account, id, amount, data);
+    }
+
+    function mintBatch(
+        address to,
+        uint256[] memory ids,
+        uint256[] memory amounts,
+        bytes memory data
+    ) public onlyOwner {
+        _mintBatch(to, ids, amounts, data);
     }
 
     // The following functions are overrides required by Solidity.
 
-    function _burn(uint256 tokenId)
-        internal
-        override(ERC721Upgradeable, ERC721URIStorageUpgradeable)
-    {
-        super._burn(tokenId);
-    }
-
-    function tokenURI(uint256 tokenId)
-        public
-        view
-        override(ERC721Upgradeable, ERC721URIStorageUpgradeable)
-        returns (string memory)
-    {
-        return super.tokenURI(tokenId);
+    function _beforeTokenTransfer(
+        address operator,
+        address from,
+        address to,
+        uint256[] memory ids,
+        uint256[] memory amounts,
+        bytes memory data
+    ) internal override(ERC1155, ERC1155Supply) {
+        super._beforeTokenTransfer(operator, from, to, ids, amounts, data);
     }
 }
