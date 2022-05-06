@@ -11,6 +11,9 @@ contract MockCanvasWrapping is Initializable {
     mapping(uint256 => mapping(uint256 => uint256)) public balances;
     // canvasId => element[]
     mapping(uint256 => uint256[]) public canvasIdToElements;
+    // cavasId => element => arrayIndex
+    mapping(uint256 => mapping(uint256 => uint256))
+        public canvasIdToElementIndex;
     // projectId => featureSet / features
     mapping(uint256 => string[][]) public projectIdToFeatures;
 
@@ -27,8 +30,11 @@ contract MockCanvasWrapping is Initializable {
         require(elementIds.length == amounts.length);
         for (uint256 i; i < elementIds.length; i++) {
             if (balances[canvasId][elementIds[i]] > 0) {
-              continue;
+                continue;
             }
+            canvasIdToElementIndex[canvasId][
+                elementIds[i]
+            ] = canvasIdToElements[canvasId].length;
             canvasIdToElements[canvasId].push(elementIds[i]);
             balances[canvasId][elementIds[i]] += amounts[i];
         }
@@ -41,11 +47,30 @@ contract MockCanvasWrapping is Initializable {
         );
     }
 
+    // add ownerOf
     function unWrap(
         address receiver,
         uint256[] memory elementIds,
-        uint256[] memory amounts
+        uint256[] memory amounts,
+        uint256 canvasId
     ) public {
+        require(elementIds.length == amounts.length);
+        for (uint256 i; i < elementIds.length; i++) {
+            if (balances[canvasId][elementIds[i]] == 0) {
+                continue;
+            }
+            uint256 arrayLength = canvasIdToElements[canvasId].length;
+            uint256 elementIndex = canvasIdToElementIndex[canvasId][
+                elementIds[i]
+            ];
+            uint256 lastElementId = canvasIdToElements[canvasId][
+                arrayLength - 1
+            ];
+
+            canvasIdToElements[canvasId][elementIndex] = lastElementId;
+            canvasIdToElements[canvasId].pop();
+            balances[canvasId][elementIds[i]] -= amounts[i];
+        }
         mockElement.safeBatchTransferFrom(
             address(this),
             receiver,
