@@ -3,19 +3,17 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721BurnableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
-import "../interfaces/IMockCanvas.sol";
 import "./MockCanvasStorage.sol";
 import "./MockCanvasArtist.sol";
+import "./MockCanvasWrapping.sol";
 
 contract MockCanvas is
-    IMockCanvas,
     MockCanvasStorage,
     MockCanvasArtist,
-    Initializable,
+    MockCanvasWrapping,
     ERC721Upgradeable,
     ERC721BurnableUpgradeable
 {
@@ -24,12 +22,10 @@ contract MockCanvas is
 
     CountersUpgradeable.Counter private _projectIdCounter;
 
-    function initialize()
-        external
-        initializer
-    {
-        __ERC721_init("Elements","PROTON");
+    function initialize(address elementContract) external initializer {
+        __ERC721_init("Elements", "PROTON");
         __ERC721Burnable_init();
+        __Wrap_init(elementContract);
     }
 
     function addProject(
