@@ -1,15 +1,16 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "../interfaces/IMockElement.sol";
 
-contract MockCanvasWrapping {
+contract MockCanvasWrapping is Initializable {
     IMockElement public mockElement;
 
     // canvasContract => canvasId => element[]
     mapping(address => mapping(uint256 => uint256[])) public canvasIdToElements;
 
-    function __Wrap_init(address _mockElement) internal {
+    function __Wrap_init(address _mockElement) internal onlyInitializing {
         mockElement = IMockElement(_mockElement);
     }
 
