@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
 
-contract MyToken is ERC1155, Ownable, ERC1155Burnable, ERC1155Supply {
+contract MockElement is ERC1155, Ownable, ERC1155Burnable, ERC1155Supply {
     constructor() ERC1155("") {}
 
     function setURI(string memory newuri) public onlyOwner {
