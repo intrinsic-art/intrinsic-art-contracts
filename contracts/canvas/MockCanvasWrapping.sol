@@ -5,6 +5,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "../interfaces/IMockElement.sol";
 
 // todo: onlyOwner of canvas can call this function
+// todo: should be receiver
 contract MockCanvasWrapping is Initializable {
     IMockElement public mockElement;
 
@@ -15,9 +16,12 @@ contract MockCanvasWrapping is Initializable {
     // cavasId => element => arrayIndex
     mapping(uint256 => mapping(uint256 => uint256))
         public canvasIdToElementIndex;
-    // projectId => featureSet / features
-    mapping(uint256 => string[][]) public projectIdToFeatures;
 
+    // We need to know if a category is currently being used and what is it being used with
+    // canvasId => Category => elemenetId
+    mapping(uint256 => mapping(string => uint256)) public canvasIdToCategoryToelementId; 
+
+    // checking categories
     function __Wrap_init(address _mockElement) internal onlyInitializing {
         mockElement = IMockElement(_mockElement);
     }
@@ -33,6 +37,16 @@ contract MockCanvasWrapping is Initializable {
             if (balances[canvasId][elementIds[i]] > 0) {
                 continue;
             }
+
+            // todo:seperate functions for readability
+            // Stop future features with same category
+            string memory featureCategory = mockElement.findIdToCategory(address(this), elementIds[i]); 
+            if(canvasIdToCategoryToelementId[canvasId][featureCategory] == 0) {
+              continue;
+            }
+            canvasIdToCategoryToelementId[canvasId][featureCategory] = elementIds[i];
+
+            // update storage
             canvasIdToElementIndex[canvasId][
                 elementIds[i]
             ] = canvasIdToElements[canvasId].length;
@@ -59,6 +73,11 @@ contract MockCanvasWrapping is Initializable {
             if (balances[canvasId][elementIds[i]] == 0) {
                 continue;
             }
+
+            // set featureId to zero when unwrapping
+            string memory featureCategory = mockElement.findIdToCategory(address(this), elementIds[i]); 
+            canvasIdToCategoryToelementId[canvasId][featureCategory] = 0;
+
             uint256 arrayLength = canvasIdToElements[canvasId].length;
             uint256 elementIndex = canvasIdToElementIndex[canvasId][
                 elementIds[i]
