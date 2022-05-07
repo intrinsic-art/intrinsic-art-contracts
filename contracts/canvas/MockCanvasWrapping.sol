@@ -2,11 +2,12 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
 import "../interfaces/IMockElement.sol";
 
 // todo: onlyOwner of canvas can call this function
 // todo: should be receiver
-contract MockCanvasWrapping is Initializable {
+contract MockCanvasWrapping is Initializable, ERC1155Holder {
     IMockElement public mockElement;
 
     mapping(uint256 => mapping(uint256 => uint256))
