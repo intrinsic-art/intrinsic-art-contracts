@@ -28,4 +28,9 @@ interface IMockElement {
         uint256[] memory amounts,
         bytes memory data
     ) external;
+
+    function findIdToCategory(address canvasContract, uint256 id)
+        external
+        view
+        returns (string memory);
 }
