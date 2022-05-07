@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 
-//todo:naming conventions and canvas organization artblocks/individual contracts
+//todo: check for duplicate categories
 contract MockElement is ERC1155, Ownable, ERC1155Burnable, ERC1155Supply {
     using Counters for Counters.Counter;
 
@@ -18,20 +18,22 @@ contract MockElement is ERC1155, Ownable, ERC1155Burnable, ERC1155Supply {
         string featureCategory;
         uint256[] featureTokenIds;
     }
-    // tokenId => FeatureString
+
     mapping(uint256 => string) public tokenIdToFeature;
+    mapping(uint256 => mapping(string => string))
+        public projectIdToFeatureToCategory; // Check for duplicate features
+    mapping(uint256 => FeatureInfo[]) public projectIdToFeatureInfo; // check for duplicate categories
 
-    // Need to know the feature string => feature Category
-    mapping(address => mapping(string => string)) public featureToCategory;
-    // CanvasContract => FeatureInfo
-    mapping(address => FeatureInfo[]) public projectFeatures;
-    // current mapping makes it difficult to know duplicates 
-
-    // todo: init featureToCategory
-    // Should return the category with just the featureId
-    function findIdToCategory(address canvasContract, uint id) public view returns(string memory) {
-      string memory featureString = tokenIdToFeature[id];
-      return featureToCategory[canvasContract][featureString];
+    /// @dev returns the category of a feature
+    /// @notice Should be used to assure different features
+    /// from the same category are not wrapped together
+    function findIdToCategory(uint256 projectId, uint256 featureId)
+        public
+        view
+        returns (string memory categoryString)
+    {
+        string memory featureString = tokenIdToFeature[featureId];
+        categoryString = projectIdToFeatureToCategory[projectId][featureString];
     }
 
     function setURI(string memory newuri) public onlyOwner {
@@ -56,28 +58,51 @@ contract MockElement is ERC1155, Ownable, ERC1155Burnable, ERC1155Supply {
         _mintBatch(to, ids, amounts, data);
     }
 
-    //todo:checking for duplicate features/categories
-    //todo:One canvas contract
-    function createElements(
-        address canvasContract,
+    /// @dev Artist should be able to create features
+    /// @dev Creates token Ids w/ counter
+    /// and assignes the tokenId w/ a feature
+    /// @dev assigns a category to a feature
+    /// therefore canvas contract can utilize
+    /// to assure features from the same category are not
+    /// wrapped together
+    function createFeatures(
+        uint256 projectId,
         string[] memory featureCategories,
         string[][] memory features
     ) public {
+        // Looping through categories to assign mappings
         for (uint256 i; i < featureCategories.length; i++) {
             uint256[] memory ids = new uint256[](features[i].length);
 
-            // Assign feature string to tokenId
             for (uint256 k; k < features[i].length; k++) {
+                // Check for duplicate features
+                string memory categoryString = projectIdToFeatureToCategory[
+                    projectId
+                ][features[i][k]];
+                string memory emptyString;
+                if (
+                    keccak256(abi.encodePacked((categoryString))) !=
+                    keccak256(abi.encodePacked((emptyString)))
+                ) {
+                    continue;
+                }
+
+                // Assign featureString to tokenId mapping
                 _tokenIdCounter.increment();
                 uint256 tokenId = _tokenIdCounter.current();
                 tokenIdToFeature[tokenId] = features[i][k];
-                // set feature categories
-                featureToCategory[canvasContract][features[i][k]] = featureCategories[i];
+
+                // Assign CategoryString to featureString mapping
+                projectIdToFeatureToCategory[projectId][
+                    features[i][k]
+                ] = featureCategories[i];
+
+                // Assign ids @k index to current tokenId
                 ids[k] = tokenId;
             }
 
-            // Assign FeatureStruct to CanvasContract
-            projectFeatures[canvasContract].push(
+            // Assign featureStruct to a projectId
+            projectIdToFeatureInfo[projectId].push(
                 FeatureInfo(featureCategories[i], ids)
             );
         }
