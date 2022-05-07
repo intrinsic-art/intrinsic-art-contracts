@@ -115,4 +115,9 @@ contract MockCanvas is
                 )
             );
     }
+
+        function supportsInterface(bytes4 interfaceId) public view virtual override(ERC721Upgradeable, ERC1155Receiver) returns (bool) {
+        return interfaceId == type(IERC1155Receiver).interfaceId || super.supportsInterface(interfaceId);
+    }
+
 }
