@@ -6,8 +6,6 @@ import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
 import "../interfaces/IMockElement.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
 
-// todo: onlyOwner of canvas can call this function
-
 /// @dev contract used to "wrap"/ transfer tokens to features to a canvas
 /// @notice Render canvas features
 /// canvasIdToFeatures provides you an array of features
