@@ -6,7 +6,13 @@ import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
 import "../interfaces/IMockElement.sol";
 
 // todo: onlyOwner of canvas can call this function
-// todo: should be receiver
+
+/// @dev contract used to "wrap"/ transfer tokens to features to a canvas
+/// @notice Render canvas features
+/// canvasIdToFeatures provides you an array of features
+/// Pass this array to the element contract
+/// tokenIdToFeature provides you the feature string
+/// projectIdToFeatureToCategory provides you the category string
 contract MockCanvasWrapping is Initializable, ERC1155Holder {
     IMockElement public mockElement;
 
