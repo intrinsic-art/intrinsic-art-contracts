@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
 import "../interfaces/IMockElement.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
 
 // todo: onlyOwner of canvas can call this function
 
@@ -13,7 +14,7 @@ import "../interfaces/IMockElement.sol";
 /// Pass this array to the element contract
 /// tokenIdToFeature provides you the feature string
 /// projectIdToFeatureToCategory provides you the category string
-contract MockCanvasWrapping is Initializable, ERC1155Holder {
+contract MockCanvasWrapping is Initializable, ERC1155Holder, ERC721Upgradeable {
     IMockElement public mockElement;
 
     mapping(uint256 => mapping(uint256 => uint256))
@@ -28,12 +29,20 @@ contract MockCanvasWrapping is Initializable, ERC1155Holder {
         mockElement = IMockElement(_mockElement);
     }
 
+    modifier onlyOwner(uint256 canvasId) {
+        require(
+            ownerOf(canvasId) == msg.sender,
+            "You are not the owner of this Canvas"
+        );
+        _;
+    }
+
     function wrap(
         address owner,
         uint256[] memory featureIds,
         uint256[] memory amounts,
         uint256 canvasId
-    ) public {
+    ) public onlyOwner(canvasId) {
         for (uint256 i; i < featureIds.length; i++) {
             string memory featureCategory = mockElement.findIdToCategory(
                 address(this),
@@ -82,7 +91,7 @@ contract MockCanvasWrapping is Initializable, ERC1155Holder {
         uint256[] memory featureIds,
         uint256[] memory amounts,
         uint256 canvasId
-    ) public {
+    ) public onlyOwner(canvasId) {
         for (uint256 i; i < featureIds.length; i++) {
             // If there is not a balance/ a feature is not wrapped - continue
             if (canvasIdToFeatureToBalances[canvasId][featureIds[i]] == 0) {
@@ -117,5 +126,17 @@ contract MockCanvasWrapping is Initializable, ERC1155Holder {
             amounts,
             ""
         );
+    }
+
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        virtual
+        override(ERC721Upgradeable, ERC1155Receiver)
+        returns (bool)
+    {
+        return
+            interfaceId == type(IERC1155Receiver).interfaceId ||
+            super.supportsInterface(interfaceId);
     }
 }
