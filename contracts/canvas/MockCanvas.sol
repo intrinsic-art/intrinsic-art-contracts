@@ -1,20 +1,16 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721BurnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
-import "./MockCanvasStorage.sol";
 import "./MockCanvasArtist.sol";
 import "./MockCanvasWrapping.sol";
 
 contract MockCanvas is
-    MockCanvasStorage,
     MockCanvasArtist,
     MockCanvasWrapping,
-    ERC721Upgradeable,
     ERC721BurnableUpgradeable
 {
     using CountersUpgradeable for CountersUpgradeable.Counter;
@@ -116,7 +112,7 @@ contract MockCanvas is
             );
     }
 
-        function supportsInterface(bytes4 interfaceId) public view virtual override(ERC721Upgradeable, ERC1155Receiver) returns (bool) {
+        function supportsInterface(bytes4 interfaceId) public view virtual override( ERC721Upgradeable, MockCanvasWrapping) returns (bool) {
         return interfaceId == type(IERC1155Receiver).interfaceId || super.supportsInterface(interfaceId);
     }
 
