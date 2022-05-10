@@ -24,6 +24,25 @@ contract MockElement is ERC1155, Ownable, ERC1155Burnable, ERC1155Supply {
         public projectIdToFeatureToCategory; // Check for duplicate features
     mapping(uint256 => FeatureInfo[]) public projectIdToFeatureInfo; // check for duplicate categories
 
+    /// @notice Function for easy readable features and categories based on an array of tokenIds
+    function findidsToFeatureStrings(
+        uint256[] memory featureIds,
+        uint256 projectId
+    )
+        public
+        view
+        returns (string[] memory features, string[] memory categories)
+    {
+        features = new string[](featureIds.length);
+        categories = new string[](featureIds.length);
+        for (uint256 i = 0; i < featureIds.length; i++) {
+            features[i] = tokenIdToFeature[featureIds[i]]; // tokenId to feature string
+            categories[i] = projectIdToFeatureToCategory[projectId][
+                features[i]
+            ]; // feature string to category
+        }
+    }
+
     /// @dev returns the category of a feature
     /// @notice Should be used to assure different features
     /// from the same category are not wrapped together
