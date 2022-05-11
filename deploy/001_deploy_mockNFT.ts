@@ -43,8 +43,11 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     deployer,
     Config.wrap.featureIds,
     Config.wrap.amounts,
-    Config.wrap.canvasId,
-    Config.wrap.projectId
+    Config.wrap.canvasId
+  );
+
+  console.log(
+    await mockCanvas.getCanvasFeaturesAndCategories(Config.wrap.canvasId)
   );
 };
 
