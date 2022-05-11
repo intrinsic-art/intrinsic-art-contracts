@@ -56,13 +56,13 @@ const Config = {
   },
   mintBatch: {
     to: "",
-    ids: [1, 2, 3, 4, 5, 6, 7, 8],
+    ids: [1, 22, 24, 26, 28, 30, 32, 34],
     amounts: [1, 1, 1, 1, 1, 1, 1, 1],
     data: "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
   },
   wrap: {
     owner: "",
-    featureIds: [1, 2, 3, 4, 5, 6, 7, 8],
+    featureIds: [1, 22, 24, 26, 28, 30, 32, 34],
     amounts: [1, 1, 1, 1, 1, 1, 1, 1],
     canvasId: 1,
     projectId: 0,
