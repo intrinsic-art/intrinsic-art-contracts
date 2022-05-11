@@ -5,6 +5,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
 import "../interfaces/IMockElement.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
+import "./MockCanvasStorage.sol";
 
 /// @dev contract used to "wrap"/ transfer tokens to features to a canvas
 /// @notice Render canvas features
@@ -12,7 +13,7 @@ import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
 /// Pass this array to the element contract
 /// tokenIdToFeature provides you the feature string
 /// projectIdToFeatureToCategory provides you the category string
-contract MockCanvasWrapping is Initializable, ERC1155Holder, ERC721Upgradeable {
+contract MockCanvasWrapping is Initializable, ERC1155Holder, ERC721Upgradeable, MockCanvasStorage {
     IMockElement public mockElement;
 
     mapping(uint256 => mapping(uint256 => uint256))
@@ -35,16 +36,30 @@ contract MockCanvasWrapping is Initializable, ERC1155Holder, ERC721Upgradeable {
         _;
     }
 
+    function listOfFeatures(uint canvasId) public view returns(uint) {
+        return canvasIdToFeatures[canvasId].length;
+    }
+
+    function getCanvasFeaturesAndCategories(uint256 canvasId)
+        public
+        view
+        returns (string[] memory features, string[] memory categories)
+    {
+        uint projectId = tokenIdToProjectId[canvasId];
+        uint[] memory featureIds = canvasIdToFeatures[canvasId];
+
+        (features, categories) = mockElement.findidsToFeatureAndCategories(featureIds, projectId);
+    }
+
     function wrap(
         address owner,
         uint256[] memory featureIds,
         uint256[] memory amounts,
-        uint256 canvasId,
-        uint256 projectId
+        uint256 canvasId
     ) public onlyOwner(canvasId) {
         for (uint256 i; i < featureIds.length; i++) {
             string memory featureCategory = mockElement.findIdToCategory(
-                projectId,
+                tokenIdToProjectId[canvasId],
                 featureIds[i]
             );
             // If the assigned feature == current feature then just update balance
@@ -89,8 +104,7 @@ contract MockCanvasWrapping is Initializable, ERC1155Holder, ERC721Upgradeable {
         address receiver,
         uint256[] memory featureIds,
         uint256[] memory amounts,
-        uint256 canvasId,
-        uint256 projectId
+        uint256 canvasId
     ) public onlyOwner(canvasId) {
         for (uint256 i; i < featureIds.length; i++) {
             // If there is not a balance/ a feature is not wrapped - continue
@@ -113,7 +127,7 @@ contract MockCanvasWrapping is Initializable, ERC1155Holder, ERC721Upgradeable {
 
                 // assign the 0 index to the current category
                 string memory featureCategory = mockElement.findIdToCategory(
-                    projectId,
+                    tokenIdToProjectId[canvasId],
                     featureIds[i]
                 );
                 canvasIdToCategoryToFeatureId[canvasId][featureCategory] = 0;
