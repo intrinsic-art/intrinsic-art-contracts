@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 
+//todo: list of ideas created
 //todo: check for duplicate categories
 contract MockElement is ERC1155, Ownable, ERC1155Burnable, ERC1155Supply {
     using Counters for Counters.Counter;
@@ -25,6 +26,7 @@ contract MockElement is ERC1155, Ownable, ERC1155Burnable, ERC1155Supply {
     mapping(uint256 => FeatureInfo[]) public projectIdToFeatureInfo; // check for duplicate categories
 
     /// @notice Function for easy readable features and categories based on an array of tokenIds
+    /// @dev must know project Id which can be determined via canvas contract - tokenIdToProjectId
     function findidsToFeatureStrings(
         uint256[] memory featureIds,
         uint256 projectId
