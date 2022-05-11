@@ -1,6 +1,6 @@
 const Config = {
   AddProject: {
-    projectName: "",
+    projectName: "Phil's info",
     artistAddress: "0x70997970c51812dc3a010c7d01b50e0d17dc79c8",
     invocations: 1000000,
     dynamic: true,
@@ -13,6 +13,18 @@ const Config = {
     projectId: 1,
     featureCategories: [""],
     features: [""],
+  },
+  wrap: {
+    owner: "",
+    featureIds: [""],
+    amounts: [""],
+    canvasId: 1,
+  },
+  mintBatch: {
+    to: "",
+    ids: [],
+    amounts: [],
+    data: "",
   },
 };
 
