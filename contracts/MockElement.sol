@@ -21,13 +21,13 @@ contract MockElement is ERC1155, Ownable, ERC1155Burnable, ERC1155Supply {
     }
 
     mapping(uint256 => string) public tokenIdToFeature;
-    mapping(uint256 => mapping(string => string))
-        public projectIdToFeatureToCategory; // Check for duplicate features
+    mapping(uint256 => mapping(uint => string))
+        public projectIdToFeatureIdToCategory; // Check for duplicate features
     mapping(uint256 => FeatureInfo[]) public projectIdToFeatureInfo; // check for duplicate categories
 
     /// @notice Function for easy readable features and categories based on an array of tokenIds
     /// @dev must know project Id which can be determined via canvas contract - tokenIdToProjectId
-    function findidsToFeatureStrings(
+    function findidsToFeatureAndCategories(
         uint256[] memory featureIds,
         uint256 projectId
     )
@@ -39,8 +39,8 @@ contract MockElement is ERC1155, Ownable, ERC1155Burnable, ERC1155Supply {
         categories = new string[](featureIds.length);
         for (uint256 i = 0; i < featureIds.length; i++) {
             features[i] = tokenIdToFeature[featureIds[i]]; // tokenId to feature string
-            categories[i] = projectIdToFeatureToCategory[projectId][
-                features[i]
+            categories[i] = projectIdToFeatureIdToCategory[projectId][
+                featureIds[i]
             ]; // feature string to category
         }
     }
@@ -53,8 +53,7 @@ contract MockElement is ERC1155, Ownable, ERC1155Burnable, ERC1155Supply {
         view
         returns (string memory categoryString)
     {
-        string memory featureString = tokenIdToFeature[featureId];
-        categoryString = projectIdToFeatureToCategory[projectId][featureString];
+        categoryString = projectIdToFeatureIdToCategory[projectId][featureId];
     }
 
     function setURI(string memory newuri) public onlyOwner {
@@ -96,28 +95,11 @@ contract MockElement is ERC1155, Ownable, ERC1155Burnable, ERC1155Supply {
             uint256[] memory ids = new uint256[](features[i].length);
 
             for (uint256 k; k < features[i].length; k++) {
-                // Check for duplicate features
-                string memory categoryString = projectIdToFeatureToCategory[
-                    projectId
-                ][features[i][k]];
-                string memory emptyString;
-                if (
-                    keccak256(abi.encodePacked((categoryString))) !=
-                    keccak256(abi.encodePacked((emptyString)))
-                ) {
-                    continue;
-                }
-
                 // Assign featureString to tokenId mapping
                 _tokenIdCounter.increment();
                 uint256 tokenId = _tokenIdCounter.current();
                 tokenIdToFeature[tokenId] = features[i][k];
-
-                // Assign CategoryString to featureString mapping
-                projectIdToFeatureToCategory[projectId][
-                    features[i][k]
-                ] = featureCategories[i];
-
+                projectIdToFeatureIdToCategory[projectId][tokenId] = featureCategories[i];
                 // Assign ids @k index to current tokenId
                 ids[k] = tokenId;
             }
