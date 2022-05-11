@@ -39,11 +39,12 @@ contract MockCanvasWrapping is Initializable, ERC1155Holder, ERC721Upgradeable {
         address owner,
         uint256[] memory featureIds,
         uint256[] memory amounts,
-        uint256 canvasId
+        uint256 canvasId,
+        uint256 projectId
     ) public onlyOwner(canvasId) {
         for (uint256 i; i < featureIds.length; i++) {
             string memory featureCategory = mockElement.findIdToCategory(
-                address(this),
+                projectId,
                 featureIds[i]
             );
             // If the assigned feature == current feature then just update balance
@@ -88,7 +89,8 @@ contract MockCanvasWrapping is Initializable, ERC1155Holder, ERC721Upgradeable {
         address receiver,
         uint256[] memory featureIds,
         uint256[] memory amounts,
-        uint256 canvasId
+        uint256 canvasId,
+        uint256 projectId
     ) public onlyOwner(canvasId) {
         for (uint256 i; i < featureIds.length; i++) {
             // If there is not a balance/ a feature is not wrapped - continue
@@ -111,7 +113,7 @@ contract MockCanvasWrapping is Initializable, ERC1155Holder, ERC721Upgradeable {
 
                 // assign the 0 index to the current category
                 string memory featureCategory = mockElement.findIdToCategory(
-                    address(this),
+                    projectId,
                     featureIds[i]
                 );
                 canvasIdToCategoryToFeatureId[canvasId][featureCategory] = 0;
