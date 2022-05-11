@@ -33,4 +33,12 @@ interface IMockElement {
         external
         view
         returns (string memory categoryString);
+
+    function findidsToFeatureAndCategories(
+        uint256[] memory featureIds,
+        uint256 projectId
+    )
+        external
+        view
+        returns (string[] memory features, string[] memory categories);
 }
