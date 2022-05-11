@@ -4,6 +4,7 @@ import "@nomiclabs/hardhat-etherscan";
 import "@openzeppelin/hardhat-upgrades";
 import "@nomiclabs/hardhat-waffle";
 import "@typechain/hardhat";
+import "hardhat-deploy";
 
 dotenv.config();
 
@@ -15,6 +16,11 @@ const config: HardhatUserConfig = {
         enabled: true,
         runs: 200,
       },
+    },
+  },
+  namedAccounts: {
+    deployer: {
+      default: 0,
     },
   },
   networks: {
