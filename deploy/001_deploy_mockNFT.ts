@@ -3,11 +3,10 @@ import { DeployFunction } from "hardhat-deploy/types";
 import { deployContract } from "../helpers/deployContract";
 import Config from "../helpers/config";
 
-const func: DeployFunction = async (
-  hre: HardhatRuntimeEnvironment,
-  getNamedAccounts: () => PromiseLike<{ deployer: any }> | { deployer: any }
-) => {
-  const {deployer} = await getNamedAccounts();
+const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
+  const { getNamedAccounts } = hre;
+  const { deployer } = await getNamedAccounts();
+
   await deployContract(hre, "MockElement", []);
   await deployContract(hre, "MockCanvas", []);
 
@@ -21,31 +20,32 @@ const func: DeployFunction = async (
     Config.AddProject.invocations,
     Config.AddProject.dynamic
   );
-  
   // Mint Canvas
-  mockCanvas.safeMint(deployer.address, Config.safeMint.projectId);
-  console.log(deployer.address)
+  mockCanvas.safeMint(deployer, Config.safeMint.projectId);
 
-  // // Mock Elements
-  // await mockElement.createFeatures(
-  //   Config.createFeatures.projectId,
-  //   Config.createFeatures.featureCategories,
-  //   Config.createFeatures.features
-  // );
+  // Mock Elements
+  await mockElement.createFeatures(
+    Config.createFeatures.projectId,
+    Config.createFeatures.featureCategories,
+    Config.createFeatures.features
+  );
 
-  // await mockElement.mintBatch(
-  //   Config.mintBatch.to,
-  //   Config.mintBatch.ids,
-  //   Config.mintBatch.amounts,
-  //   Config.mintBatch.data
-  // );
+  await mockElement.mintBatch(
+    deployer,
+    Config.mintBatch.ids,
+    Config.mintBatch.amounts,
+    Config.mintBatch.data
+  );
 
-  // await mockCanvas.wrap(
-  //   Config.wrap.owner,
-  //   Config.wrap.featureIds,
-  //   Config.wrap.amounts,
-  //   Config.wrap.canvasId
-  // );
+  await mockElement.setApprovalForAll(mockCanvas.address, true);
+
+  await mockCanvas.wrap(
+    deployer,
+    Config.wrap.featureIds,
+    Config.wrap.amounts,
+    Config.wrap.canvasId,
+    Config.wrap.projectId
+  );
 };
 
 export default func;
