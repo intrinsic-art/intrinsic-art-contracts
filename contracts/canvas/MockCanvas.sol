@@ -44,13 +44,13 @@ contract MockCanvas is
         }
     }
 
-    function safeMint(address to, uint256 _projectId) public {
+    function safeMint(address to, uint256 _projectId) public returns (uint256 tokenId) {
         require(
             (projects[_projectId].invocations + 1) <=
                 projects[_projectId].maxInvocations
         );
         projects[_projectId].invocations += 1;
-        uint256 tokenId = (_projectId * 1_000_000) +
+        tokenId = (_projectId * 1_000_000) +
             projects[_projectId].invocations;
         bytes32 hash = keccak256(
             abi.encodePacked(
