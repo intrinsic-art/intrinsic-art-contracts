@@ -11,5 +11,5 @@ interface IMockCanvas {
         bool _dynamic
     ) external;
 
-    function safeMint(address to, uint256 _projectId) external;
+    function safeMint(address to, uint256 _projectId) external returns (uint256 tokenId);
 }
