@@ -93,6 +93,8 @@ contract DutchAuction is Ownable {
   function artistClaimRevenue(uint256 _projectId, address _recipient) external {
     require(msg.sender == projectIdToAuction[_projectId].artistAddress, "Only artist can claim revenue");
 
+    projectIdToAuction[_projectId].artistRevenue = 0;
+
     weth.safeTransfer(_recipient, projectIdToAuction[_projectId].artistRevenue);
 
     // Todo: Emit event
