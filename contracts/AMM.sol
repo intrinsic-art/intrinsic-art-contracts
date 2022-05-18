@@ -2,19 +2,12 @@
 pragma solidity ^0.8.0;
 
 import "./interfaces/IMockElement.sol";
+import "./interfaces/IAMM.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract AMM is Ownable {
+contract AMM is IAMM, Ownable {
   using SafeERC20 for IERC20;
-
-  struct BondingCurve {
-    uint256 constantA;
-    uint256 constantB;
-    uint256 reserves;
-    uint256 artistRevenue;
-    address artistAddress;
-  }
 
   //todo: Should fee numerators be constants?
 
@@ -28,8 +21,6 @@ contract AMM is Ownable {
   // tokenID => BondingCurve
   mapping(uint256 => BondingCurve) tokenIdToBondingCurve;
 
-  // Todo: Add events
-
   constructor(
     uint256 _totalFeeNumerator,
     uint256 _artistFeeNumerator,
@@ -42,18 +33,29 @@ contract AMM is Ownable {
     mockElement = IMockElement(_elementsAddress);
   }
 
-  function createBondingCurve(uint256 _tokenId, uint256 _constantA, uint256 _constantB, address _artistAddress) external onlyOwner {
-    require(_artistAddress != address(0), "Artist address cannot be address zero");
-    require(tokenIdToBondingCurve[_tokenId].artistAddress == address(0), "Bonding curve already initialized");
+  function createBondingCurve(
+    uint256 _tokenId,
+    uint256 _constantA,
+    uint256 _constantB,
+    address _artistAddress
+  ) external onlyOwner {
+    require(
+      _artistAddress != address(0),
+      "Artist address cannot be address zero"
+    );
+    require(
+      tokenIdToBondingCurve[_tokenId].artistAddress == address(0),
+      "Bonding curve already initialized"
+    );
 
     tokenIdToBondingCurve[_tokenId].constantA = _constantA;
     tokenIdToBondingCurve[_tokenId].constantB = _constantB;
     tokenIdToBondingCurve[_tokenId].artistAddress = _artistAddress;
 
-    // todo: emit event
+    emit BondingCurveCreated(_tokenId, _constantA, _constantB, _artistAddress);
   }
 
-  function buy(
+  function buyElements(
     uint256 _tokenId,
     uint256 _erc1155Quantity,
     uint256 _maxERC20ToSpend,
@@ -77,10 +79,17 @@ contract AMM is Ownable {
     // todo: consider adding parameter for spender address
     weth.safeTransferFrom(msg.sender, address(this), erc20TotalAmount);
 
-    // todo: Emit event
+    emit ElementsBought(
+      _tokenId,
+      _erc1155Quantity,
+      erc20TotalAmount,
+      erc20TotalFee,
+      erc20ArtistFee,
+      _recipient
+    );
   }
 
-  function sell(
+  function sellElements(
     uint256 _tokenId,
     uint256 _erc1155Quantity,
     uint256 _minERC20ToReceive,
@@ -96,25 +105,34 @@ contract AMM is Ownable {
     // todo: consider adding parameter for spender address
     weth.safeTransfer(_recipient, erc20TotalAmount);
 
-    // todo: Emit event
+    emit ElementsSold(_tokenId, _erc1155Quantity, erc20TotalAmount, _recipient);
   }
 
   function claimPlatformRevenue(address _recipient) external onlyOwner {
     weth.transfer(_recipient, platformRevenue);
 
-    platformRevenue = 0;
+    emit PlatformRevenueClaimed(_recipient, platformRevenue);
 
-    // todo: emit event
+    platformRevenue = 0;
   }
 
-  function artistClaimRevenue(uint256 _projectId, address _recipient) external {
-    require(msg.sender == tokenIdToBondingCurve[_projectId].artistAddress, "Only artist can claim revenue");
+  function claimArtistRevenue(uint256 _projectId, address _recipient) external {
+    require(
+      msg.sender == tokenIdToBondingCurve[_projectId].artistAddress,
+      "Only artist can claim revenue"
+    );
+
+    weth.safeTransfer(
+      _recipient,
+      tokenIdToBondingCurve[_projectId].artistRevenue
+    );
+
+    emit ArtistRevenueClaimed(
+      _recipient,
+      tokenIdToBondingCurve[_projectId].artistRevenue
+    );
 
     tokenIdToBondingCurve[_projectId].artistRevenue = 0;
-
-    weth.safeTransfer(_recipient, tokenIdToBondingCurve[_projectId].artistRevenue);
-
-    // todo: Emit event
   }
 
   // todo: Move artist fee to revenue splitter contract
@@ -139,7 +157,10 @@ contract AMM is Ownable {
     view
     returns (uint256 erc20Amount)
   {
-    require(tokenIdToBondingCurve[_tokenId].artistAddress != address(0), "Bonding curve not initialized");
+    require(
+      tokenIdToBondingCurve[_tokenId].artistAddress != address(0),
+      "Bonding curve not initialized"
+    );
 
     // reserves = (a * supply) + (b * supply)^2
     uint256 newElementSupply = mockElement.totalSupply(_tokenId) +
@@ -156,7 +177,10 @@ contract AMM is Ownable {
     view
     returns (uint256 erc20Amount)
   {
-    require(tokenIdToBondingCurve[_tokenId].artistAddress != address(0), "Bonding curve not initialized");
+    require(
+      tokenIdToBondingCurve[_tokenId].artistAddress != address(0),
+      "Bonding curve not initialized"
+    );
     require(
       mockElement.totalSupply(_tokenId) >= _erc1155Quantity,
       "Quantity greater than total supply"
