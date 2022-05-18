@@ -1,9 +1,9 @@
+// SPDX-License-Identifier: Unlicense
+pragma solidity ^0.8.0;
+
 import "./interfaces/IMockCanvas.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
 
 contract DutchAuction is Ownable {
   using SafeERC20 for IERC20;
@@ -18,6 +18,29 @@ contract DutchAuction is Ownable {
     address artistAddress;
     uint256 artistRevenue;
   }
+
+  event AuctionAdded(
+    uint256 indexed projectId,
+    uint256 startTokenId,
+    uint256 endTokenId,
+    uint256 startTime,
+    uint256 endTime,
+    uint256 startPrice,
+    uint256 endPrice,
+    address indexed artistAddress
+  );
+
+  event CanvasesBought(
+    uint256 indexed projectId,
+    uint256 quantity,
+    uint256 canvasesTotalPrice
+  );
+
+  event ArtistClaimedRevenue(
+    uint256 indexed projectId,
+    address indexed recipient,
+    uint256 claimedRevenue
+  );
 
   IERC20 public weth;
   IMockCanvas public canvas;
@@ -63,10 +86,19 @@ contract DutchAuction is Ownable {
     projectIdToAuction[_projectId].endPrice = _endPrice;
     projectIdToAuction[_projectId].artistAddress = _artistAddress;
 
-    // Todo: Emit event
+    emit AuctionAdded(
+      _projectId,
+      _startTokenId,
+      _endTokenId,
+      _startTime,
+      _endTime,
+      _startPrice,
+      _endPrice,
+      _artistAddress
+    );
   }
 
-  function buyCanvas(uint256 _projectId, uint256 _quantity) external {
+  function buyCanvases(uint256 _projectId, uint256 _quantity) external {
     require(
       block.timestamp >= projectIdToAuction[_projectId].startTime,
       "Auction has not started yet"
@@ -77,27 +109,28 @@ contract DutchAuction is Ownable {
 
     projectIdToAuction[_projectId].artistRevenue += canvasesTotalPrice;
 
-    for(uint256 i; i < _quantity; i++) {
+    for (uint256 i; i < _quantity; i++) {
       canvas.safeMint(msg.sender, _projectId);
     }
 
-    weth.safeTransferFrom(
-      msg.sender,
-      address(this),
-      canvasesTotalPrice
-    );
+    weth.safeTransferFrom(msg.sender, address(this), canvasesTotalPrice);
 
-    // Todo: Emit event
+    emit CanvasesBought(_projectId, _quantity, canvasesTotalPrice);
   }
 
   function artistClaimRevenue(uint256 _projectId, address _recipient) external {
-    require(msg.sender == projectIdToAuction[_projectId].artistAddress, "Only artist can claim revenue");
+    require(
+      msg.sender == projectIdToAuction[_projectId].artistAddress,
+      "Only artist can claim revenue"
+    );
+
+    uint256 _claimedRevenue = projectIdToAuction[_projectId].artistRevenue;
 
     projectIdToAuction[_projectId].artistRevenue = 0;
 
-    weth.safeTransfer(_recipient, projectIdToAuction[_projectId].artistRevenue);
+    weth.safeTransfer(_recipient, _claimedRevenue);
 
-    // Todo: Emit event
+    emit ArtistClaimedRevenue(_projectId, _recipient, _claimedRevenue);
   }
 
   function getCanvasPrice(uint256 _projectId)
