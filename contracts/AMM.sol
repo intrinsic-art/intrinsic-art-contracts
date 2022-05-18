@@ -1,9 +1,9 @@
+// SPDX-License-Identifier: Unlicense
+pragma solidity ^0.8.0;
+
 import "./interfaces/IMockElement.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
 
 contract AMM is Ownable {
   using SafeERC20 for IERC20;
