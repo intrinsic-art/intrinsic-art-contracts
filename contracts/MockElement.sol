@@ -6,24 +6,28 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
+import "./interfaces/IMockElement.sol";
 
 //todo: list of ideas created
 //todo: check for duplicate categories
+//todo: Add IMockElement to inheritance
 contract MockElement is ERC1155, Ownable, ERC1155Burnable, ERC1155Supply {
     using Counters for Counters.Counter;
 
     constructor() ERC1155("") {}
 
     Counters.Counter private _tokenIdCounter;
-    struct FeatureInfo {
-        string featureCategory;
-        uint256[] featureTokenIds;
-    }
+
 
     mapping(uint256 => string) public tokenIdToFeature;
     mapping(uint256 => mapping(uint => string))
         public projectIdToFeatureIdToCategory; // Check for duplicate features
-    mapping(uint256 => FeatureInfo[]) public projectIdToFeatureInfo; // check for duplicate categories
+    mapping(uint256 => IMockElement.FeatureInfo[]) public projectIdToFeatureInfo; // check for duplicate categories
+
+    /// @notice Function for returning a project's feature info
+    function findProjectFeatureInfo(uint256 projectId) public view returns (IMockElement.FeatureInfo[] memory) {
+      return projectIdToFeatureInfo[projectId];
+    }
 
     /// @notice Function for easy readable features and categories based on an array of tokenIds
     /// @dev must know project Id which can be determined via canvas contract - tokenIdToProjectId
@@ -107,7 +111,7 @@ contract MockElement is ERC1155, Ownable, ERC1155Burnable, ERC1155Supply {
 
             // Assign featureStruct to a projectId
             projectIdToFeatureInfo[projectId].push(
-                FeatureInfo(featureCategories[i], ids)
+                IMockElement.FeatureInfo(featureCategories[i], ids)
             );
         }
     }
