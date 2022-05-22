@@ -14,8 +14,6 @@ contract DutchAuction is IDutchAuction, Ownable {
 
   mapping(uint256 => Auction) projectIdToAuction;
 
-  // Todo: Add events
-
   constructor(address wethAddress, address canvasAddress) {
     weth = IERC20(wethAddress);
     canvas = IMockCanvas(canvasAddress);
