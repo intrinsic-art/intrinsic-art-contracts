@@ -2,6 +2,11 @@
 pragma solidity ^0.8.0;
 
 interface IMockElement {
+  struct FeatureInfo {
+      string featureCategory;
+      uint256[] featureTokenIds;
+  }
+
   function setURI(string memory newuri) external;
 
   function mint(
@@ -34,6 +39,9 @@ interface IMockElement {
     uint256[] memory amounts,
     bytes memory data
   ) external;
+
+  /// @notice Function for returning a project's feature info
+  function findProjectFeatureInfo(uint256 projectId) external view returns (FeatureInfo[] memory);
 
   function findIdToCategory(uint256 projectId, uint256 featureId)
     external
