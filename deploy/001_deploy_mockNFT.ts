@@ -24,7 +24,7 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   mockCanvas.safeMint(deployer, Config.safeMint.projectId);
 
   // Mock Elements
-  await mockElement.createFeatures(
+  await mockCanvas.createFeaturesAndCategories(
     Config.createFeatures.projectId,
     Config.createFeatures.featureCategories,
     Config.createFeatures.features
@@ -33,8 +33,7 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   await mockElement.mintBatch(
     deployer,
     Config.mintBatch.ids,
-    Config.mintBatch.amounts,
-    Config.mintBatch.data
+    Config.mintBatch.amounts
   );
 
   await mockElement.setApprovalForAll(mockCanvas.address, true);
@@ -47,7 +46,10 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   );
 
   console.log(
-    await mockCanvas.getCanvasFeaturesAndCategories(Config.wrap.canvasId)
+    "canvas", await mockCanvas.getCanvasFeaturesAndCategories(Config.wrap.canvasId)
+  );
+  console.log(
+    "project", await mockCanvas.findProjectCategoryAndFeatures(Config.safeMint.projectId)
   );
 };
 
