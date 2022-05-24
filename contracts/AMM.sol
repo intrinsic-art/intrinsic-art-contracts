@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 
-import "./interfaces/IMockElement.sol";
+import "./MockElement.sol";
 import "./interfaces/IAMM.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -12,7 +12,7 @@ contract AMM is IAMM, Ownable {
   //todo: Should fee numerators be constants?
 
   IERC20 public weth;
-  IMockElement public mockElement;
+  MockElement public mockElement;
   uint256 public totalFeeNumerator;
   uint256 public artistFeeNumerator;
   uint256 constant DENOMINATOR = 1_000_000_000;
@@ -30,7 +30,7 @@ contract AMM is IAMM, Ownable {
     weth = IERC20(_wethAddress);
     totalFeeNumerator = _totalFeeNumerator;
     artistFeeNumerator = _artistFeeNumerator;
-    mockElement = IMockElement(_elementsAddress);
+    mockElement = MockElement(_elementsAddress);
   }
 
   function createBondingCurve(
@@ -74,7 +74,7 @@ contract AMM is IAMM, Ownable {
       erc20TotalAmount -
       erc20TotalFee;
 
-    mockElement.mint(_recipient, _tokenId, _erc1155Quantity, bytes(""));
+    mockElement.mint(_recipient, _tokenId, _erc1155Quantity);
 
     // todo: consider adding parameter for spender address
     weth.safeTransferFrom(msg.sender, address(this), erc20TotalAmount);
