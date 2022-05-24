@@ -399,6 +399,27 @@ contract MockCanvas is Initializable, ERC721BurnableUpgradeable, ERC1155Holder {
         }
     }
 
+    /// @notice Function for returning a project's feature categories and feature strings
+    function findProjectCategoryAndFeatureStrings(uint256 projectId)
+      public 
+      view 
+      returns (string[] memory featureCategories, string[][] memory featureStrings) {
+        uint256 featureCategoryLength = projectIdToFeatureInfo[projectId].length;
+        featureCategories = new string[](featureCategoryLength);
+        featureStrings = new string[][](featureCategoryLength);
+
+        for(uint256 i; i < featureCategoryLength; i++) {
+          featureCategories[i] = projectIdToFeatureInfo[projectId][i].featureCategory;
+
+          uint256 featuresLength = projectIdToFeatureInfo[projectId][i].featureTokenIds.length;
+          string[] memory innerFeatureStrings = new string[](featuresLength);
+          for(uint256 j; j < featuresLength; j++) {
+            innerFeatureStrings[j] = mockElement.tokenIdToFeature(projectIdToFeatureInfo[projectId][i].featureTokenIds[j]);
+          }
+          featureStrings[i] = innerFeatureStrings;
+        }
+      }
+
     function supportsInterface(bytes4 interfaceId)
         public
         view
