@@ -3,8 +3,8 @@ import { HardhatUserConfig } from "hardhat/config";
 import "@nomiclabs/hardhat-etherscan";
 import "@openzeppelin/hardhat-upgrades";
 import "@nomiclabs/hardhat-waffle";
-import "hardhat-deploy";
 import "@typechain/hardhat";
+import "hardhat-deploy";
 
 dotenv.config();
 
@@ -21,11 +21,6 @@ const config: HardhatUserConfig = {
   namedAccounts: {
     deployer: {
       default: 0,
-      mainnet: `privatekey://${process.env.MAINNET_DEPLOYER_PRIVATE_KEY}`,
-      ropsten: `privatekey://${process.env.ROPSTEN_DEPLOYER_PRIVATE_KEY}`,
-      rinkeby: `privatekey://${process.env.RINKEBY_DEPLOYER_PRIVATE_KEY}`,
-      goerli: `privatekey://${process.env.GOERLI_DEPLOYER_PRIVATE_KEY}`,
-      kovan: `privatekey://${process.env.KOVAN_DEPLOYER_PRIVATE_KEY}`,
     },
   },
   networks: {
