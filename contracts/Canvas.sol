@@ -5,7 +5,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721BurnableUpgradeable.sol";
 import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
-import "../Element.sol";
+import "./Element.sol";
 import "./ColoringBook.sol";
 
 contract Canvas is Initializable, ERC721BurnableUpgradeable, ERC1155Holder {

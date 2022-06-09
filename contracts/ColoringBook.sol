@@ -1,10 +1,10 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 
-import "../interfaces/IColoringBook.sol";
+import "./interfaces/IColoringBook.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
-import "../Element.sol";
+import "./Element.sol";
 
 contract ColoringBook is IColoringBook, Initializable {
     using CountersUpgradeable for CountersUpgradeable.Counter;
