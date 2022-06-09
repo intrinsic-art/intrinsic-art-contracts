@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 
-import "./MockElement.sol";
+import "./Element.sol";
 import "./interfaces/IAMM.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -12,7 +12,7 @@ contract AMM is IAMM, Ownable {
   //todo: Should fee numerators be constants?
 
   IERC20 public weth;
-  MockElement public mockElement;
+  Element public element;
   uint256 public totalFeeNumerator;
   uint256 public artistFeeNumerator;
   uint256 constant DENOMINATOR = 1_000_000_000;
@@ -30,7 +30,7 @@ contract AMM is IAMM, Ownable {
     weth = IERC20(_wethAddress);
     totalFeeNumerator = _totalFeeNumerator;
     artistFeeNumerator = _artistFeeNumerator;
-    mockElement = MockElement(_elementsAddress);
+    element = Element(_elementsAddress);
   }
 
   function createBondingCurve(
@@ -74,7 +74,7 @@ contract AMM is IAMM, Ownable {
       erc20TotalAmount -
       erc20TotalFee;
 
-    mockElement.mint(_recipient, _tokenId, _erc1155Quantity);
+    element.mint(_recipient, _tokenId, _erc1155Quantity);
 
     // todo: consider adding parameter for spender address
     weth.safeTransferFrom(msg.sender, address(this), erc20TotalAmount);
@@ -100,7 +100,7 @@ contract AMM is IAMM, Ownable {
 
     tokenIdToBondingCurve[_tokenId].reserves -= erc20TotalAmount;
 
-    mockElement.burn(msg.sender, _tokenId, _erc1155Quantity);
+    element.burn(msg.sender, _tokenId, _erc1155Quantity);
 
     // todo: consider adding parameter for spender address
     weth.safeTransfer(_recipient, erc20TotalAmount);
@@ -163,7 +163,7 @@ contract AMM is IAMM, Ownable {
     );
 
     // reserves = (a * supply) + (b * supply)^2
-    uint256 newElementSupply = mockElement.totalSupply(_tokenId) +
+    uint256 newElementSupply = element.totalSupply(_tokenId) +
       _erc1155Quantity;
 
     erc20Amount =
@@ -182,11 +182,11 @@ contract AMM is IAMM, Ownable {
       "Bonding curve not initialized"
     );
     require(
-      mockElement.totalSupply(_tokenId) >= _erc1155Quantity,
+      element.totalSupply(_tokenId) >= _erc1155Quantity,
       "Quantity greater than total supply"
     );
     // reserves = (a * supply) + (b * supply)^2
-    uint256 newElementSupply = mockElement.totalSupply(_tokenId) -
+    uint256 newElementSupply = element.totalSupply(_tokenId) -
       _erc1155Quantity;
 
     erc20Amount =
