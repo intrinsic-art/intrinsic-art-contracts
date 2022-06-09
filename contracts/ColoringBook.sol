@@ -1,16 +1,20 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 
-import "../interfaces/IColoringBook.sol";
+import "./interfaces/IColoringBook.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
-import "../Element.sol";
+import "./Element.sol";
+import "./interfaces/IDutchAuction.sol";
 
 contract ColoringBook is IColoringBook, Initializable {
     using CountersUpgradeable for CountersUpgradeable.Counter;
 
     // Contract Storage
     Element public element;
+    IDutchAuction public dutchAuction;
+    address public canvas;
+    address public weth;
     // Project Storage
     CountersUpgradeable.Counter private _projectIdCounter;
     mapping(uint256 => ProjectDetails) public projects;
@@ -26,14 +30,23 @@ contract ColoringBook is IColoringBook, Initializable {
     }
 
     /////////// Project Functions /////////////
-    function initialize(address elementContract) external initializer {
-        element = Element(elementContract);
+    function initialize(
+        address _element,
+        address _dutchAuction,
+        address _canvas,
+        address _weth
+    ) external initializer {
+        element = Element(_element);
+        dutchAuction = IDutchAuction(_dutchAuction);
+        canvas = _canvas;
+        weth = _weth;
     }
 
     function addProject(
         CreateProject memory _createProject,
         CreateMetaData memory _createMetaData,
         CreateScripts memory _createScripts,
+        CreateAuction memory _createAuction,
         CreateFeaturesAndCategories memory _createFeaturesAndCategories
     ) public {
         require(
@@ -67,6 +80,19 @@ contract ColoringBook is IColoringBook, Initializable {
             _createFeaturesAndCategories.featureCategories,
             _createFeaturesAndCategories.features
         );
+        // Create Dutch Autcion
+        IDutchAuction.Auction memory _auction = IDutchAuction.Auction(
+            projectId * 1_000_000,
+            (projectId * 1_000_000) + _createProject.maxInvocations,
+            _createAuction.startTime,
+            _createAuction.endTime,
+            _createAuction.startPrice,
+            _createAuction.endPrice,
+            _createProject.artist,
+            canvas,
+            weth
+        );
+        dutchAuction.addAuction(projectId, _auction);
     }
 
     //////// Artist Functions //////////
@@ -79,10 +105,11 @@ contract ColoringBook is IColoringBook, Initializable {
         string memory _description
     ) external onlyArtist(_projectId) {
         // check start time on Auction contract
-        // require(
-        //     block.timestamp < projects[_projectId].startTime,
-        //     "Project Already Started"
-        // );
+        (, , uint256 startTime, , , , , , ) = dutchAuction.projectIdToAuction(
+            address(this),
+            _projectId
+        );
+        require(block.timestamp < startTime, "Project Already Started");
         _updateProject(
             _projectId,
             _artist,
@@ -113,10 +140,11 @@ contract ColoringBook is IColoringBook, Initializable {
         uint256[] memory _scriptIndex,
         string memory _scriptJSON
     ) external onlyArtist(_projectId) {
-        // require(
-        //     block.timestamp < projects[_projectId].startTime,
-        //     "Project Already Started"
-        // );
+        (, , uint256 startTime, , , , , , ) = dutchAuction.projectIdToAuction(
+            address(this),
+            _projectId
+        );
+        require(block.timestamp < startTime, "Project Already Started");
         _updateScripts(_projectId, _scripts, _scriptIndex, _scriptJSON);
     }
 

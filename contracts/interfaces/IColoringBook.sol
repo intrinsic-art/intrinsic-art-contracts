@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 interface IColoringBook {
-struct ProjectDetails {
+    struct ProjectDetails {
         // Project Essentials
         address artist;
         uint256 maxInvocations;
@@ -42,5 +42,13 @@ struct ProjectDetails {
     struct FeatureInfo {
         string featureCategory;
         uint256[] featureTokenIds;
+    }
+    struct CreateAuction {
+        uint256 startTime;
+        uint256 endTime;
+        uint256 startPrice;
+        uint256 endPrice;
+        address erc721;
+        address currency;
     }
 }
