@@ -30,7 +30,12 @@ contract ColoringBook is IColoringBook, Initializable {
     }
 
     /////////// Project Functions /////////////
-    function initialize(address _element, address _dutchAuction, address _canvas, address _weth) external initializer {
+    function initialize(
+        address _element,
+        address _dutchAuction,
+        address _canvas,
+        address _weth
+    ) external initializer {
         element = Element(_element);
         dutchAuction = IDutchAuction(_dutchAuction);
         canvas = _canvas;
@@ -100,10 +105,11 @@ contract ColoringBook is IColoringBook, Initializable {
         string memory _description
     ) external onlyArtist(_projectId) {
         // check start time on Auction contract
-        // require(
-        //     block.timestamp < projects[_projectId].startTime,
-        //     "Project Already Started"
-        // );
+        (, , uint256 startTime, , , , , , ) = dutchAuction.projectIdToAuction(
+            address(this),
+            _projectId
+        );
+        require(block.timestamp < startTime, "Project Already Started");
         _updateProject(
             _projectId,
             _artist,
@@ -134,10 +140,11 @@ contract ColoringBook is IColoringBook, Initializable {
         uint256[] memory _scriptIndex,
         string memory _scriptJSON
     ) external onlyArtist(_projectId) {
-        // require(
-        //     block.timestamp < projects[_projectId].startTime,
-        //     "Project Already Started"
-        // );
+        (, , uint256 startTime, , , , , , ) = dutchAuction.projectIdToAuction(
+            address(this),
+            _projectId
+        );
+        require(block.timestamp < startTime, "Project Already Started");
         _updateScripts(_projectId, _scripts, _scriptIndex, _scriptJSON);
     }
 
