@@ -8,8 +8,8 @@ import "./interfaces/IERC721Mint.sol";
 contract DutchAuction is IDutchAuction {
     using SafeERC20 for IERC20;
 
-    mapping(address => mapping(uint256 => Auction)) projectIdToAuction;
-    mapping(address => mapping(address => uint256)) currencyToBalances;
+    mapping(address => mapping(uint256 => Auction)) public projectIdToAuction;
+    mapping(address => mapping(address => uint256)) public currencyToBalances;
 
     function addAuction(uint256 _projectId, Auction memory _auction) external {
         require(
