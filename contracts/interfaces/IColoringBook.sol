@@ -51,4 +51,8 @@ interface IColoringBook {
         address erc721;
         address currency;
     }
+    struct CreateAMM {
+        uint256[] constantA;
+        uint256[] constantB;
+    }
 }
