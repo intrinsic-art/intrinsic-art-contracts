@@ -75,7 +75,7 @@ contract ColoringBook is IColoringBook, Initializable {
             _createScripts.scriptIndex,
             _createScripts.scriptJSON
         );
-        createFeaturesAndCategories(
+        uint256[] memory ids = createFeaturesAndCategories(
             projectId,
             _createFeaturesAndCategories.featureCategories,
             _createFeaturesAndCategories.features
@@ -160,10 +160,10 @@ contract ColoringBook is IColoringBook, Initializable {
         uint256 projectId,
         string[] memory featureCategories,
         string[][] memory features
-    ) public {
+    ) public returns(uint256[] memory ids) {
         // Looping through categories to assign mappings
         for (uint256 i; i < featureCategories.length; i++) {
-            uint256[] memory ids = new uint256[](features[i].length);
+            ids = new uint256[](features[i].length);
 
             for (uint256 k; k < features[i].length; k++) {
                 // Assign featureString to tokenId mapping
