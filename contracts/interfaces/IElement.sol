@@ -1,7 +1,7 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 
-interface IMockElement {
+interface IElement {
     function setURI(string memory newuri) external;
 
     function mint(

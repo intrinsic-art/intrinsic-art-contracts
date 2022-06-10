@@ -11,7 +11,7 @@ import "./ColoringBook.sol";
 contract Canvas is Initializable, ERC721BurnableUpgradeable, ERC1155Holder {
     using Strings for string;
     // Contracts Storage
-    Element public element; 
+    Element public element;
     address public dutchAuction;
     ColoringBook public coloringBook;
     // TokenId Storage
@@ -54,14 +54,15 @@ contract Canvas is Initializable, ERC721BurnableUpgradeable, ERC1155Holder {
         public
         returns (uint256 tokenId)
     {
-        (,uint maxInvocations,,,,,,,,) = coloringBook.projects(_projectId);
+        (, uint256 maxInvocations, , , , , , , , ) = coloringBook.projects(
+            _projectId
+        );
         require(
             msg.sender == dutchAuction,
             "Please use the Dutch Auction contract to mint a canvas"
         );
         require(
-            (projectToInvocations[_projectId] + 1) <=
-                maxInvocations,
+            (projectToInvocations[_projectId] + 1) <= maxInvocations,
             "This project has sold out"
         );
         projectToInvocations[_projectId] += 1;
@@ -180,14 +181,12 @@ contract Canvas is Initializable, ERC721BurnableUpgradeable, ERC1155Holder {
         override
         returns (string memory)
     {
-        (,,,,,,string memory projectBaseURI,,,) = coloringBook.projects(tokenIdToProjectId[_tokenId]);
-        
+        (, , , , , , string memory projectBaseURI, , , ) = coloringBook
+            .projects(tokenIdToProjectId[_tokenId]);
+
         return
             string(
-                abi.encodePacked(
-                    projectBaseURI,
-                    Strings.toString(_tokenId)
-                )
+                abi.encodePacked(projectBaseURI, Strings.toString(_tokenId))
             );
     }
 
@@ -199,7 +198,10 @@ contract Canvas is Initializable, ERC721BurnableUpgradeable, ERC1155Holder {
         view
         returns (string memory categoryString)
     {
-        categoryString = coloringBook.projectIdToFeatureIdToCategory(projectId,featureId);
+        categoryString = coloringBook.projectIdToFeatureIdToCategory(
+            projectId,
+            featureId
+        );
     }
 
     function supportsInterface(bytes4 interfaceId)

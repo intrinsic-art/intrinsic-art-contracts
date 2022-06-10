@@ -56,7 +56,8 @@ contract ColoringBook is IColoringBook, Initializable {
     ) public {
         require(
             _createAMM.constantA.length == _createAMM.constantB.length &&
-            _createFeaturesAndCategories.features.length == _createAMM.constantA.length,
+                _createFeaturesAndCategories.features.length ==
+                _createAMM.constantA.length,
             "Arrays not equal"
         );
         require(

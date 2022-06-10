@@ -6,11 +6,17 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
-import "./interfaces/IMockElement.sol";
+import "./interfaces/IElement.sol";
 
 //todo: list of ideas created
 //todo: check for duplicate categories
-contract Element is IMockElement, ERC1155, Ownable, ERC1155Burnable, ERC1155Supply {
+contract Element is
+    IElement,
+    ERC1155,
+    Ownable,
+    ERC1155Burnable,
+    ERC1155Supply
+{
     using Counters for Counters.Counter;
 
     constructor() ERC1155("") {}
