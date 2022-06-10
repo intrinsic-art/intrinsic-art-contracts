@@ -8,6 +8,7 @@ interface IAMM {
     uint256 reserves;
     address artistAddress;
     address erc1155;
+    uint256 startTime;
   }
 
   event BondingCurveCreated(
@@ -16,7 +17,8 @@ interface IAMM {
     uint256 constantA,
     uint256 constantB,
     address indexed artistAddress,
-    address erc1155
+    address erc1155,
+    uint256 startTime
   );
 
   event ElementsBought(
@@ -49,7 +51,8 @@ interface IAMM {
     uint256 _constantA,
     uint256 _constantB,
     address _artistAddress,
-    address _erc1155
+    address _erc1155,
+    uint256 _startTime
   ) external;
 
   function buyElements(
