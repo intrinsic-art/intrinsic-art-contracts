@@ -6,18 +6,21 @@ interface IAMM {
     uint256 constantA;
     uint256 constantB;
     uint256 reserves;
-    uint256 artistRevenue;
     address artistAddress;
+    address erc1155;
   }
 
   event BondingCurveCreated(
+    address indexed bondingCurveCreator,
     uint256 indexed tokenId,
     uint256 constantA,
     uint256 constantB,
-    address indexed artistAddress
+    address indexed artistAddress,
+    address erc1155
   );
 
   event ElementsBought(
+    address indexed bondingCurveCreator,
     uint256 indexed tokenId,
     uint256 erc1155Quantity,
     uint256 erc20TotalSpent,
@@ -27,6 +30,7 @@ interface IAMM {
   );
 
   event ElementsSold(
+    address indexed bondingCurveCreator,
     uint256 indexed tokenId,
     uint256 erc1155Quantity,
     uint256 erc20Received,
@@ -44,28 +48,33 @@ interface IAMM {
     uint256 _tokenId,
     uint256 _constantA,
     uint256 _constantB,
-    address _artistAddress
+    address _artistAddress,
+    address _erc1155
   ) external;
 
   function buyElements(
+    address _bondingCurveCreator,
     uint256 _tokenId,
     uint256 _erc1155Quantity,
     uint256 _maxERC20ToSpend,
-    address _recipient
+    address _recipient,
+    address _spender
   ) external;
 
   function sellElements(
+    address _bondingCurveCreator,
     uint256 _tokenId,
     uint256 _erc1155Quantity,
     uint256 _minERC20ToReceive,
-    address _recipient
+    address _recipient,
+    address _sender
   ) external;
 
   function claimPlatformRevenue(address _recipient) external;
 
-  function claimArtistRevenue(uint256 _projectId, address _recipient) external;
+  function claimArtistRevenue(address _recipient) external;
 
-  function getBuyERC20AmountWithFee(uint256 _tokenId, uint256 _erc1155Quantity)
+  function getBuyERC20AmountWithFee(address _bondingCurveCreator, uint256 _tokenId, uint256 _erc1155Quantity)
     external
     view
     returns (
@@ -74,12 +83,12 @@ interface IAMM {
       uint256 erc20ArtistFee
     );
 
-  function getBuyERC20Amount(uint256 _tokenId, uint256 _erc1155Quantity)
+  function getBuyERC20Amount(address _bondingCurveCreator, uint256 _tokenId, uint256 _erc1155Quantity)
     external
     view
     returns (uint256 erc20Amount);
 
-  function getSellERC20Amount(uint256 _tokenId, uint256 _erc1155Quantity)
+  function getSellERC20Amount(address _bondingCurveCreator, uint256 _tokenId, uint256 _erc1155Quantity)
     external
     view
     returns (uint256 erc20Amount);
