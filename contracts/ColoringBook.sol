@@ -6,12 +6,14 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
 import "./Element.sol";
 import "./interfaces/IDutchAuction.sol";
+import "./AMM.sol";
 
 contract ColoringBook is IColoringBook, Initializable {
     using CountersUpgradeable for CountersUpgradeable.Counter;
 
     // Contract Storage
     Element public element;
+    AMM public amm;
     IDutchAuction public dutchAuction;
     address public canvas;
     address public weth;
@@ -32,11 +34,13 @@ contract ColoringBook is IColoringBook, Initializable {
     /////////// Project Functions /////////////
     function initialize(
         address _element,
+        address _amm,
         address _dutchAuction,
         address _canvas,
         address _weth
     ) external initializer {
         element = Element(_element);
+        amm = AMM(_amm);
         dutchAuction = IDutchAuction(_dutchAuction);
         canvas = _canvas;
         weth = _weth;
@@ -47,8 +51,14 @@ contract ColoringBook is IColoringBook, Initializable {
         CreateMetaData memory _createMetaData,
         CreateScripts memory _createScripts,
         CreateAuction memory _createAuction,
-        CreateFeaturesAndCategories memory _createFeaturesAndCategories
+        CreateFeaturesAndCategories memory _createFeaturesAndCategories,
+        CreateAMM memory _createAMM
     ) public {
+        require(
+            _createAMM.constantA.length == _createAMM.constantB.length &&
+            _createFeaturesAndCategories.features.length == _createAMM.constantA.length,
+            "Arrays not equal"
+        );
         require(
             _createProject.maxInvocations < 1_000_000,
             "The max project size is 1_000_000"
@@ -75,11 +85,6 @@ contract ColoringBook is IColoringBook, Initializable {
             _createScripts.scriptIndex,
             _createScripts.scriptJSON
         );
-        createFeaturesAndCategories(
-            projectId,
-            _createFeaturesAndCategories.featureCategories,
-            _createFeaturesAndCategories.features
-        );
         // Create Dutch Autcion
         IDutchAuction.Auction memory _auction = IDutchAuction.Auction(
             projectId * 1_000_000,
@@ -93,6 +98,22 @@ contract ColoringBook is IColoringBook, Initializable {
             weth
         );
         dutchAuction.addAuction(projectId, _auction);
+        uint256[] memory ids = createFeaturesAndCategories(
+            projectId,
+            _createFeaturesAndCategories.featureCategories,
+            _createFeaturesAndCategories.features
+        );
+        // Create AMM contract
+        for (uint256 i; i < ids.length; i++) {
+            amm.createBondingCurve(
+                ids[i],
+                _createAMM.constantA[i],
+                _createAMM.constantB[i],
+                _createProject.artist,
+                canvas,
+                _createAuction.startTime
+            );
+        }
     }
 
     //////// Artist Functions //////////
@@ -160,10 +181,10 @@ contract ColoringBook is IColoringBook, Initializable {
         uint256 projectId,
         string[] memory featureCategories,
         string[][] memory features
-    ) public {
+    ) public returns (uint256[] memory ids) {
         // Looping through categories to assign mappings
         for (uint256 i; i < featureCategories.length; i++) {
-            uint256[] memory ids = new uint256[](features[i].length);
+            ids = new uint256[](features[i].length);
 
             for (uint256 k; k < features[i].length; k++) {
                 // Assign featureString to tokenId mapping

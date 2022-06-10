@@ -13,6 +13,10 @@ contract DutchAuction is IDutchAuction {
 
     function addAuction(uint256 _projectId, Auction memory _auction) external {
         require(
+            projectIdToAuction[msg.sender][_projectId].currency != address(0),
+            "Dutch Auction already initialized"
+        );
+        require(
             _auction.startPrice >= _auction.endPrice,
             "Start price must be greater than or equal end price"
         );
@@ -23,10 +27,6 @@ contract DutchAuction is IDutchAuction {
         require(
             _auction.endTokenId >= _auction.startTokenId,
             "End Token ID must be greater than or equal to Start Token ID"
-        );
-        require(
-            _auction.startTokenId >= 1,
-            "Start token ID must be greater than or equal to 1"
         );
 
         projectIdToAuction[msg.sender][_projectId] = Auction(
