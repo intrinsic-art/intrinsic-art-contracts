@@ -28,7 +28,10 @@ contract ColoringBook is IColoringBook, Initializable {
     mapping(uint256 => FeatureInfo[]) public projectIdToFeatureInfo; // check for duplicate categories
 
     modifier onlyArtist(uint256 projectId) {
-        require(msg.sender == projects[projectId].artist);
+        require(
+            msg.sender == projects[projectId].artist,
+            "You are not the project's artist"
+        );
         _;
     }
 
@@ -170,7 +173,6 @@ contract ColoringBook is IColoringBook, Initializable {
         _updateScripts(_projectId, _scripts, _scriptIndex, _scriptJSON);
     }
 
-    //todo: check if this can be overriden/ should this be stopped during deployment
     /// @dev Artist should be able to create features
     /// @dev Creates token Ids w/ counter
     /// and assignes the tokenId w/ a feature
@@ -182,7 +184,12 @@ contract ColoringBook is IColoringBook, Initializable {
         uint256 projectId,
         string[] memory featureCategories,
         string[][] memory features
-    ) public returns (uint256[] memory ids) {
+    ) public onlyArtist(projectId) returns (uint256[] memory ids) {
+        (, , uint256 startTime, , , , , , ) = dutchAuction.projectIdToAuction(
+            address(this),
+            projectId
+        );
+        require(block.timestamp < startTime, "Project Already Started");
         // Looping through categories to assign mappings
         for (uint256 i; i < featureCategories.length; i++) {
             ids = new uint256[](features[i].length);
@@ -245,8 +252,8 @@ contract ColoringBook is IColoringBook, Initializable {
         string memory _artistName,
         string memory _description
     ) internal {
-        if(projects[_projectId].artist == address(0)) {
-        projects[_projectId].artist = _artist;
+        if (projects[_projectId].artist == address(0)) {
+            projects[_projectId].artist = _artist;
         }
         projects[_projectId].maxInvocations = _maxInvocations;
         projects[_projectId].projectName = _projectName;
@@ -273,7 +280,7 @@ contract ColoringBook is IColoringBook, Initializable {
     ) internal {
         require(_scripts.length == _scriptIndex.length);
         for (uint256 i; i < _scripts.length; i++) {
-            if(_scriptIndex[i] < scripts[_projectId].length) {
+            if (_scriptIndex[i] < scripts[_projectId].length) {
                 scripts[_projectId][_scriptIndex[i]] = _scripts[i];
             } else {
                 projects[_projectId].scriptCount += 1;
