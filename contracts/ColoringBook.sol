@@ -121,7 +121,6 @@ contract ColoringBook is IColoringBook, Initializable {
     //////// Artist Functions //////////
     function updateProject(
         uint256 _projectId,
-        address _artist,
         uint256 _maxInvocations,
         string memory _projectName,
         string memory _artistName,
@@ -135,7 +134,7 @@ contract ColoringBook is IColoringBook, Initializable {
         require(block.timestamp < startTime, "Project Already Started");
         _updateProject(
             _projectId,
-            _artist,
+            address(0),
             _maxInvocations,
             _projectName,
             _artistName,
@@ -246,7 +245,9 @@ contract ColoringBook is IColoringBook, Initializable {
         string memory _artistName,
         string memory _description
     ) internal {
+        if(projects[_projectId].artist == address(0)) {
         projects[_projectId].artist = _artist;
+        }
         projects[_projectId].maxInvocations = _maxInvocations;
         projects[_projectId].projectName = _projectName;
         projects[_projectId].artistName = _artistName;
@@ -272,11 +273,11 @@ contract ColoringBook is IColoringBook, Initializable {
     ) internal {
         require(_scripts.length == _scriptIndex.length);
         for (uint256 i; i < _scripts.length; i++) {
-            projects[_projectId].scriptCount += 1;
-            if(projects[_projectId].scriptCount >  scripts[_projectId].length) {
-                scripts[_projectId].push(_scripts[i]);
-            } else {
+            if(_scriptIndex[i] < scripts[_projectId].length) {
                 scripts[_projectId][_scriptIndex[i]] = _scripts[i];
+            } else {
+                projects[_projectId].scriptCount += 1;
+                scripts[_projectId].push(_scripts[i]);
             }
         }
         projects[_projectId].scriptJSON = _scriptJSON;
