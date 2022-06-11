@@ -8,7 +8,7 @@ import {
   MockWeth__factory,
 } from "../typechain-types";
 import { expect } from "chai";
-import { ethers, deployments } from "hardhat";
+import { ethers, deployments, network } from "hardhat";
 
 describe.only("Coloring Book", function () {
   let coloringBook: ColoringBook;
@@ -20,6 +20,7 @@ describe.only("Coloring Book", function () {
 
   // wallets
   let deployer: any;
+  let user: any;
 
   // vars
   let timestamp: any;
@@ -84,7 +85,7 @@ describe.only("Coloring Book", function () {
 
   beforeEach(async function () {
     // Run deploy scripts
-    [deployer] = await ethers.getSigners();
+    [deployer, user] = await ethers.getSigners();
     await deployments.fixture();
 
     // Get deployed MockNFT contract
@@ -175,8 +176,51 @@ describe.only("Coloring Book", function () {
       "scriptJSON",
     ]);
   });
+  it("Updating project Revert incorrect Artist / Start Time", async () => {
+    await addProject();
+    await expect(
+      coloringBook
+        .connect(user)
+        .updateProject(0, 101, "Name2", "Artist2", "Description2")
+    ).to.be.revertedWith("You are not the project's artist");
+
+    await network.provider.send("evm_increaseTime", [100]);
+    await network.provider.send("evm_mine");
+    await expect(
+      coloringBook.updateProject(0, 101, "Name2", "Artist2", "Description2")
+    ).to.be.revertedWith("Project Already Started");
+  });
   it("Updating metadata", async () => {
     await addProject();
+    await coloringBook.updateMetaData(
+      0,
+      "Website2",
+      "License2",
+      "ProjectBaseURI2"
+    );
+    expect(await coloringBook.projects(0)).to.deep.eq([
+      deployer.address,
+      ethers.BigNumber.from("100"),
+      "Name",
+      "Artist",
+      "Description",
+      "Website2",
+      "License2",
+      "ProjectBaseURI2",
+      ethers.BigNumber.from("1"),
+      "scriptJSON",
+    ]);
+  });
+  it("Updating metadata Revert incorrect Artist", async () => {
+    await addProject();
+    await expect(
+      coloringBook
+        .connect(user)
+        .updateMetaData(0, "Website2", "License2", "ProjectBaseURI2")
+    ).to.be.revertedWith("You are not the project's artist");
+
+    await network.provider.send("evm_increaseTime", [100]);
+    await network.provider.send("evm_mine");
     await coloringBook.updateMetaData(
       0,
       "Website2",
@@ -213,6 +257,20 @@ describe.only("Coloring Book", function () {
     ]);
     expect(await coloringBook.scripts(0, 0)).to.deep.eq("scripts2");
   });
+  it("Updating script Revert incorrect Artist / Start Time", async () => {
+    await addProject();
+    await expect(
+      coloringBook
+        .connect(user)
+        .updateScripts(0, ["scripts2"], [0], "scriptJSON2")
+    ).to.be.revertedWith("You are not the project's artist");
+
+    await network.provider.send("evm_increaseTime", [100]);
+    await network.provider.send("evm_mine");
+    await expect(
+      coloringBook.updateScripts(0, ["scripts2"], [0], "scriptJSON2")
+    ).to.be.revertedWith("Project Already Started");
+  });
   it("Adding scripts", async () => {
     await addProject();
     await coloringBook.updateScripts(0, ["scripts2"], [1], "scriptJSON");
@@ -247,5 +305,23 @@ describe.only("Coloring Book", function () {
       ["featureCategories", "featureCategories2"],
       [["features"], ["features2"]],
     ]);
+  });
+  it("Creating features Revert incorrect Artist / Start Time", async () => {
+    await addProject();
+    await expect(
+      coloringBook
+        .connect(user)
+        .createFeaturesAndCategories(0, ["featureCategories2"], [["features2"]])
+    ).to.be.revertedWith("You are not the project's artist");
+
+    await network.provider.send("evm_increaseTime", [100]);
+    await network.provider.send("evm_mine");
+    await expect(
+      coloringBook.createFeaturesAndCategories(
+        0,
+        ["featureCategories2"],
+        [["features2"]]
+      )
+    ).to.be.revertedWith("Project Already Started");
   });
 });
