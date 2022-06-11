@@ -15,7 +15,6 @@ interface IColoringBook {
         string projectBaseURI; // if project is dynamic, tokenUri will be "{projectBaseUri}/{tokenId}"
         // Javascript Scripts
         uint256 scriptCount; // number of scripts
-        uint256[] scriptIndex;
         string scriptJSON; // script metadata such as what libraries it depends on
     }
     struct CreateProject {
