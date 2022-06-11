@@ -93,6 +93,18 @@ describe.only("Coloring Book", function () {
       CreateFeaturesAndCategories,
       CreateAMM
     );
-    console.log(await coloringBook.projects(0));
+
+    expect(await coloringBook.projects(0)).to.deep.eq([
+      deployer.address,
+      ethers.BigNumber.from("100"),
+      "Name",
+      "Artist",
+      "Description",
+      "Website",
+      "License",
+      "ProjectBaseURI",
+      ethers.BigNumber.from("1"),
+      "scriptJSON",
+    ]);
   });
 });
