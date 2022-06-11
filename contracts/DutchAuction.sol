@@ -13,7 +13,7 @@ contract DutchAuction is IDutchAuction {
 
     function addAuction(uint256 _projectId, Auction memory _auction) external {
         require(
-            projectIdToAuction[msg.sender][_projectId].currency != address(0),
+            projectIdToAuction[msg.sender][_projectId].currency == address(0),
             "Dutch Auction already initialized"
         );
         require(
