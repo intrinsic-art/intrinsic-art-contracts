@@ -112,7 +112,7 @@ contract ColoringBook is IColoringBook, Initializable {
                 _createAMM.constantA[i],
                 _createAMM.constantB[i],
                 _createProject.artist,
-                canvas,
+                address(element),
                 _createAuction.startTime
             );
         }
