@@ -153,4 +153,99 @@ describe.only("Coloring Book", function () {
       ]
     );
   });
+  it("Updating project", async () => {
+    await addProject();
+    await coloringBook.updateProject(
+      0,
+      101,
+      "Name2",
+      "Artist2",
+      "Description2"
+    );
+    expect(await coloringBook.projects(0)).to.deep.eq([
+      deployer.address,
+      ethers.BigNumber.from("101"),
+      "Name2",
+      "Artist2",
+      "Description2",
+      "Website",
+      "License",
+      "ProjectBaseURI",
+      ethers.BigNumber.from("1"),
+      "scriptJSON",
+    ]);
+  });
+  it("Updating metadata", async () => {
+    await addProject();
+    await coloringBook.updateMetaData(
+      0,
+      "Website2",
+      "License2",
+      "ProjectBaseURI2"
+    );
+    expect(await coloringBook.projects(0)).to.deep.eq([
+      deployer.address,
+      ethers.BigNumber.from("100"),
+      "Name",
+      "Artist",
+      "Description",
+      "Website2",
+      "License2",
+      "ProjectBaseURI2",
+      ethers.BigNumber.from("1"),
+      "scriptJSON",
+    ]);
+  });
+  it("Updating scripts", async () => {
+    await addProject();
+    await coloringBook.updateScripts(0, ["scripts2"], [0], "scriptJSON2");
+    expect(await coloringBook.projects(0)).to.deep.eq([
+      deployer.address,
+      ethers.BigNumber.from("100"),
+      "Name",
+      "Artist",
+      "Description",
+      "Website",
+      "License",
+      "ProjectBaseURI",
+      ethers.BigNumber.from("1"),
+      "scriptJSON2",
+    ]);
+    expect(await coloringBook.scripts(0, 0)).to.deep.eq("scripts2");
+  });
+  it("Adding scripts", async () => {
+    await addProject();
+    await coloringBook.updateScripts(0, ["scripts2"], [1], "scriptJSON");
+    expect(await coloringBook.projects(0)).to.deep.eq([
+      deployer.address,
+      ethers.BigNumber.from("100"),
+      "Name",
+      "Artist",
+      "Description",
+      "Website",
+      "License",
+      "ProjectBaseURI",
+      ethers.BigNumber.from("2"),
+      "scriptJSON",
+    ]);
+    expect(await coloringBook.scripts(0, 1)).to.deep.eq("scripts2");
+  });
+  it("Creating  features", async () => {
+    await addProject();
+    await coloringBook.createFeaturesAndCategories(
+      0,
+      ["featureCategories2"],
+      [["features2"]]
+    );
+    expect(await element.tokenIdToFeature(2)).to.eq("features2");
+    expect(await coloringBook.projectIdToFeatureIdToCategory(0, 2)).to.eq(
+      "featureCategories2"
+    );
+    expect(
+      await coloringBook.findProjectCategoryAndFeatureStrings(0)
+    ).to.deep.equal([
+      ["featureCategories", "featureCategories2"],
+      [["features"], ["features2"]],
+    ]);
+  });
 });
