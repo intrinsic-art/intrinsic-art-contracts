@@ -7,6 +7,7 @@ import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
 import "./Element.sol";
 import "./interfaces/IDutchAuction.sol";
 import "./AMM.sol";
+import "hardhat/console.sol";
 
 contract ColoringBook is IColoringBook, Initializable {
     using CountersUpgradeable for CountersUpgradeable.Counter;
@@ -245,11 +246,6 @@ contract ColoringBook is IColoringBook, Initializable {
         string memory _artistName,
         string memory _description
     ) internal {
-        // require(
-        //     _startPrice >= _endPrice,
-        //     "Start price must be greater than or equal end price"
-        // );
-        // require(_endTime > _startTime, "End time must be after start time");
         projects[_projectId].artist = _artist;
         projects[_projectId].maxInvocations = _maxInvocations;
         projects[_projectId].projectName = _projectName;
@@ -277,7 +273,11 @@ contract ColoringBook is IColoringBook, Initializable {
         require(_scripts.length == _scriptIndex.length);
         for (uint256 i; i < _scripts.length; i++) {
             projects[_projectId].scriptCount += 1;
-            scripts[_projectId][_scriptIndex[i]] = _scripts[i];
+            if(projects[_projectId].scriptCount >  scripts[_projectId].length) {
+                scripts[_projectId].push(_scripts[i]);
+            } else {
+                scripts[_projectId][_scriptIndex[i]] = _scripts[i];
+            }
         }
         projects[_projectId].scriptJSON = _scriptJSON;
     }
