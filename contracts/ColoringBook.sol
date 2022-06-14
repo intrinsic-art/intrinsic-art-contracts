@@ -55,12 +55,12 @@ contract ColoringBook is IColoringBook, Initializable {
         CreateMetaData memory _createMetaData,
         CreateScripts memory _createScripts,
         CreateAuction memory _createAuction,
-        CreateFeaturesAndCategories memory _createFeaturesAndCategories,
+        CreateFeaturesAndCategories memory _createFeatAndCat,
         CreateAMM memory _createAMM
-    ) public {
+    ) public returns (uint256 projectId, uint256[] memory ids) {
         require(
             _createAMM.constantA.length == _createAMM.constantB.length &&
-                _createFeaturesAndCategories.features.length ==
+                _createFeatAndCat.features.length ==
                 _createAMM.constantA.length,
             "Arrays not equal"
         );
@@ -68,7 +68,7 @@ contract ColoringBook is IColoringBook, Initializable {
             _createProject.maxInvocations < 1_000_000,
             "The max project size is 1_000_000"
         );
-        uint256 projectId = _projectIdCounter.current();
+        projectId = _projectIdCounter.current();
         _projectIdCounter.increment();
         _updateProject(
             projectId,
@@ -103,22 +103,13 @@ contract ColoringBook is IColoringBook, Initializable {
             weth
         );
         dutchAuction.addAuction(projectId, _auction);
-        uint256[] memory ids = createFeaturesAndCategories(
+        ids = _createFeaturesAndCategories(
             projectId,
-            _createFeaturesAndCategories.featureCategories,
-            _createFeaturesAndCategories.features
+            _createAuction.startTime,
+            _createFeatAndCat.featureCategories,
+            _createFeatAndCat.features,
+            _createAMM
         );
-        // Create AMM contract
-        for (uint256 i; i < ids.length; i++) {
-            amm.createBondingCurve(
-                ids[i],
-                _createAMM.constantA[i],
-                _createAMM.constantB[i],
-                _createProject.artist,
-                address(element),
-                _createAuction.startTime
-            );
-        }
     }
 
     //////// Artist Functions //////////
@@ -181,39 +172,30 @@ contract ColoringBook is IColoringBook, Initializable {
     /// to assure features from the same category are not
     /// wrapped together
     function createFeaturesAndCategories(
-        uint256 projectId,
-        string[] memory featureCategories,
-        string[][] memory features
-    ) public onlyArtist(projectId) returns (uint256[] memory ids) {
-        (, , uint256 startTime, , , , , , ) = dutchAuction.projectIdToAuction(
+        uint256 _projectId,
+        uint256 _startTime,
+        string[] memory _featureCategories,
+        string[][] memory _features,
+        CreateAMM memory _createAMM
+    ) public onlyArtist(_projectId) returns (uint256[] memory ids) {
+        (, , uint256 projectStartTime, , , , , , ) = dutchAuction.projectIdToAuction(
             address(this),
-            projectId
+            _projectId
         );
-        require(block.timestamp < startTime, "Project Already Started");
+        require(projectStartTime <= _startTime, "Cannot start AMM before project starts");
         // Looping through categories to assign mappings
-        for (uint256 i; i < featureCategories.length; i++) {
-            ids = new uint256[](features[i].length);
-
-            for (uint256 k; k < features[i].length; k++) {
-                // Assign featureString to tokenId mapping
-                uint256 tokenId = element.createFeature(features[i][k]);
-                projectIdToFeatureIdToCategory[projectId][
-                    tokenId
-                ] = featureCategories[i];
-                // Assign ids @k index to current tokenId
-                ids[k] = tokenId;
-            }
-
-            // Assign featureStruct to a projectId
-            projectIdToFeatureInfo[projectId].push(
-                FeatureInfo(featureCategories[i], ids)
-            );
-        }
+        ids = _createFeaturesAndCategories(
+            _projectId,
+            _startTime,
+            _featureCategories,
+            _features,
+            _createAMM
+        );
     }
 
     /////// View Functions ///////////
     /// @notice Function for returning a project's feature categories and feature strings
-    function findProjectCategoryAndFeatureStrings(uint256 projectId)
+    function findProjectCategoryAndFeatureStrings(uint256 _projectId)
         public
         view
         returns (
@@ -221,22 +203,22 @@ contract ColoringBook is IColoringBook, Initializable {
             string[][] memory featureStrings
         )
     {
-        uint256 featureCategoryLength = projectIdToFeatureInfo[projectId]
+        uint256 featureCategoryLength = projectIdToFeatureInfo[_projectId]
             .length;
         featureCategories = new string[](featureCategoryLength);
         featureStrings = new string[][](featureCategoryLength);
 
         for (uint256 i; i < featureCategoryLength; i++) {
-            featureCategories[i] = projectIdToFeatureInfo[projectId][i]
+            featureCategories[i] = projectIdToFeatureInfo[_projectId][i]
                 .featureCategory;
 
-            uint256 featuresLength = projectIdToFeatureInfo[projectId][i]
+            uint256 featuresLength = projectIdToFeatureInfo[_projectId][i]
                 .featureTokenIds
                 .length;
             string[] memory innerFeatureStrings = new string[](featuresLength);
             for (uint256 j; j < featuresLength; j++) {
                 innerFeatureStrings[j] = element.tokenIdToFeature(
-                    projectIdToFeatureInfo[projectId][i].featureTokenIds[j]
+                    projectIdToFeatureInfo[_projectId][i].featureTokenIds[j]
                 );
             }
             featureStrings[i] = innerFeatureStrings;
@@ -288,5 +270,41 @@ contract ColoringBook is IColoringBook, Initializable {
             }
         }
         projects[_projectId].scriptJSON = _scriptJSON;
+    }
+
+    function _createFeaturesAndCategories(
+        uint256 _projectId,
+        uint256 _startTime,
+        string[] memory _featureCategories,
+        string[][] memory _features,
+        CreateAMM memory _createAMM
+    ) internal returns(uint256[] memory ids) {
+        // Looping through categories to assign mappings
+        for (uint256 i; i < _featureCategories.length; i++) {
+            ids = new uint256[](_features[i].length);
+
+            for (uint256 k; k < _features[i].length; k++) {
+                // Assign featureString to tokenId mapping
+                uint256 tokenId = element.createFeature(_features[i][k]);
+                projectIdToFeatureIdToCategory[_projectId][
+                    tokenId
+                ] = _featureCategories[i];
+                amm.createBondingCurve(
+                    tokenId,
+                    _createAMM.constantA[i],
+                    _createAMM.constantB[i],
+                    msg.sender, // only artist can call
+                    address(element),
+                    _startTime
+                );
+                // Assign ids @k index to current tokenId
+                ids[k] = tokenId;
+            }
+
+            // Assign featureStruct to a projectId
+            projectIdToFeatureInfo[_projectId].push(
+                FeatureInfo(_featureCategories[i], ids)
+            );
+        }
     }
 }
