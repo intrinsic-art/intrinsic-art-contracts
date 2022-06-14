@@ -1,4 +1,9 @@
 const Config = {
+  AMM: {
+    totalFeeNumerator: 4,
+    artistFeeNumerator: 4,
+    wethAddress: "0x70997970c51812dc3a010c7d01b50e0d17dc79c8",
+  },
   AddProject: {
     projectName: "Phil's info",
     artistAddress: "0x70997970c51812dc3a010c7d01b50e0d17dc79c8",

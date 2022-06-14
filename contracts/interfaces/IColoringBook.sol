@@ -15,7 +15,6 @@ interface IColoringBook {
         string projectBaseURI; // if project is dynamic, tokenUri will be "{projectBaseUri}/{tokenId}"
         // Javascript Scripts
         uint256 scriptCount; // number of scripts
-        uint256[] scriptIndex;
         string scriptJSON; // script metadata such as what libraries it depends on
     }
     struct CreateProject {
@@ -55,4 +54,9 @@ interface IColoringBook {
         uint256[] constantA;
         uint256[] constantB;
     }
+    event ProjectCreated(uint projectId, address artist, uint[] tokenIds);
+    event ProjectUpdated(uint projectId, uint maxInvocations, string projectName, string artistName, string description);
+    event MetaDataUpdated(uint projectId, string website, string license, string projectBaseURI);
+    event ScriptsUpdated(uint256 projectId, string[] scripts, uint256[] scriptIndex,  string scriptJSON);
+    event FeatAndCatCreated(uint256 projectId, string[] featureCategories, string[][] features, uint256[] ids);
 }
