@@ -110,6 +110,7 @@ contract ColoringBook is IColoringBook, Initializable {
             _createFeatAndCat.features,
             _createAMM
         );
+        emit ProjectCreated(projectId, _createProject.artist, ids);
     }
 
     //////// Artist Functions //////////
@@ -134,6 +135,13 @@ contract ColoringBook is IColoringBook, Initializable {
             _artistName,
             _description
         );
+        emit ProjectUpdated(
+            _projectId,
+            _maxInvocations,
+            _projectName,
+            _artistName,
+            _description
+        );
     }
 
     function updateMetaData(
@@ -148,6 +156,7 @@ contract ColoringBook is IColoringBook, Initializable {
             _license,
             _projectBaseURI // if project is dynamic, tokenUri will be "{projectBaseUri}/{tokenId}"
         );
+        emit MetaDataUpdated(_projectId, _website, _license, _projectBaseURI);
     }
 
     function updateScripts(
@@ -162,6 +171,7 @@ contract ColoringBook is IColoringBook, Initializable {
         );
         require(block.timestamp < startTime, "Project Already Started");
         _updateScripts(_projectId, _scripts, _scriptIndex, _scriptJSON);
+        emit ScriptsUpdated(_projectId, _scripts, _scriptIndex, _scriptJSON);
     }
 
     /// @dev Artist should be able to create features
@@ -178,11 +188,12 @@ contract ColoringBook is IColoringBook, Initializable {
         string[][] memory _features,
         CreateAMM memory _createAMM
     ) public onlyArtist(_projectId) returns (uint256[] memory ids) {
-        (, , uint256 projectStartTime, , , , , , ) = dutchAuction.projectIdToAuction(
-            address(this),
-            _projectId
+        (, , uint256 projectStartTime, , , , , , ) = dutchAuction
+            .projectIdToAuction(address(this), _projectId);
+        require(
+            projectStartTime <= _startTime,
+            "Cannot start AMM before project starts"
         );
-        require(projectStartTime <= _startTime, "Cannot start AMM before project starts");
         // Looping through categories to assign mappings
         ids = _createFeaturesAndCategories(
             _projectId,
@@ -191,6 +202,7 @@ contract ColoringBook is IColoringBook, Initializable {
             _features,
             _createAMM
         );
+        emit FeatAndCatCreated(_projectId, _featureCategories, _features, ids);
     }
 
     /////// View Functions ///////////
@@ -278,7 +290,7 @@ contract ColoringBook is IColoringBook, Initializable {
         string[] memory _featureCategories,
         string[][] memory _features,
         CreateAMM memory _createAMM
-    ) internal returns(uint256[] memory ids) {
+    ) internal returns (uint256[] memory ids) {
         // Looping through categories to assign mappings
         for (uint256 i; i < _featureCategories.length; i++) {
             ids = new uint256[](_features[i].length);
