@@ -9,6 +9,7 @@ import {
 } from "../typechain-types";
 import { expect } from "chai";
 import { ethers, deployments, network } from "hardhat";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 describe.only("Coloring Book", function () {
   let coloringBook: ColoringBook;
@@ -19,11 +20,15 @@ describe.only("Coloring Book", function () {
   let mockWeth: MockWeth;
 
   // wallets
-  let deployer: any;
-  let user: any;
+  let deployer: SignerWithAddress;
+  let user: SignerWithAddress;
 
   // vars
-  let timestamp: any;
+  let timestamp: number;
+  let CreateAMM: {
+    constantA: number[];
+    constantB: number[];
+  };
 
   async function addProject() {
     const CreateProject = {
@@ -56,7 +61,7 @@ describe.only("Coloring Book", function () {
       erc721: canvas.address,
       currency: mockWeth.address,
     };
-    const CreateAMM = {
+    CreateAMM = {
       constantA: [1],
       constantB: [1],
     };
@@ -70,7 +75,7 @@ describe.only("Coloring Book", function () {
     );
 
     expect(await coloringBook.projects(0)).to.deep.eq([
-      deployer.address,
+      CreateProject.artist,
       ethers.BigNumber.from("100"),
       "Name",
       "Artist",
@@ -292,8 +297,10 @@ describe.only("Coloring Book", function () {
     await addProject();
     await coloringBook.createFeaturesAndCategories(
       0,
+      timestamp + 100,
       ["featureCategories2"],
-      [["features2"]]
+      [["features2"]],
+      CreateAMM
     );
     expect(await element.tokenIdToFeature(2)).to.eq("features2");
     expect(await coloringBook.projectIdToFeatureIdToCategory(0, 2)).to.eq(
@@ -311,17 +318,25 @@ describe.only("Coloring Book", function () {
     await expect(
       coloringBook
         .connect(user)
-        .createFeaturesAndCategories(0, ["featureCategories2"], [["features2"]])
+        .createFeaturesAndCategories(
+          0,
+          timestamp + 100,
+          ["featureCategories2"],
+          [["features2"]],
+          CreateAMM
+        )
     ).to.be.revertedWith("You are not the project's artist");
 
-    await network.provider.send("evm_increaseTime", [100]);
+    await network.provider.send("evm_increaseTime", [101]);
     await network.provider.send("evm_mine");
     await expect(
       coloringBook.createFeaturesAndCategories(
         0,
+        timestamp + 100,
         ["featureCategories2"],
-        [["features2"]]
+        [["features2"]],
+        CreateAMM
       )
-    ).to.be.revertedWith("Project Already Started");
+    ).not.reverted;
   });
 });
