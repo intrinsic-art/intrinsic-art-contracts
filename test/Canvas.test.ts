@@ -150,7 +150,7 @@ describe.only("Canvas", function () {
       dutchAuction.buyCanvases(coloringBook.address, 0, 1)
     ).to.be.revertedWith("Auction has not started yet");
   });
-  it("DutchAuction should emit event", async () => {
+  it("Canvas should emit event", async () => {
     await addProject();
     await network.provider.send("evm_increaseTime", [101]);
     await network.provider.send("evm_mine");
@@ -159,7 +159,7 @@ describe.only("Canvas", function () {
       .approve(dutchAuction.address, ethers.utils.parseEther("100"));
     await expect(
       dutchAuction.connect(user).buyCanvases(coloringBook.address, 0, 1)
-    ).to.emit(dutchAuction, "CanvasesBought");
+    ).to.emit(canvas, "MintedToken");
     expect(await mockWeth.balanceOf(user.address)).lt(
       ethers.utils.parseEther("100")
     );
