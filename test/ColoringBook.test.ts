@@ -11,7 +11,7 @@ import { expect } from "chai";
 import { ethers, deployments, network } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
-describe.only("Coloring Book", function () {
+describe("Coloring Book", function () {
   let coloringBook: ColoringBook;
   let canvas: Canvas;
   let element: Element;
