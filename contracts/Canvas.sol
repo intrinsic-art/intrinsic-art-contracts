@@ -9,7 +9,12 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 import "./Element.sol";
 import "./ColoringBook.sol";
 
-contract Canvas is ICanvas, Initializable, ERC721BurnableUpgradeable, ERC1155Holder {
+contract Canvas is
+    ICanvas,
+    Initializable,
+    ERC721BurnableUpgradeable,
+    ERC1155Holder
+{
     using Strings for string;
     // Contracts Storage
     Element public element;
@@ -132,6 +137,7 @@ contract Canvas is ICanvas, Initializable, ERC721BurnableUpgradeable, ERC1155Hol
             amounts,
             ""
         );
+        emit WrappedTokens(canvasId, featureIds, amounts);
     }
 
     function unWrap(
