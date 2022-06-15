@@ -17,7 +17,7 @@ contract Canvas is Initializable, ERC721BurnableUpgradeable, ERC1155Holder {
     // TokenId Storage
     mapping(uint256 => uint256) public projectToInvocations;
     mapping(uint256 => uint256) public tokenIdToProjectId;
-    mapping(uint256 => uint256[]) internal projectIdToTokenIds;
+    mapping(uint256 => uint256[]) public projectIdToTokenIds;
     mapping(uint256 => bytes32) public tokenIdTohash;
     mapping(bytes32 => uint256) public hashToTokenId;
     // Wrapping Storage
