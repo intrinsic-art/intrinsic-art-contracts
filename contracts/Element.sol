@@ -1,27 +1,26 @@
 // SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 
+import "./interfaces/IElement.sol";
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
-import "./interfaces/IElement.sol";
 
-//todo: list of ideas created
-//todo: check for duplicate categories
-contract Element is
-    IElement,
-    ERC1155,
-    Ownable,
-    ERC1155Burnable,
-    ERC1155Supply
-{
+contract Element is IElement, ERC1155, ERC1155Burnable, ERC1155Supply {
     using Counters for Counters.Counter;
 
-    constructor() ERC1155("") {}
-
     Counters.Counter private _tokenIdCounter;
+    address public amm;
+
+    constructor(address _amm) ERC1155("") {
+        amm = _amm;
+    }
+
+    modifier onlyAMM() {
+        require(amm == msg.sender, "You are not the owner of this Canvas");
+        _;
+    }
 
     mapping(uint256 => string) public tokenIdToFeature;
 
@@ -38,7 +37,7 @@ contract Element is
         address account,
         uint256 id,
         uint256 amount
-    ) public onlyOwner {
+    ) public onlyAMM {
         _mint(account, id, amount, bytes(""));
     }
 
@@ -46,11 +45,12 @@ contract Element is
         address to,
         uint256[] memory ids,
         uint256[] memory amounts
-    ) public onlyOwner {
+    ) public onlyAMM {
         _mintBatch(to, ids, amounts, bytes(""));
     }
 
-    function setURI(string memory newuri) public onlyOwner {
+    // This needs to be removed - or use some internal function
+    function setURI(string memory newuri) public {
         _setURI(newuri);
     }
 
