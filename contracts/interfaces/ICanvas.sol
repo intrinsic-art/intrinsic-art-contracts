@@ -35,4 +35,9 @@ interface ICanvas {
         returns (string memory categoryString);
 
     event MintedToken(address receiver, uint256 projectid, uint256 tokenId);
+    event WrappedTokens(
+        uint256 canvasId,
+        uint256[] tokenIds,
+        uint256[] amounts
+    );
 }
