@@ -1,6 +1,7 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 
+import "./interfaces/ICanvas.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721BurnableUpgradeable.sol";
 import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
@@ -8,7 +9,7 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 import "./Element.sol";
 import "./ColoringBook.sol";
 
-contract Canvas is Initializable, ERC721BurnableUpgradeable, ERC1155Holder {
+contract Canvas is ICanvas, Initializable, ERC721BurnableUpgradeable, ERC1155Holder {
     using Strings for string;
     // Contracts Storage
     Element public element;
@@ -80,6 +81,7 @@ contract Canvas is Initializable, ERC721BurnableUpgradeable, ERC1155Holder {
         _safeMint(_to, tokenId);
         tokenIdToProjectId[tokenId] = _projectId;
         projectIdToTokenIds[_projectId].push(tokenId);
+        emit MintedToken(_to, _projectId, tokenId);
     }
 
     ////////// Wrapping Functions ///////////
