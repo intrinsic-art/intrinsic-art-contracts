@@ -104,7 +104,6 @@ contract AMM is IAMM, Ownable {
             tokenIdToBondingCurve[_bondingCurveCreator][_tokenId].erc1155
         ).mint(_recipient, _tokenId, _erc1155Quantity);
 
-        // todo: consider adding parameter for spender address
         weth.safeTransferFrom(_spender, address(this), erc20TotalAmount);
 
         emit ElementsBought(
