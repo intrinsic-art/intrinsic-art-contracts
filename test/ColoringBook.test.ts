@@ -99,7 +99,7 @@ describe("Coloring Book", function () {
     element = await ethers.getContract("Element");
     dutchAuction = await ethers.getContract("DutchAuction");
     amm = await ethers.getContract("AMM");
-    mockWeth = await new MockWeth__factory(deployer).deploy();
+    mockWeth = mockWeth = await ethers.getContract("MockWeth");
 
     await coloringBook.initialize(
       element.address,
