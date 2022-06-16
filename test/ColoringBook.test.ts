@@ -5,7 +5,6 @@ import {
   DutchAuction,
   Element,
   MockWeth,
-  MockWeth__factory,
 } from "../typechain-types";
 import { expect } from "chai";
 import { ethers, deployments, network } from "hardhat";
