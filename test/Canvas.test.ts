@@ -5,13 +5,12 @@ import {
   DutchAuction,
   Element,
   MockWeth,
-  MockWeth__factory,
 } from "../typechain-types";
 import { expect } from "chai";
 import { ethers, deployments, network } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
-describe.only("Canvas", function () {
+describe("Canvas", function () {
   let coloringBook: ColoringBook;
   let canvas: Canvas;
   let element: Element;
@@ -214,8 +213,11 @@ describe.only("Canvas", function () {
     expect(
       await canvas.canvasIdToCategoryToFeatureId("1", "featureCategories")
     ).to.eq("1");
+    expect(await canvas.findIdToCategory("0", "1")).to.eq("featureCategories");
+    expect(await element.balanceOf(canvas.address, 1)).to.eq("1");
+    expect(await element.balanceOf(user.address, 1)).to.eq("0");
   });
-  it("Revert if not canvas owner", async () => {
+  it("Revert wrap if not canvas owner", async () => {
     await addProject();
     await network.provider.send("evm_increaseTime", [101]);
     await network.provider.send("evm_mine");
@@ -238,5 +240,66 @@ describe.only("Canvas", function () {
     await expect(canvas.wrap(user.address, [1], [1], 1)).to.revertedWith(
       "You are not the owner of this Canvas"
     );
+  });
+  it("Should be able to unwrap elements from a canvas", async () => {
+    await addProject();
+    await network.provider.send("evm_increaseTime", [101]);
+    await network.provider.send("evm_mine");
+    await expect(
+      dutchAuction.connect(user).buyCanvases(coloringBook.address, 0, 1)
+    ).to.emit(dutchAuction, "CanvasesBought");
+    await expect(
+      amm
+        .connect(user)
+        .buyElements(
+          coloringBook.address,
+          1,
+          1,
+          ethers.utils.parseEther("100"),
+          user.address,
+          user.address
+        )
+    ).to.emit(element, "TransferSingle");
+    await element.connect(user).setApprovalForAll(canvas.address, true);
+    await expect(canvas.connect(user).wrap(user.address, [1], [1], 1)).to.emit(
+      canvas,
+      "WrappedTokens"
+    );
+    await expect(
+      canvas.connect(user).unWrap(user.address, [1], [1], 1)
+    ).to.emit(canvas, "UnWrappedTokens");
+    expect(await canvas.canvasIdToFeatureToBalances("1", "1")).to.eq("0");
+    expect(await element.balanceOf(canvas.address, 1)).to.eq("0");
+    expect(await element.balanceOf(user.address, 1)).to.eq("1");
+  });
+  it("Revert unWrap if not canvas owner", async () => {
+    await addProject();
+    await network.provider.send("evm_increaseTime", [101]);
+    await network.provider.send("evm_mine");
+    await expect(
+      dutchAuction.connect(user).buyCanvases(coloringBook.address, 0, 1)
+    ).to.emit(dutchAuction, "CanvasesBought");
+    await expect(
+      amm
+        .connect(user)
+        .buyElements(
+          coloringBook.address,
+          1,
+          1,
+          ethers.utils.parseEther("100"),
+          user.address,
+          user.address
+        )
+    ).to.emit(element, "TransferSingle");
+    await element.connect(user).setApprovalForAll(canvas.address, true);
+    await expect(canvas.connect(user).wrap(user.address, [1], [1], 1)).to.emit(
+      canvas,
+      "WrappedTokens"
+    );
+    await expect(canvas.unWrap(user.address, [1], [1], 1)).to.revertedWith(
+      "You are not the owner of this Canvas"
+    );
+    expect(await element.balanceOf(canvas.address, 1)).to.eq("1");
+    expect(await element.balanceOf(deployer.address, 1)).to.eq("0");
   });
 });
