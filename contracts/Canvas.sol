@@ -180,6 +180,7 @@ contract Canvas is
             amounts,
             ""
         );
+        emit UnWrappedTokens(canvasId, featureIds, amounts);
     }
 
     /////// View Functions ///////////
