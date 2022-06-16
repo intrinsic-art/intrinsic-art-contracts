@@ -18,7 +18,7 @@ contract Element is IElement, ERC1155, ERC1155Burnable, ERC1155Supply {
     }
 
     modifier onlyAMM() {
-        require(amm == msg.sender, "You are not the owner of this Canvas");
+        require(amm == msg.sender, "You are not the AMM contract");
         _;
     }
 
