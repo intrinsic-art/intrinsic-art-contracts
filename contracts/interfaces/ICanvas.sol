@@ -40,4 +40,9 @@ interface ICanvas {
         uint256[] tokenIds,
         uint256[] amounts
     );
+    event UnWrappedTokens(
+        uint256 canvasId,
+        uint256[] tokenIds,
+        uint256[] amounts
+    );
 }
