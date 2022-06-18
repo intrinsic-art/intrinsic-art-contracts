@@ -160,4 +160,71 @@ describe("Element", function () {
     ).to.be.revertedWith("Slippage too high");
     expect(await element.balanceOf(user.address, 1)).to.eq("0");
   });
+  it("Should burn/sell elements", async () => {
+    await addProject();
+    await network.provider.send("evm_increaseTime", [101]);
+    await network.provider.send("evm_mine");
+    await expect(
+      amm
+        .connect(user)
+        .buyElements(
+          coloringBook.address,
+          1,
+          1,
+          ethers.utils.parseEther("100"),
+          user.address,
+          user.address
+        )
+    ).to.emit(element, "TransferSingle");
+    expect(await element.balanceOf(user.address, 1)).to.eq("1");
+    // user must approve AMM to sell / Canvas to wrap
+    await element.connect(user).setApprovalForAll(amm.address, true);
+    await expect(
+      amm
+        .connect(user)
+        .sellElements(
+          coloringBook.address,
+          1,
+          1,
+          "1",
+          user.address,
+          user.address
+        )
+    ).to.emit(element, "TransferSingle");
+    expect(await element.balanceOf(user.address, 1)).to.eq("0");
+  });
+  it("Should Revert burning elements", async () => {
+    await addProject();
+    await network.provider.send("evm_increaseTime", [101]);
+    await network.provider.send("evm_mine");
+    await expect(
+      amm
+        .connect(user)
+        .buyElements(
+          coloringBook.address,
+          1,
+          1,
+          ethers.utils.parseEther("100"),
+          user.address,
+          user.address
+        )
+    ).to.emit(element, "TransferSingle");
+    await expect(element.burn(user.address, 1, 1)).to.be.revertedWith(
+      "ERC1155: caller is not owner nor approved"
+    );
+    await element.connect(user).setApprovalForAll(amm.address, true);
+    await expect(
+      amm
+        .connect(user)
+        .sellElements(
+          coloringBook.address,
+          1,
+          1,
+          ethers.utils.parseEther("100"),
+          user.address,
+          user.address
+        )
+    ).to.be.revertedWith("Slippage too high");
+    expect(await element.balanceOf(user.address, 1)).to.eq("1");
+  });
 });
