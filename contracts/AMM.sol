@@ -68,6 +68,44 @@ contract AMM is IAMM, Ownable {
         );
     }
 
+    function batchBuySell(
+        address _bondingCurveCreator,
+        uint8[] memory _buyOrSell,
+        uint256[] memory _tokenIds,
+        uint256[] memory _erc1155Quantitys,
+        uint256[] memory _pricingERC20s,
+        address _recipient,
+        address _sender
+    ) external {
+        require(
+            _buyOrSell.length == _tokenIds.length ||
+            _tokenIds.length == _erc1155Quantitys.length ||
+            _erc1155Quantitys.length == _pricingERC20s.length,
+            "Array Not Equal"
+        );
+        for (uint256 i; i < _buyOrSell.length; i++) {
+            if (_buyOrSell[i] == 0) {
+                buyElements(
+                    _bondingCurveCreator,
+                    _tokenIds[i],
+                    _erc1155Quantitys[i],
+                    _pricingERC20s[i],
+                    _recipient,
+                    _sender
+                );
+            } else if (_buyOrSell[i] == 1) {
+                sellElements(
+                    _bondingCurveCreator,
+                    _tokenIds[i],
+                    _erc1155Quantitys[i],
+                    _pricingERC20s[i],
+                    _recipient,
+                    _sender
+                );
+            }
+        }
+    }
+
     function buyElements(
         address _bondingCurveCreator,
         uint256 _tokenId,
@@ -75,7 +113,7 @@ contract AMM is IAMM, Ownable {
         uint256 _maxERC20ToSpend,
         address _recipient,
         address _spender
-    ) external {
+    ) public {
         (
             uint256 erc20TotalAmount,
             uint256 erc20TotalFee,
@@ -92,19 +130,18 @@ contract AMM is IAMM, Ownable {
         );
         require(erc20TotalAmount <= _maxERC20ToSpend, "Slippage too high");
 
+        weth.safeTransferFrom(_spender, address(this), erc20TotalAmount);
         platformRevenue += erc20TotalFee - erc20ArtistFee;
         artistRevenues[
             tokenIdToBondingCurve[_bondingCurveCreator][_tokenId].artistAddress
         ] += erc20ArtistFee;
         tokenIdToBondingCurve[_bondingCurveCreator][_tokenId].reserves +=
-            erc20TotalAmount -
-            erc20TotalFee;
+            (erc20TotalAmount -
+            erc20TotalFee);
 
         IERC1155MintBurn(
             tokenIdToBondingCurve[_bondingCurveCreator][_tokenId].erc1155
         ).mint(_recipient, _tokenId, _erc1155Quantity);
-
-        weth.safeTransferFrom(_spender, address(this), erc20TotalAmount);
 
         emit ElementsBought(
             _bondingCurveCreator,
@@ -124,7 +161,7 @@ contract AMM is IAMM, Ownable {
         uint256 _minERC20ToReceive,
         address _recipient,
         address _sender
-    ) external {
+    ) public {
         require(
             block.timestamp >=
                 tokenIdToBondingCurve[_bondingCurveCreator][_tokenId].startTime,
@@ -205,7 +242,6 @@ contract AMM is IAMM, Ownable {
         erc20ArtistFee =
             (nominalERC20Amount * artistFeeNumerator) /
             DENOMINATOR;
-
         erc20TotalAmount = nominalERC20Amount + erc20TotalFee;
     }
 
