@@ -106,6 +106,7 @@ contract ColoringBook is IColoringBook, Initializable {
         ids = _createFeaturesAndCategories(
             projectId,
             _createAuction.startTime,
+            _createProject.artist,
             _createFeatAndCat.featureCategories,
             _createFeatAndCat.features,
             _createAMM
@@ -198,6 +199,7 @@ contract ColoringBook is IColoringBook, Initializable {
         ids = _createFeaturesAndCategories(
             _projectId,
             _startTime,
+            msg.sender,
             _featureCategories,
             _features,
             _createAMM
@@ -287,6 +289,7 @@ contract ColoringBook is IColoringBook, Initializable {
     function _createFeaturesAndCategories(
         uint256 _projectId,
         uint256 _startTime,
+        address _artist,
         string[] memory _featureCategories,
         string[][] memory _features,
         CreateAMM memory _createAMM
@@ -305,7 +308,7 @@ contract ColoringBook is IColoringBook, Initializable {
                     tokenId,
                     _createAMM.constantA[i],
                     _createAMM.constantB[i],
-                    msg.sender, // only artist can call
+                    _artist, // only artist can call
                     address(element),
                     _startTime
                 );

@@ -5,13 +5,13 @@ import {
   DutchAuction,
   Element,
   MockWeth,
-  MockWeth__factory,
 } from "../typechain-types";
 import { expect } from "chai";
 import { ethers, deployments, network } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import Config from "../helpers/Config";
 
-describe.only("Coloring Book", function () {
+describe("Coloring Book", function () {
   let coloringBook: ColoringBook;
   let canvas: Canvas;
   let element: Element;
@@ -99,15 +99,7 @@ describe.only("Coloring Book", function () {
     element = await ethers.getContract("Element");
     dutchAuction = await ethers.getContract("DutchAuction");
     amm = await ethers.getContract("AMM");
-    mockWeth = await new MockWeth__factory(deployer).deploy();
-
-    await coloringBook.initialize(
-      element.address,
-      amm.address,
-      dutchAuction.address,
-      canvas.address,
-      mockWeth.address
-    );
+    mockWeth = mockWeth = await ethers.getContract("MockWeth");
   });
 
   it("Init ColoringBook", async () => {

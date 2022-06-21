@@ -1,6 +1,7 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 
+import "./interfaces/ICanvas.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721BurnableUpgradeable.sol";
 import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
@@ -8,7 +9,12 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 import "./Element.sol";
 import "./ColoringBook.sol";
 
-contract Canvas is Initializable, ERC721BurnableUpgradeable, ERC1155Holder {
+contract Canvas is
+    ICanvas,
+    Initializable,
+    ERC721BurnableUpgradeable,
+    ERC1155Holder
+{
     using Strings for string;
     // Contracts Storage
     Element public element;
@@ -17,7 +23,7 @@ contract Canvas is Initializable, ERC721BurnableUpgradeable, ERC1155Holder {
     // TokenId Storage
     mapping(uint256 => uint256) public projectToInvocations;
     mapping(uint256 => uint256) public tokenIdToProjectId;
-    mapping(uint256 => uint256[]) internal projectIdToTokenIds;
+    mapping(uint256 => uint256[]) public projectIdToTokenIds;
     mapping(uint256 => bytes32) public tokenIdTohash;
     mapping(bytes32 => uint256) public hashToTokenId;
     // Wrapping Storage
@@ -80,6 +86,7 @@ contract Canvas is Initializable, ERC721BurnableUpgradeable, ERC1155Holder {
         _safeMint(_to, tokenId);
         tokenIdToProjectId[tokenId] = _projectId;
         projectIdToTokenIds[_projectId].push(tokenId);
+        emit MintedToken(_to, _projectId, tokenId);
     }
 
     ////////// Wrapping Functions ///////////
@@ -130,6 +137,7 @@ contract Canvas is Initializable, ERC721BurnableUpgradeable, ERC1155Holder {
             amounts,
             ""
         );
+        emit WrappedTokens(canvasId, featureIds, amounts);
     }
 
     function unWrap(
@@ -172,6 +180,7 @@ contract Canvas is Initializable, ERC721BurnableUpgradeable, ERC1155Holder {
             amounts,
             ""
         );
+        emit UnWrappedTokens(canvasId, featureIds, amounts);
     }
 
     /////// View Functions ///////////
