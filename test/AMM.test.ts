@@ -250,6 +250,12 @@ describe.only("AMM", function () {
       .to.emit(amm, "ElementsSold")
       .withArgs(coloringBook.address, 1, 1, sellStruct, user.address);
     expect(await element.balanceOf(user.address, 1)).to.eq("0");
+
+    expect(
+      await (
+        await amm.tokenIdToBondingCurve(coloringBook.address, 1)
+      ).reserves
+    ).to.eq(0);
   });
   it("Revert selling is slippage to high", async () => {
     await addProject();
