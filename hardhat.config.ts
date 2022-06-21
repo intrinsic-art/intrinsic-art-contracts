@@ -1,12 +1,19 @@
 import * as dotenv from "dotenv";
-import { HardhatUserConfig } from "hardhat/config";
+import { HardhatUserConfig, task } from "hardhat/config";
 import "@nomiclabs/hardhat-etherscan";
 import "@openzeppelin/hardhat-upgrades";
 import "@nomiclabs/hardhat-waffle";
 import "@typechain/hardhat";
 import "hardhat-deploy";
+import AddProject from "./scripts/AddProject";
 
 dotenv.config();
+
+task("AddProject", "Add a project")
+  .addParam("coloringBook", "Address of coloring book")
+  .setAction(async (taskArgs, hre) => {
+    await AddProject(hre, taskArgs.coloringBook);
+  });
 
 const config: HardhatUserConfig = {
   solidity: {
