@@ -3,15 +3,16 @@ pragma solidity ^0.8.0;
 
 import "./interfaces/IAMM.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "./interfaces/IERC1155MintBurn.sol";
 
-contract AMM is IAMM, Ownable {
+contract AMM is IAMM, Ownable, Initializable {
     using SafeERC20 for IERC20;
 
-    IERC20 public immutable weth;
-    uint256 public immutable totalFeeNumerator;
-    uint256 public immutable artistFeeNumerator;
+    IERC20 public weth;
+    uint256 public totalFeeNumerator;
+    uint256 public artistFeeNumerator;
     uint256 constant DENOMINATOR = 1_000_000_000;
     uint256 public platformRevenue;
 
@@ -20,12 +21,12 @@ contract AMM is IAMM, Ownable {
         public tokenIdToBondingCurve;
     mapping(address => uint256) public artistRevenues;
 
-    constructor(
+    function initialize(
+        address _weth,
         uint256 _totalFeeNumerator,
-        uint256 _artistFeeNumerator,
-        address _wethAddress
-    ) {
-        weth = IERC20(_wethAddress);
+        uint256 _artistFeeNumerator
+    ) external initializer {
+        weth = IERC20(_weth);
         totalFeeNumerator = _totalFeeNumerator;
         artistFeeNumerator = _artistFeeNumerator;
     }
