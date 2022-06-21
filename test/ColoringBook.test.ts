@@ -100,19 +100,6 @@ describe("Coloring Book", function () {
     dutchAuction = await ethers.getContract("DutchAuction");
     amm = await ethers.getContract("AMM");
     mockWeth = mockWeth = await ethers.getContract("MockWeth");
-
-    await coloringBook.initialize(
-      element.address,
-      amm.address,
-      dutchAuction.address,
-      canvas.address,
-      mockWeth.address
-    );
-    await amm.initialize(
-      mockWeth.address,
-      Config.AMM.totalFeeNumerator,
-      Config.AMM.artistFeeNumerator
-    );
   });
 
   it("Init ColoringBook", async () => {
