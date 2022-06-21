@@ -35,7 +35,7 @@ interface IDutchAuction {
         uint256 canvasesTotalPrice
     );
 
-    event ArtistClaimedRevenue(
+    event ArtistRevenueClaimed(
         address indexed recipient,
         address indexed currency,
         uint256 claimedRevenue
@@ -49,7 +49,7 @@ interface IDutchAuction {
         uint256 _quantity
     ) external;
 
-    function artistClaimRevenue(address _recipient, address _currency) external;
+    function claimArtistRevenue(address _recipient, address _currency) external;
 
     function projectIdToAuction(address, uint256)
         external
