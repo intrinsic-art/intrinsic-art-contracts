@@ -93,7 +93,7 @@ contract DutchAuction is IDutchAuction {
         );
     }
 
-    function artistClaimRevenue(address _recipient, address _currency)
+    function claimArtistRevenue(address _recipient, address _currency)
         external
     {
         require(
@@ -106,7 +106,7 @@ contract DutchAuction is IDutchAuction {
 
         IERC20(_currency).safeTransfer(_recipient, _claimedRevenue);
 
-        emit ArtistClaimedRevenue(_recipient, _currency, _claimedRevenue);
+        emit ArtistRevenueClaimed(_recipient, _currency, _claimedRevenue);
     }
 
     function getCanvasPrice(address _auctionCreator, uint256 _projectId)
