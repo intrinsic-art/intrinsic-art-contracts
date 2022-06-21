@@ -7,11 +7,7 @@ import { ethers } from "hardhat";
 const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   await deployContract(hre, "MockWeth", []);
   const weth = await ethers.getContract("MockWeth");
-  await deployContract(hre, "AMM", [
-    Config.AMM.totalFeeNumerator,
-    Config.AMM.artistFeeNumerator,
-    weth.address,
-  ]);
+  await deployContract(hre, "AMM", []);
 };
 
 export default func;
