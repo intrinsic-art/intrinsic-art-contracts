@@ -12,7 +12,7 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import Config from "../helpers/Config";
 import { BigNumber } from "ethers";
 
-describe.only("AMM", function () {
+describe("AMM", function () {
   let coloringBook: ColoringBook;
   let canvas: Canvas;
   let element: Element;
