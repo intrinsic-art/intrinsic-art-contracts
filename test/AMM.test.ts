@@ -98,6 +98,12 @@ describe("AMM", function () {
       mockWeth.address
     );
 
+    await amm.initialize(
+      mockWeth.address,
+      Config.AMM.totalFeeNumerator,
+      Config.AMM.artistFeeNumerator
+    );
+
     await mockWeth.mint(user.address, ethers.utils.parseEther("100"));
     mockWeth
       .connect(user)

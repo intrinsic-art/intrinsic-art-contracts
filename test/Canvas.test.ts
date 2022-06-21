@@ -9,6 +9,7 @@ import {
 import { expect } from "chai";
 import { ethers, deployments, network } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import Config from "../helpers/Config";
 
 describe("Canvas", function () {
   let coloringBook: ColoringBook;
@@ -112,6 +113,12 @@ describe("Canvas", function () {
       element.address,
       dutchAuction.address,
       coloringBook.address
+    );
+
+    await amm.initialize(
+      mockWeth.address,
+      Config.AMM.totalFeeNumerator,
+      Config.AMM.artistFeeNumerator
     );
 
     await mockWeth.mint(user.address, ethers.utils.parseEther("100"));

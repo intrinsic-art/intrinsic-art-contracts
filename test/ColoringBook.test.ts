@@ -9,6 +9,7 @@ import {
 import { expect } from "chai";
 import { ethers, deployments, network } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import Config from "../helpers/Config";
 
 describe("Coloring Book", function () {
   let coloringBook: ColoringBook;
@@ -106,6 +107,11 @@ describe("Coloring Book", function () {
       dutchAuction.address,
       canvas.address,
       mockWeth.address
+    );
+    await amm.initialize(
+      mockWeth.address,
+      Config.AMM.totalFeeNumerator,
+      Config.AMM.artistFeeNumerator
     );
   });
 
