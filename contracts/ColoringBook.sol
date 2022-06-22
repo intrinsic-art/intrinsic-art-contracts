@@ -214,28 +214,31 @@ contract ColoringBook is IColoringBook, Initializable {
         view
         returns (
             string[] memory featureCategories,
-            string[][] memory featureStrings
+            string[][] memory featureStrings,
+            uint256[][] memory featureTokenIds
         )
     {
         uint256 featureCategoryLength = projectIdToFeatureInfo[_projectId]
             .length;
         featureCategories = new string[](featureCategoryLength);
         featureStrings = new string[][](featureCategoryLength);
+        featureTokenIds = new uint256[][](featureCategoryLength);
 
         for (uint256 i; i < featureCategoryLength; i++) {
             featureCategories[i] = projectIdToFeatureInfo[_projectId][i]
                 .featureCategory;
-
             uint256 featuresLength = projectIdToFeatureInfo[_projectId][i]
                 .featureTokenIds
                 .length;
             string[] memory innerFeatureStrings = new string[](featuresLength);
+            uint256[] memory innerFeatureTokenIds = new uint256[](featuresLength);
             for (uint256 j; j < featuresLength; j++) {
-                innerFeatureStrings[j] = element.tokenIdToFeature(
-                    projectIdToFeatureInfo[_projectId][i].featureTokenIds[j]
-                );
+                uint256 featureTokenId = projectIdToFeatureInfo[_projectId][i].featureTokenIds[j];
+                innerFeatureStrings[j] = element.tokenIdToFeature(featureTokenId);
+                innerFeatureTokenIds[j] = featureTokenId;
             }
             featureStrings[i] = innerFeatureStrings;
+            featureTokenIds[i] = innerFeatureTokenIds;
         }
     }
 
