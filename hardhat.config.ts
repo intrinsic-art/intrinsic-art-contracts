@@ -6,6 +6,7 @@ import "@nomiclabs/hardhat-waffle";
 import "@typechain/hardhat";
 import "hardhat-deploy";
 import AddProject from "./scripts/AddProject";
+import MintWeth from "./scripts/MintWeth";
 
 dotenv.config();
 
@@ -13,6 +14,19 @@ task("AddProject", "Add a project")
   .addParam("coloringBook", "Address of coloring book")
   .setAction(async (taskArgs, hre) => {
     await AddProject(hre, taskArgs.coloringBook);
+  });
+
+task("MintWeth", "Mint WETH to the specified address")
+  .addParam("wethAddress", "Address of the WETH contract")
+  .addParam("wethRecipient", "Address of the WETH recipient")
+  .addParam("wethAmount", "Amount of WETH to mint")
+  .setAction(async (taskArgs, hre) => {
+    await MintWeth(
+      hre,
+      taskArgs.wethAddress,
+      taskArgs.wethRecipient,
+      taskArgs.wethAmount
+    );
   });
 
 const config: HardhatUserConfig = {
