@@ -11,7 +11,7 @@ import { ethers, deployments, network } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import Config from "../helpers/Config";
 
-describe("Coloring Book", function () {
+describe.only("Coloring Book", function () {
   let coloringBook: ColoringBook;
   let canvas: Canvas;
   let element: Element;
@@ -136,7 +136,11 @@ describe("Coloring Book", function () {
     );
     expect(
       await coloringBook.findProjectCategoryAndFeatureStrings(0)
-    ).to.deep.equal([["featureCategories"], [["features"]]]);
+    ).to.deep.equal([
+      ["featureCategories"],
+      [["features"]],
+      [[ethers.BigNumber.from("1")]],
+    ]);
   });
   it("AMM Initialized", async () => {
     await addProject();
@@ -303,6 +307,7 @@ describe("Coloring Book", function () {
     ).to.deep.equal([
       ["featureCategories", "featureCategories2"],
       [["features"], ["features2"]],
+      [[ethers.BigNumber.from("1")], [ethers.BigNumber.from("2")]],
     ]);
   });
   it("Creating features Revert incorrect Artist / Start Time", async () => {
