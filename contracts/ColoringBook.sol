@@ -242,6 +242,33 @@ contract ColoringBook is IColoringBook, Initializable {
         }
     }
 
+    /// @notice Function for returning a project's feature prices
+    function findProjectFeaturePrices(uint256 _projectId, address _bondingCurveCreator)
+        public
+        view
+        returns (
+            uint256[][] memory featurePrices
+        )
+    {
+        uint256 featureCategoryLength = projectIdToFeatureInfo[_projectId]
+            .length;
+        featurePrices = new uint256[][](featureCategoryLength);
+
+        for (uint256 i; i < featureCategoryLength; i++) {
+            uint256 featuresLength = projectIdToFeatureInfo[_projectId][i]
+                .featureTokenIds
+                .length;
+            uint256[] memory innerFeaturePrices = new uint256[](featuresLength);
+            for (uint256 j; j < featuresLength; j++) {
+                uint256 featureTokenId = projectIdToFeatureInfo[_projectId][i].featureTokenIds[j];
+                (uint256 featurePrice, , ) = amm.getBuyERC20AmountWithFee(_bondingCurveCreator, featureTokenId, 1);
+                innerFeaturePrices[j] = featurePrice;
+            }
+            featurePrices[i] = innerFeaturePrices;
+        }
+
+    }
+
     ///////// Internal Functions ////////////
     function _updateProject(
         uint256 _projectId,
