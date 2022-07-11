@@ -9,7 +9,7 @@ import {
 import { expect } from "chai";
 import { ethers, deployments, network } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import Config from "../helpers/Config";
+import { BigNumber } from "ethers";
 
 describe("Canvas", function () {
   let coloringBook: ColoringBook;
@@ -102,10 +102,19 @@ describe("Canvas", function () {
     mockWeth = await ethers.getContract("MockWeth");
 
     await mockWeth.mint(user.address, ethers.utils.parseEther("100"));
-    mockWeth
+    await mockWeth.mint(deployer.address, ethers.utils.parseEther("100"));
+    await mockWeth
       .connect(user)
       .approve(dutchAuction.address, ethers.utils.parseEther("100"));
-    mockWeth.connect(user).approve(amm.address, ethers.utils.parseEther("100"));
+    await mockWeth
+      .connect(deployer)
+      .approve(dutchAuction.address, ethers.utils.parseEther("100"));
+    await mockWeth
+      .connect(user)
+      .approve(amm.address, ethers.utils.parseEther("100"));
+    await mockWeth
+      .connect(deployer)
+      .approve(amm.address, ethers.utils.parseEther("100"));
   });
 
   it("Init Canvas", async () => {
@@ -162,7 +171,6 @@ describe("Canvas", function () {
     expect(await mockWeth.balanceOf(user.address)).lt(
       ethers.utils.parseEther("100")
     );
-
     const hash = await canvas.tokenIdTohash(1);
     expect(await canvas.projectToInvocations(0)).to.eq("1");
     expect(await canvas.projectIdToTokenIds(0, 0)).to.eq("1");
@@ -188,15 +196,19 @@ describe("Canvas", function () {
         )
     ).to.emit(element, "TransferSingle");
     await element.connect(user).setApprovalForAll(canvas.address, true);
-    await expect(canvas.connect(user).wrap(user.address, [1], [1], 1)).to.emit(
-      canvas,
-      "WrappedTokens"
-    );
-    expect(await canvas.canvasIdToFeatureToBalances("1", "1")).to.eq("1");
-    expect(
-      await element.tokenIdToFeature(await canvas.canvasIdToFeatures("1", "0"))
-    ).to.eq("features");
-    expect(await canvas.canvasIdToFeatureArrayIndex("1", "1")).to.eq("0");
+    await expect(
+      canvas
+        .connect(user)
+        .createArt(
+          user.address,
+          [1],
+          [false],
+          [BigNumber.from("0")],
+          "100000000000",
+          1
+        )
+    ).to.emit(canvas, "WrappedTokens");
+    expect(await canvas.canvasToFeatures(1)).to.deep.eq(["features"]);
     expect(
       await canvas.canvasIdToCategoryToFeatureId("1", "featureCategories")
     ).to.eq("1");
@@ -211,22 +223,18 @@ describe("Canvas", function () {
     await expect(
       dutchAuction.connect(user).buyCanvases(coloringBook.address, 0, 1)
     ).to.emit(dutchAuction, "CanvasesBought");
+
+    await element.setApprovalForAll(canvas.address, true);
     await expect(
-      amm
-        .connect(user)
-        .buyElements(
-          coloringBook.address,
-          1,
-          1,
-          ethers.utils.parseEther("100"),
-          user.address,
-          user.address
-        )
-    ).to.emit(element, "TransferSingle");
-    await element.connect(user).setApprovalForAll(canvas.address, true);
-    await expect(canvas.wrap(user.address, [1], [1], 1)).to.revertedWith(
-      "You are not the owner of this Canvas"
-    );
+      canvas.createArt(
+        user.address,
+        [1],
+        [false],
+        [BigNumber.from("0")],
+        "100000000000",
+        1
+      )
+    ).to.revertedWith("You are not the owner of this Canvas");
   });
   it("Should be able to unwrap elements from a canvas", async () => {
     await addProject();
@@ -236,26 +244,23 @@ describe("Canvas", function () {
       dutchAuction.connect(user).buyCanvases(coloringBook.address, 0, 1)
     ).to.emit(dutchAuction, "CanvasesBought");
     await expect(
-      amm
+      canvas
         .connect(user)
-        .buyElements(
-          coloringBook.address,
-          1,
-          1,
-          ethers.utils.parseEther("100"),
+        .createArt(
           user.address,
-          user.address
+          [1],
+          [false],
+          [BigNumber.from("0")],
+          "100000000000",
+          1
         )
-    ).to.emit(element, "TransferSingle");
-    await element.connect(user).setApprovalForAll(canvas.address, true);
-    await expect(canvas.connect(user).wrap(user.address, [1], [1], 1)).to.emit(
-      canvas,
-      "WrappedTokens"
-    );
+    ).to.emit(canvas, "WrappedTokens");
     await expect(
-      canvas.connect(user).unWrap(user.address, [1], [1], 1)
+      canvas
+        .connect(user)
+        .unWrap(user.address, [1], [false], [BigNumber.from("0")], 1)
     ).to.emit(canvas, "UnWrappedTokens");
-    expect(await canvas.canvasIdToFeatureToBalances("1", "1")).to.eq("0");
+    expect(await canvas.canvasToFeatures(1)).to.deep.eq([""]);
     expect(await element.balanceOf(canvas.address, 1)).to.eq("0");
     expect(await element.balanceOf(user.address, 1)).to.eq("1");
   });
@@ -266,26 +271,22 @@ describe("Canvas", function () {
     await expect(
       dutchAuction.connect(user).buyCanvases(coloringBook.address, 0, 1)
     ).to.emit(dutchAuction, "CanvasesBought");
+
     await expect(
-      amm
+      canvas
         .connect(user)
-        .buyElements(
-          coloringBook.address,
-          1,
-          1,
-          ethers.utils.parseEther("100"),
+        .createArt(
           user.address,
-          user.address
+          [1],
+          [false],
+          [BigNumber.from("0")],
+          "100000000000",
+          1
         )
-    ).to.emit(element, "TransferSingle");
-    await element.connect(user).setApprovalForAll(canvas.address, true);
-    await expect(canvas.connect(user).wrap(user.address, [1], [1], 1)).to.emit(
-      canvas,
-      "WrappedTokens"
-    );
-    await expect(canvas.unWrap(user.address, [1], [1], 1)).to.revertedWith(
-      "You are not the owner of this Canvas"
-    );
+    ).to.emit(canvas, "WrappedTokens");
+    await expect(
+      canvas.unWrap(user.address, [1], [false], [BigNumber.from("0")], 1)
+    ).to.revertedWith("You are not the owner of this Canvas");
     expect(await element.balanceOf(canvas.address, 1)).to.eq("1");
     expect(await element.balanceOf(deployer.address, 1)).to.eq("0");
   });
