@@ -72,14 +72,7 @@ contract Canvas is
         );
         projectToInvocations[_projectId] += 1;
         tokenId = (_projectId * 1_000_000) + projectToInvocations[_projectId];
-        bytes32 hash = keccak256(
-            abi.encodePacked(
-                block.number,
-                blockhash(block.number - 1),
-                msg.sender,
-                block.timestamp
-            )
-        );
+        bytes32 hash = keccak256(abi.encodePacked(msg.sender));
         tokenIdTohash[tokenId] = hash;
         hashToTokenId[hash] = tokenId;
         _safeMint(_to, tokenId);
@@ -90,15 +83,14 @@ contract Canvas is
 
     ////////// Wrapping Functions ///////////
     /// @dev includes:
-    function createArt(
+    function createArt( // todo: this should be a struct
         address receiver,
         uint256[] memory featureIds,
         bool[] memory sell,
         uint256[] memory minERC20ToReceive,
         uint256 maxERC20ToSpend,
         uint256 canvasId
-    ) internal {
-        // state vars => memory
+    ) public onlyOwner(canvasId) {
         uint256 projectId = tokenIdToProjectId[canvasId];
         (string[] memory categories, , ) = coloringBook
             .findProjectCategoryAndFeatureStrings(projectId);
@@ -108,15 +100,16 @@ contract Canvas is
         );
 
         for (uint256 i; i < categories.length; i++) {
+            require(featureIds[i] > 0, "FeatureIds Cannot Be Zero");
+            uint256 categoryToFeatureId = canvasIdToCategoryToFeatureId[
+                canvasId
+            ][categories[i]];
             // Skip if re-assigning same feature
-            if (
-                canvasIdToCategoryToFeatureId[canvasId][categories[i]] ==
-                featureIds[i]
-            ) {
+            if (categoryToFeatureId == featureIds[i]) {
                 continue;
             }
 
-            require(
+            require( // Category should include featureID
                 keccak256(abi.encodePacked(categories[i])) ==
                     keccak256(
                         (
@@ -131,20 +124,18 @@ contract Canvas is
                 "Feature does not belong to category"
             );
 
-            // Check if category is currently assined a feature
-            // unWrap and Wrap features
-            if (canvasIdToCategoryToFeatureId[canvasId][categories[i]] > 0) {
-                // token ids start > 0
-                _unWrap(
+            if (categoryToFeatureId > 0) {
+                // Check if category is currently assined a feature > 0
+                _unWrap( // unWrap previous Id
                     categories[i],
                     receiver,
                     sell[i],
-                    featureIds[i],
+                    categoryToFeatureId,
                     minERC20ToReceive[i],
                     canvasId
                 );
             }
-            _wrap(categories[i], featureIds[i], maxERC20ToSpend, canvasId);
+            _wrap(categories[i], featureIds[i], maxERC20ToSpend, canvasId); // Wrap new feature
         }
     }
 
@@ -202,6 +193,16 @@ contract Canvas is
         );
     }
 
+    function canvasToFeatures(uint canvasId) public view returns(string[] memory features) {
+        (string[] memory categories, , ) = coloringBook
+            .findProjectCategoryAndFeatureStrings(tokenIdToProjectId[canvasId]);
+        features = new string[](categories.length);
+        for(uint i; i<categories.length; i++) {
+            uint tokenId = canvasIdToCategoryToFeatureId[canvasId][categories[i]];
+            features[i] = element.tokenIdToFeature(tokenId);
+        }
+    }
+
     function supportsInterface(bytes4 interfaceId)
         public
         view
@@ -234,12 +235,18 @@ contract Canvas is
                 featureId,
                 1,
                 maxERC20ToSpend,
-                msg.sender,
+                address(this),
                 msg.sender
             );
+        } else {
+            element.safeTransferFrom(
+                msg.sender,
+                address(this),
+                featureId,
+                1,
+                ""
+            );
         }
-
-        element.safeTransferFrom(msg.sender, address(this), featureId, 1, "");
 
         // Assign a feature to a category
         canvasIdToCategoryToFeatureId[canvasId][category] = featureId;
