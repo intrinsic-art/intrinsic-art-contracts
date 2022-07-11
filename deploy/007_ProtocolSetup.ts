@@ -23,7 +23,8 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   await canvas.initialize(
     element.address,
     dutchAuction.address,
-    coloringBook.address
+    coloringBook.address,
+    amm.address
   );
 
   // Initialize coloring book contract
