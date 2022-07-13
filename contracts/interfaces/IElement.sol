@@ -2,21 +2,29 @@
 pragma solidity ^0.8.0;
 
 interface IElement {
-    function setURI(string memory newuri) external;
+    struct Feature {
+        string label;
+        address minter;
+    }
+
+    function createFeature(string calldata _label, address _minter)
+        external
+        returns (uint256 tokenId);
+
+    function createFeatures(
+        string[] calldata _labels,
+        address[] calldata _minters
+    ) external returns (uint256[] memory tokenIds);
 
     function mint(
-        address account,
-        uint256 id,
-        uint256 amount
+        address _to,
+        uint256 _id,
+        uint256 _amount
     ) external;
 
     function mintBatch(
-        address to,
-        uint256[] memory ids,
-        uint256[] memory amounts
+        address _to,
+        uint256[] memory _ids,
+        uint256[] memory _amounts
     ) external;
-
-    function createFeature(string calldata feature)
-        external
-        returns (uint256 tokenId);
 }
