@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 import "./interfaces/IStudio.sol";
 import "./Canvas.sol";
 import "./DutchAuction.sol";
@@ -38,7 +39,7 @@ contract Studio is IStudio, Initializable, ERC1155Holder {
         dutchAuction = DutchAuction(_dutchAuction);
         element = Element(_element);
         amm = AMM(_amm);
-    }  
+    }
 
     function createProject(
         CreateProjectData memory _createProjectData,
@@ -125,7 +126,11 @@ contract Studio is IStudio, Initializable, ERC1155Holder {
         projects[projectId].scripts = _createProjectData.scripts;
         projects[projectId].name = _createProjectData.name;
 
-        for (uint256 i; i < _createProjectData.featureCategoryLabels.length; i++) {
+        for (
+            uint256 i;
+            i < _createProjectData.featureCategoryLabels.length;
+            i++
+        ) {
             projects[projectId].featureCategories[i].label = _createProjectData
                 .featureCategoryLabels[i];
         }
@@ -145,7 +150,10 @@ contract Studio is IStudio, Initializable, ERC1155Holder {
             );
             for (uint256 j; j < _features[i].length; j++) {
                 // Assign featureString to tokenId mapping
-                uint256 tokenId = element.createFeature(_features[i][j]);
+                uint256 tokenId = element.createFeature(
+                    _features[i][j],
+                    address(amm)
+                );
 
                 innerElementTokenIds[j] = tokenId;
 
@@ -229,30 +237,22 @@ contract Studio is IStudio, Initializable, ERC1155Holder {
     function _buyElements(
         uint256[] memory _elementTokenIds,
         uint256[] memory _elementAmounts,
-        uint256[] memory _maxERC20ToSpend
+        uint256[] memory _maxERC20sToSpend
     ) private {
-        for (uint256 i; i < _elementTokenIds.length; i++) {
-            amm.buyElements(
-                address(this),
-                _elementTokenIds[i],
-                _elementAmounts[i],
-                _maxERC20ToSpend[i],
-                msg.sender,
-                address(this)
-            );
-        }
+        amm.batchBuyElements(
+            _elementTokenIds,
+            _elementAmounts,
+            _maxERC20sToSpend,
+            msg.sender
+        );
     }
 
     function _buyCanvases(uint256 _projectId, uint256 _quantity)
         private
         returns (uint256[] memory canvasIds)
     {
-        canvasIds = dutchAuction.buyCanvases(
-            _projectId,
-            _quantity,
-            msg.sender
-        );
-    } 
+        canvasIds = dutchAuction.buyCanvases(_projectId, _quantity, msg.sender);
+    }
 
     function getProjectIdFromCanvasId(uint256 canvasId)
         public
@@ -264,65 +264,59 @@ contract Studio is IStudio, Initializable, ERC1155Holder {
 
     // function getProjectCategoryAndFeatureStrings(uint256 _projectId) public view returns();
 
+    function getFeatureCategories(uint256 _projectId)
+        public
+        view
+        returns (FeatureCategory[] memory)
+    {
+        return projects[_projectId].featureCategories;
+    }
+
     /////// View Functions ///////////
-    /// @notice Function for returning a project's feature categories and feature strings
-    // function findProjectCategoryAndFeatureStrings(uint256 _projectId)
-    //     public
-    //     view
-    //     returns (
-    //         string[] memory featureCategories,
-    //         string[][] memory featureStrings,
-    //         uint256[][] memory featureTokenIds
-    //     )
-    // {
-    //     uint256 featureCategoryLength = projectIdToFeatureInfo[_projectId]
-    //         .length;
-    //     featureCategories = new string[](featureCategoryLength);
-    //     featureStrings = new string[][](featureCategoryLength);
-    //     featureTokenIds = new uint256[][](featureCategoryLength);
 
-    //     for (uint256 i; i < featureCategoryLength; i++) {
-    //         featureCategories[i] = projectIdToFeatureInfo[_projectId][i]
-    //             .featureCategory;
-    //         uint256 featuresLength = projectIdToFeatureInfo[_projectId][i]
-    //             .featureTokenIds
-    //             .length;
-    //         string[] memory innerFeatureStrings = new string[](featuresLength);
-    //         uint256[] memory innerFeatureTokenIds = new uint256[](featuresLength);
-    //         for (uint256 j; j < featuresLength; j++) {
-    //             uint256 featureTokenId = projectIdToFeatureInfo[_projectId][i].featureTokenIds[j];
-    //             innerFeatureStrings[j] = element.tokenIdToFeature(featureTokenId);
-    //             innerFeatureTokenIds[j] = featureTokenId;
-    //         }
-    //         featureStrings[i] = innerFeatureStrings;
-    //         featureTokenIds[i] = innerFeatureTokenIds;
-    //     }
-    // }
+    // @notice Function for returning a project's feature prices
+    function getProjectFeaturePrices(uint256 _projectId)
+        public
+        view
+        returns (uint256[][] memory featurePrices)
+    {
+        uint256 featureCategoryLength = projects[_projectId]
+            .featureCategories
+            .length;
+        featurePrices = new uint256[][](featureCategoryLength);
 
-    /// @notice Function for returning a project's feature prices
-    // function findProjectFeaturePrices(uint256 _projectId, address _bondingCurveCreator)
-    //     public
-    //     view
-    //     returns (
-    //         uint256[][] memory featurePrices
-    //     )
-    // {
-    //     uint256 featureCategoryLength = projectIdToFeatureInfo[_projectId]
-    //         .length;
-    //     featurePrices = new uint256[][](featureCategoryLength);
+        for (uint256 i; i < featureCategoryLength; i++) {
+            uint256 featuresLength = projects[_projectId]
+                .featureCategories[i]
+                .tokenIds
+                .length;
+            uint256[] memory innerFeaturePrices = new uint256[](featuresLength);
+            for (uint256 j; j < featuresLength; j++) {
+                uint256 featureTokenId = projects[_projectId]
+                    .featureCategories[i]
+                    .tokenIds[j];
+                (uint256 featurePrice, , ) = amm.getBuyERC20AmountWithFee(
+                    featureTokenId,
+                    1
+                );
+                innerFeaturePrices[j] = featurePrice;
+            }
+            featurePrices[i] = innerFeaturePrices;
+        }
+    }
 
-    //     for (uint256 i; i < featureCategoryLength; i++) {
-    //         uint256 featuresLength = projectIdToFeatureInfo[_projectId][i]
-    //             .featureTokenIds
-    //             .length;
-    //         uint256[] memory innerFeaturePrices = new uint256[](featuresLength);
-    //         for (uint256 j; j < featuresLength; j++) {
-    //             uint256 featureTokenId = projectIdToFeatureInfo[_projectId][i].featureTokenIds[j];
-    //             (uint256 featurePrice, , ) = amm.getBuyERC20AmountWithFee(_bondingCurveCreator, featureTokenId, 1);
-    //             innerFeaturePrices[j] = featurePrice;
-    //         }
-    //         featurePrices[i] = innerFeaturePrices;
-    //     }
-
-    // }
+    function getCanvasTokenURI(uint256 _canvasTokenId)
+        public
+        view
+        returns (string memory)
+    {
+        return
+            string(
+                abi.encodePacked(
+                    projects[getProjectIdFromCanvasId(_canvasTokenId)]
+                        .projectBaseURI,
+                    Strings.toString(_canvasTokenId)
+                )
+            );
+    }
 }
