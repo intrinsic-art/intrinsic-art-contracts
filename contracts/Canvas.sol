@@ -18,6 +18,10 @@ contract Canvas is ICanvas, Initializable, ERC721BurnableUpgradeable {
         returns (uint256 tokenId)
     {
         require(
+            msg.sender == projects[_projectId].minter,
+            "Only minter can call this function"
+        );
+        require(
             (projects[_projectId].invocations) <=
                 projects[_projectId].maxInvocations,
             "This project has sold out"
@@ -67,7 +71,7 @@ contract Canvas is ICanvas, Initializable, ERC721BurnableUpgradeable {
     //     override
     //     returns (string memory)
     // {
-    //     return 
+    //     return
     // }
 
     function supportsInterface(bytes4 interfaceId)
