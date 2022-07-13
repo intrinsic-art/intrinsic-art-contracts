@@ -5,56 +5,57 @@ import "./interfaces/IElement.sol";
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
-import "@openzeppelin/contracts/utils/Counters.sol";
 
 contract Element is IElement, ERC1155, ERC1155Burnable, ERC1155Supply {
-    using Counters for Counters.Counter;
+    uint256 public nextTokenId;
+    mapping(uint256 => Feature) public features;
 
-    Counters.Counter private _tokenIdCounter;
-    address public amm;
+    constructor() ERC1155("") {}
 
-    constructor(address _amm) ERC1155("") {
-        amm = _amm;
-    }
-
-    modifier onlyAMM() {
-        require(amm == msg.sender, "You are not the AMM contract");
-        _;
-    }
-
-    mapping(uint256 => string) public tokenIdToFeature;
-
-    function createFeature(string calldata feature)
+    function createFeature(string calldata _label, address _minter)
         public
         returns (uint256 tokenId)
     {
-        _tokenIdCounter.increment();
-        tokenId = _tokenIdCounter.current();
-        tokenIdToFeature[tokenId] = feature;
+        tokenId = nextTokenId;
+        nextTokenId++;
+
+        features[tokenId].label = _label;
+        features[tokenId].minter = _minter;
+    }
+
+    function createFeatures(
+        string[] calldata _labels,
+        address[] calldata _minters
+    ) public returns (uint256[] memory tokenIds) {
+        require(_labels.length == _minters.length, "Invalid array lengths");
+
+        tokenIds = new uint256[](_labels.length);
+
+        for (uint256 i; i < _labels.length; i++) {
+            createFeature(_labels[i], _minters[i]);
+        }
     }
 
     function mint(
-        address account,
-        uint256 id,
-        uint256 amount
-    ) public onlyAMM {
-        _mint(account, id, amount, bytes(""));
+        address _to,
+        uint256 _id,
+        uint256 _amount
+    ) public {
+        require(msg.sender == features[_id].minter, "Only minter can mint");
+
+        _mint(_to, _id, _amount, bytes(""));
     }
 
     function mintBatch(
-        address to,
-        uint256[] memory ids,
-        uint256[] memory amounts
-    ) public onlyAMM {
-        _mintBatch(to, ids, amounts, bytes(""));
+        address _to,
+        uint256[] memory _ids,
+        uint256[] memory _amounts
+    ) public {
+        require(_ids.length == _amounts.length, "Invalid array lengths");
+        for (uint256 i; i < _ids.length; i++) {
+            mint(_to, _ids[i], _amounts[i]);
+        }
     }
-
-    // This needs to be removed - or use some internal function
-    function setURI(string memory newuri) public {
-        _setURI(newuri);
-    }
-
-    // The following functions are overrides required by Solidity.
 
     function _beforeTokenTransfer(
         address operator,
