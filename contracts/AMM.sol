@@ -31,6 +31,31 @@ contract AMM is IAMM, Ownable, Initializable {
         artistFeeNumerator = _artistFeeNumerator;
     }
 
+    function createBondingCurves(
+        uint256[] calldata _tokenIds,
+        uint256[] calldata _constantAs,
+        uint256[] calldata _constantBs,
+        address _artistAddress,
+        address _erc1155,
+        uint256 _startTime
+    ) external {
+        require(
+            _tokenIds.length == _constantAs.length &&
+                _tokenIds.length == _constantBs.length,
+            "Invalid array lengths"
+        );
+        for (uint256 i; i < _tokenIds.length; i++) {
+            createBondingCurve(
+                _tokenIds[i],
+                _constantAs[i],
+                _constantBs[i],
+                _artistAddress,
+                _erc1155,
+                _startTime
+            );
+        }
+    }
+
     function createBondingCurve(
         uint256 _tokenId,
         uint256 _constantA,
@@ -38,7 +63,7 @@ contract AMM is IAMM, Ownable, Initializable {
         address _artistAddress,
         address _erc1155,
         uint256 _startTime
-    ) external {
+    ) public {
         require(
             _artistAddress != address(0),
             "Artist address cannot be address zero"
@@ -80,8 +105,8 @@ contract AMM is IAMM, Ownable, Initializable {
     ) external {
         require(
             _buyOrSell.length == _tokenIds.length ||
-            _tokenIds.length == _erc1155Quantitys.length ||
-            _erc1155Quantitys.length == _pricingERC20s.length,
+                _tokenIds.length == _erc1155Quantitys.length ||
+                _erc1155Quantitys.length == _pricingERC20s.length,
             "Array Not Equal"
         );
         for (uint256 i; i < _buyOrSell.length; i++) {
@@ -136,9 +161,8 @@ contract AMM is IAMM, Ownable, Initializable {
         artistRevenues[
             tokenIdToBondingCurve[_bondingCurveCreator][_tokenId].artistAddress
         ] += erc20ArtistFee;
-        tokenIdToBondingCurve[_bondingCurveCreator][_tokenId].reserves +=
-            (erc20TotalAmount -
-            erc20TotalFee);
+        tokenIdToBondingCurve[_bondingCurveCreator][_tokenId]
+            .reserves += (erc20TotalAmount - erc20TotalFee);
 
         IERC1155MintBurn(
             tokenIdToBondingCurve[_bondingCurveCreator][_tokenId].erc1155
