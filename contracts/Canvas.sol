@@ -5,12 +5,9 @@ import "./interfaces/ICanvas.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721BurnableUpgradeable.sol";
 
-// import "@openzeppelin/contracts/utils/Strings.sol";
-
 contract Canvas is ICanvas, Initializable, ERC721BurnableUpgradeable {
     ProjectData[] public projects;
 
-    /////////// Canvas Functions /////////////
     function initialize() external initializer {
         __ERC721_init("Intrinsic.art Canvases", "INSC");
         __ERC721Burnable_init();
@@ -70,13 +67,7 @@ contract Canvas is ICanvas, Initializable, ERC721BurnableUpgradeable {
     //     override
     //     returns (string memory)
     // {
-    //     return
-    //         string(
-    //             abi.encodePacked(
-    //                 projects[getProjectIdFromCanvasId(_tokenId)].projectBaseURI,
-    //                 Strings.toString(_tokenId)
-    //             )
-    //         );
+    //     return 
     // }
 
     function supportsInterface(bytes4 interfaceId)
