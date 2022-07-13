@@ -7,17 +7,16 @@ interface IAMM {
         uint256 constantB;
         uint256 reserves;
         address artistAddress;
-        address erc1155;
+        address erc20Token;
         uint256 startTime;
     }
 
     event BondingCurveCreated(
-        address indexed bondingCurveCreator,
         uint256 indexed tokenId,
         uint256 constantA,
         uint256 constantB,
         address indexed artistAddress,
-        address erc1155,
+        address erc20Token,
         uint256 startTime
     );
 
@@ -50,9 +49,19 @@ interface IAMM {
     );
 
     function initialize(
-        address _weth,
+        address _element,
+        address _studio,
         uint256 _totalFeeNumerator,
         uint256 _artistFeeNumerator
+    ) external;
+
+    function createBondingCurves(
+        uint256[] calldata _tokenIds,
+        uint256[] calldata _constantAs,
+        uint256[] calldata _constantBs,
+        address _artistAddress,
+        address _erc20Token,
+        uint256 _startTime
     ) external;
 
     function createBondingCurve(
@@ -60,34 +69,39 @@ interface IAMM {
         uint256 _constantA,
         uint256 _constantB,
         address _artistAddress,
-        address _erc1155,
+        address _erc20Token,
         uint256 _startTime
     ) external;
 
     function buyElements(
-        address _bondingCurveCreator,
         uint256 _tokenId,
         uint256 _erc1155Quantity,
         uint256 _maxERC20ToSpend,
-        address _recipient,
-        address _spender
+        address _recipient
+    ) external;
+
+    function batchBuyElements(
+        uint256[] memory _tokenIds,
+        uint256[] memory _erc1155Quantities,
+        uint256[] memory _maxERC20sToSpend,
+        address _recipient
     ) external;
 
     function sellElements(
-        address _bondingCurveCreator,
         uint256 _tokenId,
         uint256 _erc1155Quantity,
         uint256 _minERC20ToReceive,
-        address _recipient,
-        address _sender
+        address _erc20Recipient
     ) external;
 
-    function claimPlatformRevenue(address _recipient) external;
-
-    function claimArtistRevenue(address _recipient) external;
+    function batchSellElements(
+        uint256[] memory _tokenIds,
+        uint256[] memory _erc1155Quantities,
+        uint256[] memory _minERC20sToReceive,
+        address _erc20Recipient
+    ) external;
 
     function getBuyERC20AmountWithFee(
-        address _bondingCurveCreator,
         uint256 _tokenId,
         uint256 _erc1155Quantity
     )
@@ -99,15 +113,14 @@ interface IAMM {
             uint256 erc20ArtistFee
         );
 
-    function getBuyERC20Amount(
-        address _bondingCurveCreator,
-        uint256 _tokenId,
-        uint256 _erc1155Quantity
-    ) external view returns (uint256 erc20Amount);
+    function getBuyERC20Amount(uint256 _tokenId, uint256 _erc1155Quantity)
+        external
+        view
+        returns (uint256 erc20Amount);
+    
 
-    function getSellERC20Amount(
-        address _bondingCurveCreator,
-        uint256 _tokenId,
-        uint256 _erc1155Quantity
-    ) external view returns (uint256 erc20Amount);
+    function getSellERC20Amount(uint256 _tokenId, uint256 _erc1155Quantity)
+        external
+        view
+        returns (uint256 erc20Amount);
 }
