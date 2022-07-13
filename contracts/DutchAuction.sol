@@ -2,25 +2,31 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "./interfaces/IDutchAuction.sol";
 import "./interfaces/IERC721Mint.sol";
 import "./Canvas.sol";
 
-contract DutchAuction is IDutchAuction {
+contract DutchAuction is IDutchAuction, Initializable {
     using SafeERC20 for IERC20;
 
     mapping(uint256 => Auction) public projectIdToAuction;
     Canvas public canvas;
-    address public studioAddress;
+    address public studio;
     mapping(address => mapping(address => uint256))
         public artistToERC20Balances;
 
     modifier onlyStudio() {
         require(
-            msg.sender == studioAddress,
+            msg.sender == studio,
             "Only the Studio contract can call this function"
         );
         _;
+    }
+
+    function initialize(address _canvas, address _studio) external initializer {
+        canvas = Canvas(_canvas);
+        studio = _studio;
     }
 
     function addAuction(uint256 _projectId, Auction memory _auction)
