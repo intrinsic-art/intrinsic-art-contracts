@@ -70,6 +70,7 @@ contract DutchAuction is IDutchAuction, Initializable {
     function buyCanvases(
         uint256 _projectId,
         uint256 _quantity,
+        address _spender,
         address _recipient
     ) external onlyStudio returns (uint256[] memory canvasIds) {
         canvasIds = new uint256[](_quantity);
@@ -82,7 +83,7 @@ contract DutchAuction is IDutchAuction, Initializable {
 
         // Safe transfer to the revenue claimer?
         IERC20(projectIdToAuction[_projectId].erc20Token).safeTransferFrom(
-            msg.sender,
+            _spender,
             address(this),
             canvasesTotalPrice
         );

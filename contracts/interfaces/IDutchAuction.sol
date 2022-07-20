@@ -38,6 +38,7 @@ interface IDutchAuction {
     function buyCanvases(
         uint256 _projectId,
         uint256 _quantity,
+        address _spender,
         address _recipient
     ) external returns (uint256[] memory canvasIds);
 

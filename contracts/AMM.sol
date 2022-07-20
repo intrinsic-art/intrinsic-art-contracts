@@ -106,6 +106,7 @@ contract AMM is IAMM, Initializable {
         uint256 _tokenId,
         uint256 _erc1155Quantity,
         uint256 _maxERC20ToSpend,
+        address _spender,
         address _recipient
     ) public onlyStudio {
         (
@@ -117,7 +118,7 @@ contract AMM is IAMM, Initializable {
         require(erc20TotalAmount <= _maxERC20ToSpend, "Slippage too high");
 
         IERC20(tokenIdToBondingCurve[_tokenId].erc20Token).safeTransferFrom(
-            msg.sender,
+            _spender,
             address(this),
             erc20TotalAmount
         );
@@ -145,6 +146,7 @@ contract AMM is IAMM, Initializable {
         uint256[] memory _tokenIds,
         uint256[] memory _erc1155Quantities,
         uint256[] memory _maxERC20sToSpend,
+        address _spender,
         address _recipient
     ) external onlyStudio {
         require(
@@ -158,6 +160,7 @@ contract AMM is IAMM, Initializable {
                 _tokenIds[i],
                 _erc1155Quantities[i],
                 _maxERC20sToSpend[i],
+                _spender,
                 _recipient
             );
         }

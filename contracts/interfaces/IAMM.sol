@@ -77,6 +77,7 @@ interface IAMM {
         uint256 _tokenId,
         uint256 _erc1155Quantity,
         uint256 _maxERC20ToSpend,
+        address _spender,
         address _recipient
     ) external;
 
@@ -84,6 +85,7 @@ interface IAMM {
         uint256[] memory _tokenIds,
         uint256[] memory _erc1155Quantities,
         uint256[] memory _maxERC20sToSpend,
+        address _spender,
         address _recipient
     ) external;
 

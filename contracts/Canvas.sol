@@ -6,11 +6,32 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721BurnableUpgradeable.sol";
 
 contract Canvas is ICanvas, Initializable, ERC721BurnableUpgradeable {
-    ProjectData[] public projects;
+    uint256 nextProjectId = 1;
+    mapping(uint256 => ProjectData) public projects;
 
     function initialize() external initializer {
         __ERC721_init("Intrinsic.art Canvases", "INSC");
         __ERC721Burnable_init();
+    }
+
+    function createProject(
+        address _studio,
+        address _minter,
+        uint256 _maxInvocations
+    ) public returns (uint256 projectId) {
+        require(
+            _maxInvocations < 1_000_000,
+            "Max invocations must be less than 1,000,000"
+        );
+
+        projectId = nextProjectId;
+
+        projects[projectId].studio = _studio;
+        projects[projectId].minter = _minter;
+        projects[projectId].invocations = 0;
+        projects[projectId].maxInvocations = _maxInvocations;
+
+        nextProjectId++;
     }
 
     function mint(uint256 _projectId, address _to)
@@ -32,28 +53,6 @@ contract Canvas is ICanvas, Initializable, ERC721BurnableUpgradeable {
         _safeMint(_to, tokenId);
 
         emit MintedToken(_to, _projectId, tokenId);
-    }
-
-    function createProject(
-        address _studio,
-        address _minter,
-        uint256 _maxInvocations
-    ) public returns (uint256 projectId) {
-        require(
-            _maxInvocations < 1_000_000,
-            "Max invocations must be less than 1,000,000"
-        );
-
-        projectId = projects.length;
-
-        ProjectData memory newProject = ProjectData({
-            studio: _studio,
-            minter: _minter,
-            invocations: 0,
-            maxInvocations: _maxInvocations
-        });
-
-        projects.push(newProject);
     }
 
     function getProjectIdFromCanvasId(uint256 canvasId)

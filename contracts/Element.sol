@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
 
 contract Element is IElement, ERC1155, ERC1155Burnable, ERC1155Supply {
-    uint256 public nextTokenId;
+    uint256 public nextTokenId = 1;
     mapping(uint256 => Feature) public features;
 
     constructor() ERC1155("") {}
@@ -25,14 +25,12 @@ contract Element is IElement, ERC1155, ERC1155Burnable, ERC1155Supply {
 
     function createFeatures(
         string[] calldata _labels,
-        address[] calldata _minters
+        address _minter
     ) public returns (uint256[] memory tokenIds) {
-        require(_labels.length == _minters.length, "Invalid array lengths");
-
         tokenIds = new uint256[](_labels.length);
 
         for (uint256 i; i < _labels.length; i++) {
-            createFeature(_labels[i], _minters[i]);
+            tokenIds[i] = createFeature(_labels[i], _minter);
         }
     }
 
@@ -66,5 +64,9 @@ contract Element is IElement, ERC1155, ERC1155Burnable, ERC1155Supply {
         bytes memory data
     ) internal override(ERC1155, ERC1155Supply) {
         super._beforeTokenTransfer(operator, from, to, ids, amounts, data);
+    }
+
+    function getElementLabel(uint256 _tokenId) public view returns (string memory) {
+      return features[_tokenId].label;
     }
 }

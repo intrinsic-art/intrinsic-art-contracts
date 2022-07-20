@@ -13,7 +13,7 @@ interface IElement {
 
     function createFeatures(
         string[] calldata _labels,
-        address[] calldata _minters
+        address _minter
     ) external returns (uint256[] memory tokenIds);
 
     function mint(
@@ -27,4 +27,6 @@ interface IElement {
         uint256[] memory _ids,
         uint256[] memory _amounts
     ) external;
+
+    function getElementLabel(uint256 _tokenId) external view returns (string memory);
 }

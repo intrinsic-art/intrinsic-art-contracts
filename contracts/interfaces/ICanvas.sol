@@ -11,15 +11,15 @@ interface ICanvas {
 
     function initialize() external;
 
-    function mint(uint256 _projectId, address _to)
-        external
-        returns (uint256 tokenId);
-
     function createProject(
         address _studio,
         address _minter,
         uint256 _maxInvocations
     ) external returns (uint256 projectId);
+
+    function mint(uint256 _projectId, address _to)
+        external
+        returns (uint256 tokenId);
 
     function getProjectIdFromCanvasId(uint256 canvasId)
         external
