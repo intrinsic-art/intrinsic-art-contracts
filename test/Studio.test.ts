@@ -7,7 +7,7 @@ import {
   MockWeth,
 } from "../typechain-types";
 import { expect } from "chai";
-import { ethers, deployments, network } from "hardhat";
+import { ethers, deployments } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { BigNumber } from "ethers";
 import time from "./helpers/time";
@@ -21,7 +21,6 @@ describe("Studio", function () {
   let mockWeth: MockWeth;
 
   // wallets
-  let deployer: SignerWithAddress;
   let artist: SignerWithAddress;
   let user: SignerWithAddress;
 
@@ -33,7 +32,7 @@ describe("Studio", function () {
 
   beforeEach(async function () {
     // get signers
-    [deployer, artist, user] = await ethers.getSigners();
+    [artist, user] = await ethers.getSigners();
 
     // Run deploy scripts
     await deployments.fixture();
@@ -311,232 +310,4 @@ describe("Studio", function () {
     expect(await studio.getProjectIdFromCanvasId(3000001)).to.eq(3);
     expect(await studio.getProjectIdFromCanvasId(3999999)).to.eq(3);
   });
-
-  // it("Adding A project init project", async () => {
-  //   await addProject();
-  // });
-  // it("Dutch Auction Initialized", async () => {
-  //   await addProject();
-  //   expect(
-  //     await dutchAuction.projectIdToAuction(coloringBook.address, 0)
-  //   ).to.deep.eq([
-  //     ethers.BigNumber.from("0"),
-  //     ethers.BigNumber.from("100"),
-  //     ethers.BigNumber.from(`${timestamp + 100}`),
-  //     ethers.BigNumber.from(`${timestamp + 1000}`),
-  //     ethers.utils.parseEther("1"),
-  //     ethers.utils.parseEther(".1"),
-  //     deployer.address,
-  //     canvas.address,
-  //     mockWeth.address,
-  //   ]);
-  // });
-  // it("Init Features / Categories", async () => {
-  //   await addProject();
-  //   expect(await element.tokenIdToFeature(1)).to.eq("features");
-  //   expect(await coloringBook.projectIdToFeatureIdToCategory(0, 1)).to.eq(
-  //     "featureCategories"
-  //   );
-  //   expect(
-  //     await coloringBook.findProjectCategoryAndFeatureStrings(0)
-  //   ).to.deep.equal([
-  //     ["featureCategories"],
-  //     [["features"]],
-  //     [[ethers.BigNumber.from("1")]],
-  //   ]);
-  // });
-  // it("AMM Initialized", async () => {
-  //   await addProject();
-  //   expect(await amm.tokenIdToBondingCurve(coloringBook.address, 1)).to.deep.eq(
-  //     [
-  //       ethers.BigNumber.from("1"),
-  //       ethers.BigNumber.from("1"),
-  //       ethers.BigNumber.from("0"),
-  //       deployer.address,
-  //       element.address,
-  //       ethers.BigNumber.from(`${timestamp + 100}`),
-  //     ]
-  //   );
-  // });
-  // it("Updating project", async () => {
-  //   await addProject();
-  //   await coloringBook.updateProject(
-  //     0,
-  //     101,
-  //     "Name2",
-  //     "Artist2",
-  //     "Description2"
-  //   );
-  //   expect(await coloringBook.projects(0)).to.deep.eq([
-  //     deployer.address,
-  //     ethers.BigNumber.from("101"),
-  //     "Name2",
-  //     "Artist2",
-  //     "Description2",
-  //     "Website",
-  //     "License",
-  //     "ProjectBaseURI",
-  //     ethers.BigNumber.from("1"),
-  //     "scriptJSON",
-  //   ]);
-  // });
-  // it("Updating project Revert incorrect Artist / Start Time", async () => {
-  //   await addProject();
-  //   await expect(
-  //     coloringBook
-  //       .connect(user)
-  //       .updateProject(0, 101, "Name2", "Artist2", "Description2")
-  //   ).to.be.revertedWith("You are not the project's artist");
-
-  //   await network.provider.send("evm_increaseTime", [100]);
-  //   await network.provider.send("evm_mine");
-  //   await expect(
-  //     coloringBook.updateProject(0, 101, "Name2", "Artist2", "Description2")
-  //   ).to.be.revertedWith("Project Already Started");
-  // });
-  // it("Updating metadata", async () => {
-  //   await addProject();
-  //   await coloringBook.updateMetaData(
-  //     0,
-  //     "Website2",
-  //     "License2",
-  //     "ProjectBaseURI2"
-  //   );
-  //   expect(await coloringBook.projects(0)).to.deep.eq([
-  //     deployer.address,
-  //     ethers.BigNumber.from("100"),
-  //     "Name",
-  //     "Artist",
-  //     "Description",
-  //     "Website2",
-  //     "License2",
-  //     "ProjectBaseURI2",
-  //     ethers.BigNumber.from("1"),
-  //     "scriptJSON",
-  //   ]);
-  // });
-  // it("Updating metadata Revert incorrect Artist", async () => {
-  //   await addProject();
-  //   await expect(
-  //     coloringBook
-  //       .connect(user)
-  //       .updateMetaData(0, "Website2", "License2", "ProjectBaseURI2")
-  //   ).to.be.revertedWith("You are not the project's artist");
-
-  //   await network.provider.send("evm_increaseTime", [100]);
-  //   await network.provider.send("evm_mine");
-  //   await coloringBook.updateMetaData(
-  //     0,
-  //     "Website2",
-  //     "License2",
-  //     "ProjectBaseURI2"
-  //   );
-  //   expect(await coloringBook.projects(0)).to.deep.eq([
-  //     deployer.address,
-  //     ethers.BigNumber.from("100"),
-  //     "Name",
-  //     "Artist",
-  //     "Description",
-  //     "Website2",
-  //     "License2",
-  //     "ProjectBaseURI2",
-  //     ethers.BigNumber.from("1"),
-  //     "scriptJSON",
-  //   ]);
-  // });
-  // it("Updating scripts", async () => {
-  //   await addProject();
-  //   await coloringBook.updateScripts(0, ["scripts2"], [0], "scriptJSON2");
-  //   expect(await coloringBook.projects(0)).to.deep.eq([
-  //     deployer.address,
-  //     ethers.BigNumber.from("100"),
-  //     "Name",
-  //     "Artist",
-  //     "Description",
-  //     "Website",
-  //     "License",
-  //     "ProjectBaseURI",
-  //     ethers.BigNumber.from("1"),
-  //     "scriptJSON2",
-  //   ]);
-  //   expect(await coloringBook.scripts(0, 0)).to.deep.eq("scripts2");
-  // });
-  // it("Updating script Revert incorrect Artist / Start Time", async () => {
-  //   await addProject();
-  //   await expect(
-  //     coloringBook
-  //       .connect(user)
-  //       .updateScripts(0, ["scripts2"], [0], "scriptJSON2")
-  //   ).to.be.revertedWith("You are not the project's artist");
-
-  //   await network.provider.send("evm_increaseTime", [100]);
-  //   await network.provider.send("evm_mine");
-  //   await expect(
-  //     coloringBook.updateScripts(0, ["scripts2"], [0], "scriptJSON2")
-  //   ).to.be.revertedWith("Project Already Started");
-  // });
-  // it("Adding scripts", async () => {
-  //   await addProject();
-  //   await coloringBook.updateScripts(0, ["scripts2"], [1], "scriptJSON");
-  //   expect(await coloringBook.projects(0)).to.deep.eq([
-  //     deployer.address,
-  //     ethers.BigNumber.from("100"),
-  //     "Name",
-  //     "Artist",
-  //     "Description",
-  //     "Website",
-  //     "License",
-  //     "ProjectBaseURI",
-  //     ethers.BigNumber.from("2"),
-  //     "scriptJSON",
-  //   ]);
-  //   expect(await coloringBook.scripts(0, 1)).to.deep.eq("scripts2");
-  // });
-  // it("Creating  features", async () => {
-  //   await addProject();
-  //   await coloringBook.createFeaturesAndCategories(
-  //     0,
-  //     timestamp + 100,
-  //     ["featureCategories2"],
-  //     [["features2"]],
-  //     CreateAMM
-  //   );
-  //   expect(await element.tokenIdToFeature(2)).to.eq("features2");
-  //   expect(await coloringBook.projectIdToFeatureIdToCategory(0, 2)).to.eq(
-  //     "featureCategories2"
-  //   );
-  //   expect(
-  //     await coloringBook.findProjectCategoryAndFeatureStrings(0)
-  //   ).to.deep.equal([
-  //     ["featureCategories", "featureCategories2"],
-  //     [["features"], ["features2"]],
-  //     [[ethers.BigNumber.from("1")], [ethers.BigNumber.from("2")]],
-  //   ]);
-  // });
-  // it("Creating features Revert incorrect Artist / Start Time", async () => {
-  //   await addProject();
-  //   await expect(
-  //     coloringBook
-  //       .connect(user)
-  //       .createFeaturesAndCategories(
-  //         0,
-  //         timestamp + 100,
-  //         ["featureCategories2"],
-  //         [["features2"]],
-  //         CreateAMM
-  //       )
-  //   ).to.be.revertedWith("You are not the project's artist");
-
-  //   await network.provider.send("evm_increaseTime", [101]);
-  //   await network.provider.send("evm_mine");
-  //   await expect(
-  //     coloringBook.createFeaturesAndCategories(
-  //       0,
-  //       timestamp + 100,
-  //       ["featureCategories2"],
-  //       [["features2"]],
-  //       CreateAMM
-  //     )
-  //   ).not.reverted;
-  // });
 });
