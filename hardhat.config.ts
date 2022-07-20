@@ -5,15 +5,23 @@ import "@openzeppelin/hardhat-upgrades";
 import "@nomiclabs/hardhat-waffle";
 import "@typechain/hardhat";
 import "hardhat-deploy";
-import AddProject from "./scripts/AddProject";
+import CreateProject from "./scripts/CreateProject";
+import AddScript from "./scripts/AddScript";
 import MintWeth from "./scripts/MintWeth";
 
 dotenv.config();
 
-task("AddProject", "Add a project")
-  .addParam("coloringBook", "Address of coloring book")
+task("CreateProject", "Create a project")
+  .addParam("studio", "Address of Studio contract")
   .setAction(async (taskArgs, hre) => {
-    await AddProject(hre, taskArgs.coloringBook);
+    await CreateProject(hre, taskArgs.studio);
+  });
+
+task("AddScript", "Add a script to a project")
+  .addParam("studio", "Address of Studio contract")
+  .addParam("project", "ID of project to add script to")
+  .setAction(async (taskArgs, hre) => {
+    await AddScript(hre, taskArgs.studio, taskArgs.project);
   });
 
 task("MintWeth", "Mint WETH to the specified address")
