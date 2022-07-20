@@ -3,7 +3,7 @@ import { DeployFunction } from "hardhat-deploy/types";
 import { deployContract } from "../helpers/deployContract";
 
 const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
-  await deployContract(hre, "ColoringBook", []);
+  await deployContract(hre, "Studio", []);
 };
 
 export default func;
