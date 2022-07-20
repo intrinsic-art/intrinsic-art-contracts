@@ -1,6 +1,4 @@
-import { utils } from "ethers";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import Config from "../helpers/Config";
 
 const MintWeth = async (
   hre: HardhatRuntimeEnvironment,
