@@ -12,7 +12,7 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
 
   let weth = "";
   const { chainId } = await ethers.provider.getNetwork();
-  if (chainId === 31337) {
+  if (chainId === 31337 || chainId === 5) {
     weth = mockWeth.address;
   } else if (chainId === 1) {
     weth = "";

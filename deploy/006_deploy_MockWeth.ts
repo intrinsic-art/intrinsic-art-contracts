@@ -5,7 +5,8 @@ import { ethers } from "hardhat";
 
 const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   const { chainId } = await ethers.provider.getNetwork();
-  if (chainId === 31337) await deployContract(hre, "MockWeth", []);
+  if (chainId === 31337 || chainId === 5)
+    await deployContract(hre, "MockWeth", []);
 };
 
 export default func;
