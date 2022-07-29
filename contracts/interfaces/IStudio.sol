@@ -2,6 +2,12 @@
 pragma solidity ^0.8.0;
 
 interface IStudio {
+    event CanvasWrapped(
+        uint256 indexed canvasId,
+        address indexed wrapper,
+        uint256[] elementIds
+    );
+
     struct ProjectData {
         string name;
         string description;

@@ -68,9 +68,12 @@ contract Studio is IStudio, Initializable, ERC1155Holder {
     }
 
     function addScript(uint256 _projectId, string calldata _script) public {
-      require(msg.sender == projects[_projectId].artistAddress, "Only the artist can call this function");
+        require(
+            msg.sender == projects[_projectId].artistAddress,
+            "Only the artist can call this function"
+        );
 
-      projects[_projectId].scripts.push(_script);
+        projects[_projectId].scripts.push(_script);
     }
 
     function buyElements(
@@ -113,12 +116,11 @@ contract Studio is IStudio, Initializable, ERC1155Holder {
             "Incorrect elements array length"
         );
 
-        canvases[_canvasId].hash = keccak256(
-            abi.encodePacked(
-                msg.sender,
-                userNonces[msg.sender]
-            )
+        bytes32 newHash = keccak256(
+            abi.encodePacked(msg.sender, userNonces[msg.sender])
         );
+
+        canvases[_canvasId].hash = newHash;
 
         uint256[] memory elementTokenIds = new uint256[](
             _elementIndexes.length
@@ -140,6 +142,8 @@ contract Studio is IStudio, Initializable, ERC1155Holder {
         canvases[_canvasId].wrapped = true;
         canvases[_canvasId].wrappedFeatureTokenIds = elementTokenIds;
         userNonces[msg.sender]++;
+
+        emit CanvasWrapped(_canvasId, msg.sender, elementTokenIds);
     }
 
     function unwrap(uint256 _canvasId) public {
@@ -264,19 +268,23 @@ contract Studio is IStudio, Initializable, ERC1155Holder {
         return canvases[_canvasId].wrappedFeatureTokenIds;
     }
 
-    function getCanvasWrappedFeatureLabels(uint256 _canvasId) public view returns (string[] memory featureLabels) {
-      featureLabels = new string[](canvases[_canvasId].wrappedFeatureTokenIds.length);
-
-      for(uint256 i; i < featureLabels.length; i++) {
-        featureLabels[i] = element.getElementLabel(canvases[_canvasId].wrappedFeatureTokenIds[i]);
-      }
-    }
-
-    function getUserNonce(address _user)
+    function getCanvasWrappedFeatureLabels(uint256 _canvasId)
         public
         view
-        returns (uint256)
+        returns (string[] memory featureLabels)
     {
+        featureLabels = new string[](
+            canvases[_canvasId].wrappedFeatureTokenIds.length
+        );
+
+        for (uint256 i; i < featureLabels.length; i++) {
+            featureLabels[i] = element.getElementLabel(
+                canvases[_canvasId].wrappedFeatureTokenIds[i]
+            );
+        }
+    }
+
+    function getUserNonce(address _user) public view returns (uint256) {
         return userNonces[_user];
     }
 
