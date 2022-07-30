@@ -11,7 +11,7 @@ interface IStudio {
     event CanvasUnwrapped(
         uint256 indexed canvasId,
         address indexed unwrapped
-    )
+    );
 
     struct ProjectData {
         string name;
