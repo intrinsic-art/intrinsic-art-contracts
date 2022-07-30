@@ -8,31 +8,31 @@ const AddScript = async (
 ): Promise<void> => {
   const studio = await hre.ethers.getContractAt("Studio", studioAddress);
 
-  await studio.addScript(projectId, script[0], {
+  await studio.updateScript(projectId, 0, script[0], {
     gasLimit: 30000000,
   });
 
   console.log("Added 0");
 
-  await studio.addScript(projectId, script[1], {
+  await studio.updateScript(projectId, 1, script[1], {
     gasLimit: 30000000,
   });
 
   console.log("Added 1");
 
-  await studio.addScript(projectId, script[2], {
+  await studio.updateScript(projectId, 2, script[2], {
     gasLimit: 30000000,
   });
 
   console.log("Added 2");
 
-  await studio.addScript(projectId, script[3], {
+  await studio.updateScript(projectId, 3, script[3], {
     gasLimit: 30000000,
   });
 
   console.log("Added 3");
 
-  await studio.addScript(projectId, script[4], {
+  await studio.updateScript(projectId, 4, script[4], {
     gasLimit: 30000000,
   });
 

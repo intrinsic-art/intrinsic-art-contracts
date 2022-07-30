@@ -8,6 +8,11 @@ interface IStudio {
         uint256[] elementIds
     );
 
+    event CanvasUnwrapped(
+        uint256 indexed canvasId,
+        address indexed unwrapped
+    )
+
     struct ProjectData {
         string name;
         string description;
@@ -17,7 +22,8 @@ interface IStudio {
         string license;
         string baseURI;
         string scriptJSON;
-        string[] scripts;
+        uint256 scriptCount;
+        mapping(uint256 => string) scripts;
         string[] featureCategoryLabels;
         uint256[][] featureTokenIds;
     }
@@ -31,7 +37,7 @@ interface IStudio {
         string license;
         string baseURI;
         string scriptJSON;
-        string[] scripts;
+        uint256 scriptCount;
         uint256 maxInvocations;
         string[] featureCategoryLabels;
         string[][] featureLabels;

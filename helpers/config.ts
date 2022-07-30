@@ -10,7 +10,7 @@ const config = {
     license: "MIT",
     baseURI: "FakeURI",
     scriptJSON: "Test JSON",
-    scripts: [],
+    scriptCount: 5,
     maxInvocations: 100,
     featureCategoryLabels: [
       "featureKnots",

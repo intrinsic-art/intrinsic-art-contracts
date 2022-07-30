@@ -67,13 +67,13 @@ contract Studio is IStudio, Initializable, ERC1155Holder {
         emit ProjectCreated(projectId);
     }
 
-    function addScript(uint256 _projectId, string calldata _script) public {
+    function updateScript(uint256 _projectId, uint256 _scriptIndex, string calldata _script) public {
         require(
             msg.sender == projects[_projectId].artistAddress,
             "Only the artist can call this function"
         );
 
-        projects[_projectId].scripts.push(_script);
+        projects[_projectId].scripts[_scriptIndex] = (_script);
     }
 
     function buyElements(
@@ -175,6 +175,8 @@ contract Studio is IStudio, Initializable, ERC1155Holder {
                 ""
             );
         }
+
+        emit CanvasUnwrapped(_canvasId, msg.sender);
     }
 
     function buyElementsAndWrap(
@@ -226,7 +228,7 @@ contract Studio is IStudio, Initializable, ERC1155Holder {
         projects[projectId].license = _createProjectData.license;
         projects[projectId].baseURI = _createProjectData.baseURI;
         projects[projectId].scriptJSON = _createProjectData.scriptJSON;
-        projects[projectId].scripts = _createProjectData.scripts;
+        projects[projectId].scriptCount = _createProjectData.scriptCount;
         projects[projectId].name = _createProjectData.name;
         projects[projectId].featureCategoryLabels = _createProjectData
             .featureCategoryLabels;
@@ -339,9 +341,13 @@ contract Studio is IStudio, Initializable, ERC1155Holder {
     function getProjectScripts(uint256 _projectId)
         public
         view
-        returns (string[] memory)
+        returns (string[] memory _scripts)
     {
-        return projects[_projectId].scripts;
+        _scripts = new string[](projects[_projectId].scriptCount);
+
+        for(uint256 i; i < projects[_projectId].scriptCount; i++) {
+          _scripts[i] = projects[_projectId].scripts[i];
+        }
     }
 
     function getProjectFeatureCategoryLabels(uint256 _projectId)

@@ -54,7 +54,8 @@ describe("Studio", function () {
       license: "Test License",
       baseURI: "Test Base URI",
       scriptJSON: "Test Script JSON",
-      scripts: ["Test Script 1", "Test Script 2"],
+      // scripts: ["Test Script 1", "Test Script 2"],
+      scriptCount: 2,
       maxInvocations: 100,
       featureCategoryLabels: ["Hair Color", "Eye Color"],
       featureLabels: [
@@ -91,6 +92,9 @@ describe("Studio", function () {
     };
 
     await studio.createProject(createProjectData, createAuction, createAMM);
+
+    await studio.updateScript(1, 0, "Test Script 1");
+    await studio.updateScript(1, 1, "Test Script 2");
 
     await mockWeth.mint(user.address, ethers.utils.parseEther("100"));
 
