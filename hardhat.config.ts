@@ -5,6 +5,7 @@ import "@openzeppelin/hardhat-upgrades";
 import "@nomiclabs/hardhat-waffle";
 import "@typechain/hardhat";
 import "hardhat-deploy";
+import "hardhat-gas-reporter";
 import CreateProject from "./scripts/CreateProject";
 import AddScript from "./scripts/AddScript";
 import MintWeth from "./scripts/MintWeth";
