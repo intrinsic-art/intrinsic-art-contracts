@@ -38,9 +38,9 @@ npx hardhat AddProject
 --network localhost
 ```
 
-npx hardhat CreateProject --studio 0xC9E78295F6805fb1608Fc2DD9fAa5a504b407B00 --network goerli
+npx hardhat CreateProject2 --studio 0xC9E78295F6805fb1608Fc2DD9fAa5a504b407B00 --network goerli
 
-npx hardhat AddScript --studio 0xC9E78295F6805fb1608Fc2DD9fAa5a504b407B00 --project 1 --network goerli
+npx hardhat AddScript2 --studio 0xC9E78295F6805fb1608Fc2DD9fAa5a504b407B00 --project 14 --network goerli
 
 
 npx hardhat CreateProject --studio 0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9 --network localhost

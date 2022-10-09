@@ -8,6 +8,8 @@ import "hardhat-deploy";
 import "hardhat-gas-reporter";
 import CreateProject from "./scripts/CreateProject";
 import AddScript from "./scripts/AddScript";
+import CreateProject2 from "./scripts/CreateProject2";
+import AddScript2 from "./scripts/AddScript2";
 import MintWeth from "./scripts/MintWeth";
 
 dotenv.config();
@@ -18,11 +20,24 @@ task("CreateProject", "Create a project")
     await CreateProject(hre, taskArgs.studio);
   });
 
+task("CreateProject2", "Create a project")
+  .addParam("studio", "Address of Studio contract")
+  .setAction(async (taskArgs, hre) => {
+    await CreateProject2(hre, taskArgs.studio);
+  });
+
 task("AddScript", "Add a script to a project")
   .addParam("studio", "Address of Studio contract")
   .addParam("project", "ID of project to add script to")
   .setAction(async (taskArgs, hre) => {
     await AddScript(hre, taskArgs.studio, taskArgs.project);
+  });
+
+task("AddScript2", "Add a script to a project")
+  .addParam("studio", "Address of Studio contract")
+  .addParam("project", "ID of project to add script to")
+  .setAction(async (taskArgs, hre) => {
+    await AddScript2(hre, taskArgs.studio, taskArgs.project);
   });
 
 task("MintWeth", "Mint WETH to the specified address")
