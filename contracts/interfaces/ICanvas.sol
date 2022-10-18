@@ -4,22 +4,19 @@ pragma solidity ^0.8.0;
 interface ICanvas {
     struct ProjectData {
         address studio;
-        address minter;
-        uint256 invocations;
-        uint256 maxInvocations;
+        uint256 supply;
+        uint256 maxSupply;
     }
 
-    function initialize() external;
+    function initialize(address _owner) external;
 
     function createProject(
         address _studio,
-        address _minter,
-        uint256 _maxInvocations
+        uint256 _maxSupply
     ) external returns (uint256 projectId);
 
     function mint(uint256 _projectId, address _to)
-        external
-        returns (uint256 tokenId);
+       external returns (uint256 _tokenId);
 
     function getProjectIdFromCanvasId(uint256 canvasId)
         external

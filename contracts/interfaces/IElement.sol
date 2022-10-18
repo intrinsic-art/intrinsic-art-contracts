@@ -2,31 +2,32 @@
 pragma solidity ^0.8.0;
 
 interface IElement {
-    struct Feature {
+    struct Element {
         string label;
-        address minter;
+        string value;
     }
 
-    function createFeature(string calldata _label, address _minter)
+    function createElement(
+        string calldata _label,
+        string calldata _value,
+        uint256 _supply,
+        address _recipient
+    ) external returns (uint256 tokenId);
+
+    function createElements(
+        string[][] calldata _labels,
+        string[][] calldata _values,
+        uint256[][] calldata _supplys,
+        address _recipient
+    ) external returns (uint256[][] memory tokenIds);
+
+    function getElementLabel(uint256 _tokenId)
         external
-        returns (uint256 tokenId);
+        view
+        returns (string memory);
 
-    function createFeatures(
-        string[] calldata _labels,
-        address _minter
-    ) external returns (uint256[] memory tokenIds);
-
-    function mint(
-        address _to,
-        uint256 _id,
-        uint256 _amount
-    ) external;
-
-    function mintBatch(
-        address _to,
-        uint256[] memory _ids,
-        uint256[] memory _amounts
-    ) external;
-
-    function getElementLabel(uint256 _tokenId) external view returns (string memory);
+    function getElementValue(uint256 _tokenId)
+        external
+        view
+        returns (string memory);
 }
