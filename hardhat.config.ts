@@ -6,6 +6,7 @@ import "@nomiclabs/hardhat-waffle";
 import "@typechain/hardhat";
 import "hardhat-deploy";
 import "hardhat-gas-reporter";
+import "hardhat-contract-sizer";
 import CreateProject from "./scripts/CreateProject";
 import AddScript from "./scripts/AddScript";
 import CreateProject2 from "./scripts/CreateProject2";
@@ -62,6 +63,16 @@ const config: HardhatUserConfig = {
         runs: 200,
       },
     },
+  },
+  mocha: {
+    timeout: 1000000,
+  },
+  contractSizer: {
+    alphaSort: true,
+    disambiguatePaths: false,
+    runOnCompile: true,
+    strict: true,
+    only: [":Studio$"],
   },
   namedAccounts: {
     deployer: {

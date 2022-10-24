@@ -2,52 +2,53 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
-import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "./Canvas.sol";
-import "./Element.sol";
+import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
+import "./interfaces/IStudio.sol";
 import "./Marketplace.sol";
+import "./StringConverter.sol";
 
-/* Project creation flow
-*  1) Artist creates project & elements
-*  2) Artist updates scripts
-*  3) Artist verifies that everything looks good
-*  4) Artist locks the project
-*  5) Artist creates the markets
-*/
-
-contract Studio is Initializable, ERC1155Holder, Marketplace {
-    struct CanvasData {
-        bool wrapped;
-        uint256[] wrappedElementTokenIds;
-        bytes32 hash;
-    }
-
+contract Studio is IStudio, Marketplace, ERC721Holder, StringConverter {
     mapping(uint256 => CanvasData) public canvases;
     mapping(address => uint256) public userNonces;
 
-    /////////// Project Functions /////////////
-    function initialize(
+    constructor(
         address _owner,
         address _canvas,
-        address _element
-    ) external initializer {
+        address _element,
+        uint256 _auctionStartDelay,
+        string memory _baseURI
+    ) {
         _transferOwnership(_owner);
-        canvas = Canvas(_canvas);
-        element = Element(_element);
+        canvas = ICanvas(_canvas);
+        element = IElement(_element);
+        auctionStartDelay = _auctionStartDelay;
+        baseURI = _baseURI;
     }
 
-    function wrap(uint256 _projectId, uint256[] calldata _elementIndexes) public returns (uint256 _canvasTokenId) {
+    function wrap(uint256 _projectId, uint256[] calldata _elementIndexes)
+        public
+        returns (uint256 _canvasTokenId)
+    {
         require(
             _elementIndexes.length ==
-                projects[_projectId]
-                    .elementCategoryLabels
-                    .length,
-            "Incorrect elements array length"
+                projects[_projectId].elementCategoryLabels.length,
+            "S01"
         );
 
-        _canvasTokenId = canvas.mint(_projectId, msg.sender);
+        if (
+            canvas.getProjectSupply(_projectId) <
+            canvas.getProjectMaxSupply(_projectId)
+        ) {
+            _canvasTokenId = canvas.mint(_projectId, msg.sender);
+        } else {
+            require(projects[_projectId].blankCanvasIds.length > 0, "S02");
+            _canvasTokenId = projects[_projectId].blankCanvasIds[
+                projects[_projectId].blankCanvasIds.length - 1
+            ];
+            projects[_projectId].blankCanvasIds.pop();
+            canvas.safeTransferFrom(address(this), msg.sender, _canvasTokenId);
+        }
 
         bytes32 newHash = keccak256(
             abi.encodePacked(msg.sender, userNonces[msg.sender])
@@ -60,8 +61,9 @@ contract Studio is Initializable, ERC1155Holder, Marketplace {
         );
 
         for (uint256 i; i < _elementIndexes.length; i++) {
-            elementTokenIds[i] = projects[_projectId]
-                .elementTokenIds[i][_elementIndexes[i]];
+            elementTokenIds[i] = projects[_projectId].elementTokenIds[i][
+                _elementIndexes[i]
+            ];
 
             element.safeTransferFrom(
                 msg.sender,
@@ -76,38 +78,42 @@ contract Studio is Initializable, ERC1155Holder, Marketplace {
         canvases[_canvasTokenId].wrappedElementTokenIds = elementTokenIds;
         userNonces[msg.sender]++;
 
-        // emit CanvasWrapped(_canvasId, msg.sender, elementTokenIds);
+        emit CanvasWrapped(_canvasTokenId, msg.sender);
     }
 
     function unwrap(uint256 _canvasId) public {
-        require(
-            msg.sender == canvas.ownerOf(_canvasId),
-            "You are not the owner of this canvas"
-        );
-        require(canvases[_canvasId].wrapped, "Canvas is not wrapped");
+        require(msg.sender == canvas.ownerOf(_canvasId), "S03");
+        require(canvases[_canvasId].wrapped, "S04");
 
-        canvases[_canvasId].hash = 0;
-        canvases[_canvasId].wrapped = false;
-
-        uint256 projectId = getProjectIdFromCanvasId(_canvasId);
-
+        // Transfer elements to the user
         for (
             uint256 i;
-            i < projects[projectId].elementCategoryLabels.length;
+            i < canvases[_canvasId].wrappedElementTokenIds.length;
             i++
         ) {
-            uint256 elementTokenId = canvases[_canvasId].wrappedElementTokenIds[i];
-            canvases[_canvasId].wrappedElementTokenIds[i] = 0;
             element.safeTransferFrom(
                 address(this),
                 msg.sender,
-                elementTokenId,
+                canvases[_canvasId].wrappedElementTokenIds[i],
                 1,
                 ""
             );
         }
 
-        // emit CanvasUnwrapped(_canvasId, msg.sender);
+        // Reset canvas state to blank canvas
+        canvases[_canvasId].hash = 0;
+        canvases[_canvasId].wrapped = false;
+        canvases[_canvasId].wrappedElementTokenIds = new uint256[](0);
+
+        // Transfer canvas from the user to this address
+        canvas.safeTransferFrom(msg.sender, address(this), _canvasId);
+
+        // Add the canvas ID to the array of blank canvses held by the studio
+        projects[getProjectIdFromCanvasId(_canvasId)].blankCanvasIds.push(
+            _canvasId
+        );
+
+        emit CanvasUnwrapped(_canvasId, msg.sender);
     }
 
     function buyElementsAndWrap(
@@ -117,128 +123,61 @@ contract Studio is Initializable, ERC1155Holder, Marketplace {
         uint256 _projectId,
         uint256[] calldata _elementIndexesToWrap
     ) public {
-        buyElements(
-            _tokenIdsToBuy,
-            _tokenQuantitiesToBuy,
-            _maxERC20ToSpend
-        );
+        buyElements(_tokenIdsToBuy, _tokenQuantitiesToBuy, _maxERC20ToSpend);
         wrap(_projectId, _elementIndexesToWrap);
     }
 
-    function getCanvasWrappedTokenIds(uint256 _canvasId)
-        public
+    function getCanvasURI(uint256 _canvasTokenId)
+        external
         view
-        returns (uint256[] memory)
+        returns (string memory)
     {
-        return canvases[_canvasId].wrappedElementTokenIds;
+        return string.concat(baseURI, toString(_canvasTokenId));
     }
 
-    function getCanvasWrappedFeatureLabels(uint256 _canvasId)
-        public
-        view
-        returns (string[] memory featureLabels)
-    {
-        featureLabels = new string[](
-            canvases[_canvasId].wrappedElementTokenIds.length
-        );
+    function getCanvasHash(uint256 _canvasId) external view returns (bytes32) {
+        return canvases[_canvasId].hash;
+    }
 
-        for (uint256 i; i < featureLabels.length; i++) {
-            featureLabels[i] = element.getElementLabel(
+    function getCanvasElementLabels(uint256 _canvasId)
+        external
+        view
+        returns (string[] memory elementLabels)
+    {
+        uint256 elementLabelsLength = canvases[_canvasId]
+            .wrappedElementTokenIds
+            .length;
+        elementLabels = new string[](elementLabelsLength);
+
+        for (uint256 i; i < elementLabelsLength; i++) {
+            elementLabels[i] = element.getElementLabel(
                 canvases[_canvasId].wrappedElementTokenIds[i]
             );
         }
     }
 
-    function getUserNonce(address _user) public view returns (uint256) {
-        return userNonces[_user];
-    }
-
-    function getCanvasTokenURI(uint256 _canvasTokenId)
-        public
+    function getCanvasElementValues(uint256 _canvasId)
+        external
         view
-        returns (string memory)
+        returns (string[] memory elementValues)
     {
-        return
-            string(
-                abi.encodePacked(
-                    projects[getProjectIdFromCanvasId(_canvasTokenId)].baseURI,
-                    Strings.toString(_canvasTokenId)
-                )
-            );
-    }
-
-    function getCanvasHash(uint256 _canvasId) public view returns (bytes32) {
-        return canvases[_canvasId].hash;
-    }
-
-    function getProjectScripts(uint256 _projectId)
-        public
-        view
-        returns (string[] memory _scripts)
-    {
-        uint256 scriptCount = getProjectScriptCount(_projectId);
-        _scripts = new string[](scriptCount);
-
-        for(uint256 i; i < scriptCount; i++) {
-          _scripts[i] = projects[_projectId].scripts[i];
-        }
-    }
-
-    function getProjectScriptCount(uint256 _projectId) public view returns (uint256) {
-      uint256 scriptIndex;
-
-      while(keccak256(abi.encodePacked(projects[_projectId].scripts[scriptIndex])) == keccak256(abi.encodePacked(""))) {
-        scriptIndex++;
-      }
-
-      return scriptIndex;
-    }
-
-    function getProjectElementCategoryLabels(uint256 _projectId)
-        public
-        view
-        returns (string[] memory)
-    {
-        return projects[_projectId].elementCategoryLabels;
-    }
-
-    function getProjectElementTokenIds(uint256 _projectId)
-        public
-        view
-        returns (uint256[][] memory)
-    {
-        return projects[_projectId].elementTokenIds;
-    }
-
-    function getProjectElementLabels(uint256 _projectId)
-        public
-        view
-        returns (string[][] memory elementLabels)
-    {
-        uint256 featureCategoryLength = projects[_projectId]
-            .elementCategoryLabels
+        uint256 elementValuesLength = canvases[_canvasId]
+            .wrappedElementTokenIds
             .length;
-        elementLabels = new string[][](featureCategoryLength);
+        elementValues = new string[](elementValuesLength);
 
-        for (uint256 i; i < featureCategoryLength; i++) {
-            uint256 featuresLength = projects[_projectId]
-                .elementTokenIds[i]
-                .length;
-            string[] memory innerFeatureLabels = new string[](featuresLength);
-            for (uint256 j; j < featuresLength; j++) {
-                innerFeatureLabels[j] = element.getElementLabel(
-                    projects[_projectId].elementTokenIds[i][j]
-                );
-            }
-            elementLabels[i] = innerFeatureLabels;
+        for (uint256 i; i < elementValuesLength; i++) {
+            elementValues[i] = element.getElementValue(
+                canvases[_canvasId].wrappedElementTokenIds[i]
+            );
         }
     }
 
-    function getProjectIdFromCanvasId(uint256 canvasId)
-        public
-        pure
-        returns (uint256 projectId)
+    function getIsCanvasWrapped(uint256 _canvasId)
+        external
+        view
+        returns (bool)
     {
-        projectId = canvasId / 1_000_000;
+        return canvases[_canvasId].wrapped;
     }
 }

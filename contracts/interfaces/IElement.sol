@@ -2,23 +2,29 @@
 pragma solidity ^0.8.0;
 
 interface IElement {
-    struct Element {
-        string label;
-        string value;
-    }
+    function safeTransferFrom(address _from, address _to, uint256 _id, uint256 _value, bytes calldata _data) external;
+
+    function balanceOf(address _owner, uint256 _id) external view returns (uint256);
 
     function createElement(
         string calldata _label,
         string calldata _value,
-        uint256 _supply,
-        address _recipient
+        uint256[] calldata _amounts,
+        address[] calldata _recipients
     ) external returns (uint256 tokenId);
 
     function createElements(
+        string[] calldata _labels,
+        string[] calldata _values,
+        uint256[][] calldata _amounts,
+        address[] calldata _recipients
+    ) external returns (uint256[] memory tokenIds);
+
+    function createElements2D(
         string[][] calldata _labels,
         string[][] calldata _values,
-        uint256[][] calldata _supplys,
-        address _recipient
+        uint256[][][] calldata _amounts,
+        address[] calldata _recipients
     ) external returns (uint256[][] memory tokenIds);
 
     function getElementLabel(uint256 _tokenId)
