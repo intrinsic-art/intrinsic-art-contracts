@@ -2,24 +2,28 @@
 pragma solidity ^0.8.0;
 
 interface ICanvas {
-    function initialize(
-        address _element,
-        address _dutchAuction,
-        address _coloringBook,
-        address _amm
-    ) external;
+    function initialize(address _owner) external;
 
-    function safeMint(address _to, uint256 _projectId)
-        external
-        returns (uint256 tokenId);
+    function safeTransferFrom(address _from, address _to, uint256 _tokenId) external payable;
 
-    /// @dev returns the category of a feature
-    /// @notice Should be used to assure different features
-    /// from the same category are not wrapped together
-    function findIdToCategory(uint256 projectId, uint256 featureId)
+    function ownerOf(uint256 _tokenId) external view returns (address);
+
+    function createProject(
+        address _studio,
+        uint256 _maxSupply
+    ) external returns (uint256 projectId);
+
+    function mint(uint256 _projectId, address _to)
+       external returns (uint256 _tokenId);
+
+    function getProjectIdFromCanvasId(uint256 canvasId)
         external
-        view
-        returns (string memory categoryString);
+        pure
+        returns (uint256 projectId);
+
+    function getProjectMaxSupply(uint256 _projectId) external view returns (uint256);
+
+    function getProjectSupply(uint256 _projectId) external view returns (uint256);
 
     event MintedToken(address receiver, uint256 projectid, uint256 tokenId);
     event WrappedTokens(uint256 canvasId, uint256 tokenIds, uint256 amounts);

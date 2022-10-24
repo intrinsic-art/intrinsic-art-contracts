@@ -5,15 +5,40 @@ import "@openzeppelin/hardhat-upgrades";
 import "@nomiclabs/hardhat-waffle";
 import "@typechain/hardhat";
 import "hardhat-deploy";
-import AddProject from "./scripts/AddProject";
+import "hardhat-gas-reporter";
+import "hardhat-contract-sizer";
+import CreateProject from "./scripts/CreateProject";
+import AddScript from "./scripts/AddScript";
+import CreateProject2 from "./scripts/CreateProject2";
+import AddScript2 from "./scripts/AddScript2";
 import MintWeth from "./scripts/MintWeth";
 
 dotenv.config();
 
-task("AddProject", "Add a project")
-  .addParam("coloringBook", "Address of coloring book")
+task("CreateProject", "Create a project")
+  .addParam("studio", "Address of Studio contract")
   .setAction(async (taskArgs, hre) => {
-    await AddProject(hre, taskArgs.coloringBook);
+    await CreateProject(hre, taskArgs.studio);
+  });
+
+task("CreateProject2", "Create a project")
+  .addParam("studio", "Address of Studio contract")
+  .setAction(async (taskArgs, hre) => {
+    await CreateProject2(hre, taskArgs.studio);
+  });
+
+task("AddScript", "Add a script to a project")
+  .addParam("studio", "Address of Studio contract")
+  .addParam("project", "ID of project to add script to")
+  .setAction(async (taskArgs, hre) => {
+    await AddScript(hre, taskArgs.studio, taskArgs.project);
+  });
+
+task("AddScript2", "Add a script to a project")
+  .addParam("studio", "Address of Studio contract")
+  .addParam("project", "ID of project to add script to")
+  .setAction(async (taskArgs, hre) => {
+    await AddScript2(hre, taskArgs.studio, taskArgs.project);
   });
 
 task("MintWeth", "Mint WETH to the specified address")
@@ -39,9 +64,21 @@ const config: HardhatUserConfig = {
       },
     },
   },
+  mocha: {
+    timeout: 1000000,
+  },
+  contractSizer: {
+    alphaSort: true,
+    disambiguatePaths: false,
+    runOnCompile: true,
+    strict: true,
+    only: [":Studio$"],
+  },
   namedAccounts: {
     deployer: {
       default: 0,
+      mainnet: `privatekey://${process.env.MAINNET_DEPLOYER_PRIVATE_KEY}`,
+      goerli: `privatekey://${process.env.GOERLI_DEPLOYER_PRIVATE_KEY}`,
     },
   },
   networks: {
@@ -50,26 +87,14 @@ const config: HardhatUserConfig = {
       url: process.env.MAINNET_PROVIDER,
       accounts: [process.env.MAINNET_DEPLOYER_PRIVATE_KEY || ""],
     },
-    ropsten: {
-      chainId: 3,
-      url: process.env.ROPSTEN_PROVIDER,
-      accounts: [process.env.ROPSTEN_DEPLOYER_PRIVATE_KEY || ""],
-    },
-    rinkeby: {
-      chainId: 4,
-      url: process.env.RINKEBY_PROVIDER,
-      accounts: [process.env.RINKEBY_DEPLOYER_PRIVATE_KEY || ""],
-    },
     goerli: {
       chainId: 5,
       url: process.env.GOERLI_PROVIDER,
       accounts: [process.env.GOERLI_DEPLOYER_PRIVATE_KEY || ""],
     },
-    kovan: {
-      chainId: 42,
-      url: process.env.KOVAN_PROVIDER,
-      accounts: [process.env.KOVAN_DEPLOYER_PRIVATE_KEY || ""],
-    },
+  },
+  etherscan: {
+    apiKey: process.env.ETHERSCAN_API_KEY,
   },
 };
 
