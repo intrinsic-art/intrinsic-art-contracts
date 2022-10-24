@@ -39,7 +39,7 @@ describe("Studio", function () {
     // await deployments.fixture();
 
     // Get deployed contracts
-    canvas = await new Canvas__factory(deployer).deploy();
+    canvas = await new Canvas__factory(deployer).deploy(owner.address);
     element = await new Element__factory(deployer).deploy(owner.address);
     studio = await new Studio__factory(deployer).deploy(
       owner.address,
@@ -49,8 +49,6 @@ describe("Studio", function () {
       "https://intrinsic.art/"
     );
     mockWeth = await new MockWeth__factory(deployer).deploy();
-
-    await canvas.initialize(owner.address);
 
     await canvas.connect(owner).addStudio(studio.address);
 
@@ -471,7 +469,6 @@ describe("Studio", function () {
 
     for (let i = 0; i < 99; i++) {
       canvasTokenId++;
-      console.log(canvasTokenId);
       await studio.connect(user).wrap(1, [0, 0]);
       expect(await canvas.ownerOf(canvasTokenId)).to.eq(user.address);
       await canvas.connect(user).approve(studio.address, canvasTokenId);
