@@ -1,5 +1,5 @@
 {
-  "name": "elements-contracts",
+  "name": "intrinsic-art-core",
   "version": "0.1.0",
   "scripts": {
     "clean": "hardhat clean",

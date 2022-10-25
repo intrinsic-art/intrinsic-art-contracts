@@ -1,16 +1,14 @@
-//SPDX-License-Identifier: Unlicense
+//SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
 import "./interfaces/ICanvas.sol";
 import "./interfaces/IGlobalStudio.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721BurnableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract Canvas is
-    Initializable,
-    ERC721BurnableUpgradeable,
-    OwnableUpgradeable
+    ERC721,
+    Ownable
 {
     event ProjectCreated(uint256 indexed projectId, address indexed studio, uint256 maxSupply);
     event TokenMinted(uint256 indexed tokenId, address indexed _to);
@@ -27,10 +25,8 @@ contract Canvas is
     mapping(uint256 => ProjectData) public projects;
     mapping(address => bool) public studios;
 
-    function initialize(address _owner) external initializer {
-        __ERC721_init("Intrinsic.art Canvases", "INTR");
-        __ERC721Burnable_init();
-        _transferOwnership(_owner);
+    constructor(address _owner) ERC721("Intrinsic.art Canvases", "INTR") {
+      _transferOwnership(_owner);
     }
 
     function addStudio(address _studio) external onlyOwner {
@@ -107,18 +103,6 @@ contract Canvas is
         return
             IGlobalStudio(projects[getProjectIdFromCanvasId(_tokenId)].studio)
                 .getCanvasURI(_tokenId);
-    }
-
-    function supportsInterface(bytes4 interfaceId)
-        public
-        view
-        virtual
-        override(ERC721Upgradeable)
-        returns (bool)
-    {
-        return
-            interfaceId == type(ERC721BurnableUpgradeable).interfaceId ||
-            super.supportsInterface(interfaceId);
     }
 
     function getProjectMaxSupply(uint256 _projectId)
