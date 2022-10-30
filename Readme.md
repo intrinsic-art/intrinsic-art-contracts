@@ -38,10 +38,15 @@ npx hardhat AddProject
 --network localhost
 ```
 
-npx hardhat CreateProject2 --studio 0xC9E78295F6805fb1608Fc2DD9fAa5a504b407B00 --network goerli
+npx hardhat CreateProject --studio 0xadFf6fe91B7A102682dC2375b503dA94497F5C42 --network sepolia
 
-npx hardhat AddScript2 --studio 0xC9E78295F6805fb1608Fc2DD9fAa5a504b407B00 --project 14 --network goerli
+npx hardhat AddScript --studio 0xadFf6fe91B7A102682dC2375b503dA94497F5C42 --project 1 --network sepolia
 
+npx hardhat CreateProject --studio 0x1Ab03C2Ea5ec287113216f234B6C5C8B8cBcA08E --network goerli
+
+npx hardhat AddScript2 --studio 0x1Ab03C2Ea5ec287113216f234B6C5C8B8cBcA08E --project 14 --network goerli
+
+ npx hardhat verify --network goerli 0x1Ab03C2Ea5ec287113216f234B6C5C8B8cBcA08E "0x7930DdA80157Fcc47ba9c3836398c82d89C16416" "0x05724ede0BC98e7ae9C3A757587692EcbCc47aA6" "0xadFf6fe91B7A102682dC2375b503dA94497F5C42" "1" "https://intrinsic.art"  
 
 npx hardhat CreateProject --studio 0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9 --network localhost
 

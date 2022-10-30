@@ -56,7 +56,7 @@ task("MintWeth", "Mint WETH to the specified address")
 
 const config: HardhatUserConfig = {
   solidity: {
-    version: "0.8.13",
+    version: "0.8.17",
     settings: {
       optimizer: {
         enabled: true,
@@ -79,6 +79,8 @@ const config: HardhatUserConfig = {
       default: 0,
       mainnet: `privatekey://${process.env.MAINNET_DEPLOYER_PRIVATE_KEY}`,
       goerli: `privatekey://${process.env.GOERLI_DEPLOYER_PRIVATE_KEY}`,
+      sepolia: `privatekey://${process.env.SEPOLIA_DEPLOYER_PRIVATE_KEY}`,
+      polygonMumbai: `privatekey://${process.env.POLYGON_MUMBAI_DEPLOYER_PRIVATE_KEY}`,
     },
   },
   networks: {
@@ -92,9 +94,24 @@ const config: HardhatUserConfig = {
       url: process.env.GOERLI_PROVIDER,
       accounts: [process.env.GOERLI_DEPLOYER_PRIVATE_KEY || ""],
     },
+    sepolia: {
+      chainId: 11155111,
+      url: process.env.SEPOLIA_PROVIDER,
+      accounts: [process.env.SEPOLIA_DEPLOYER_PRIVATE_KEY || ""],
+    },
+    polygonMumbai: {
+      chainId: 80001,
+      url: process.env.POLYGON_MUMBAI_PROVIDER,
+      accounts: [process.env.POLYGON_MUMBAI_DEPLOYER_PRIVATE_KEY || ""],
+    },
   },
   etherscan: {
-    apiKey: process.env.ETHERSCAN_API_KEY,
+    apiKey: {
+      mainnet: `${process.env.ETHERSCAN_ETHEREUM_API_KEY}`,
+      goerli: `${process.env.ETHERSCAN_ETHEREUM_API_KEY}`,
+      sepolia: `${process.env.ETHERSCAN_ETHEREUM_API_KEY}`,
+      polygonMumbai: `${process.env.ETHERSCAN_POLYGON_API_KEY}`,
+    },
   },
 };
 

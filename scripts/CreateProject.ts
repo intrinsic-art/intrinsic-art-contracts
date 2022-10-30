@@ -9,15 +9,21 @@ const CreateProject = async (
 
   console.log(
     await studio.createProject(
-      config.createProjectData,
-      config.createAuctionData,
-      config.createAMMData,
+      config.artistAddress,
+      config.maxSupply,
+      config.metadata,
+      config.elementCategoryLabels,
+      config.elementCategoryValues,
+      config.elementLabels,
+      config.elementValues,
+      config.elementAmounts,
+      config.recipients,
       {
-        gasLimit: 30000000,
+        gasLimit: 20000000,
       }
     )
   );
-  console.log(`Created Project ${config.createProjectData.name}`);
+  console.log("Created project");
 };
 
 export default CreateProject;

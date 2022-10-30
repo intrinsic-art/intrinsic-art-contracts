@@ -12,18 +12,14 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     chainId === 80001
   ) {
     await deployContract(hre, "MockWeth", []);
+    const canvas = await hre.ethers.getContract("Canvas");
+    const element = await hre.ethers.getContract("Element");
+    const studio = await hre.ethers.getContract("Studio");
     const mockWeth = await hre.ethers.getContract("MockWeth");
 
-    await new Promise((resolve) => setTimeout(resolve, 20000));
-
-    try {
-      await hre.run("verify:verify", {
-        address: mockWeth.address,
-        constructorArguments: [],
-      });
-    } catch (error) {
-      console.error();
-    }
+    await canvas.addStudio(studio.address);
+    await element.addStudio(studio.address);
+    await studio.addApprovedERC20(mockWeth.address);
   }
 };
 
