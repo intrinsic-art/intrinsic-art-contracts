@@ -38,6 +38,23 @@ npx hardhat AddProject
 --network localhost
 ```
 
+
+#Disentanglement
+
+npx hardhat AddWhitelistedArtist --studio 0xadFf6fe91B7A102682dC2375b503dA94497F5C42 --artist 0x7930DdA80157Fcc47ba9c3836398c82d89C16416 --network sepolia
+
+npx hardhat CreateProject --studio 0xadFf6fe91B7A102682dC2375b503dA94497F5C42 --project-index 0 --network sepolia
+
+npx hardhat AddScripts --project-index 0 --project-id 2 --studio 0xadFf6fe91B7A102682dC2375b503dA94497F5C42 --network sepolia
+
+npx hardhat LockProject --project-id 2 --studio 0xadFf6fe91B7A102682dC2375b503dA94497F5C42 --network sepolia
+
+npx hardhat CreateMarkets --project-index 0 --project-id 2 --studio 0xadFf6fe91B7A102682dC2375b503dA94497F5C42 --network sepolia
+
+
+
+#Legacy
+
 npx hardhat CreateProject --studio 0xadFf6fe91B7A102682dC2375b503dA94497F5C42 --network sepolia
 
 npx hardhat AddScript --studio 0xadFf6fe91B7A102682dC2375b503dA94497F5C42 --project 1 --network sepolia

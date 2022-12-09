@@ -7,38 +7,63 @@ import "@typechain/hardhat";
 import "hardhat-deploy";
 import "hardhat-gas-reporter";
 import "hardhat-contract-sizer";
+import AddWhitelistedArtist from "./scripts/AddWhitelistedArtist";
 import CreateProject from "./scripts/CreateProject";
-import AddScript from "./scripts/AddScript";
-import CreateProject2 from "./scripts/CreateProject2";
-import AddScript2 from "./scripts/AddScript2";
+import AddScripts from "./scripts/AddScripts";
+import LockProject from "./scripts/LockProject";
+import CreateMarkets from "./scripts/CreateMarkets";
 import MintWeth from "./scripts/MintWeth";
 
 dotenv.config();
 
+task(
+  "AddWhitelistedArtist",
+  "Add an artist to the whitelist so they can create a project"
+)
+  .addParam("studio", "Address of Studio contract")
+  .addParam("artist", "Address of the artist")
+  .setAction(async (taskArgs, hre) => {
+    await AddWhitelistedArtist(hre, taskArgs.studio, taskArgs.artist);
+  });
+
 task("CreateProject", "Create a project")
+  .addParam("projectIndex", "Index of the project in the config file")
   .addParam("studio", "Address of Studio contract")
   .setAction(async (taskArgs, hre) => {
-    await CreateProject(hre, taskArgs.studio);
+    await CreateProject(hre, taskArgs.projectIndex, taskArgs.studio);
   });
 
-task("CreateProject2", "Create a project")
+task("AddScripts", "Add a script to a project")
+  .addParam("projectIndex", "Index of the project in the config file")
+  .addParam("projectId", "ID of project to add script to")
   .addParam("studio", "Address of Studio contract")
   .setAction(async (taskArgs, hre) => {
-    await CreateProject2(hre, taskArgs.studio);
+    await AddScripts(
+      hre,
+      taskArgs.projectIndex,
+      taskArgs.projectId,
+      taskArgs.studio
+    );
   });
 
-task("AddScript", "Add a script to a project")
+task("LockProject", "Lock a project")
+  .addParam("projectId", "ID of project to add script to")
   .addParam("studio", "Address of Studio contract")
-  .addParam("project", "ID of project to add script to")
   .setAction(async (taskArgs, hre) => {
-    await AddScript(hre, taskArgs.studio, taskArgs.project);
+    await LockProject(hre, taskArgs.projectId, taskArgs.studio);
   });
 
-task("AddScript2", "Add a script to a project")
+task("CreateMarkets", "Create the element markets")
+  .addParam("projectIndex", "Index of the project in the config file")
+  .addParam("projectId", "ID of project to add script to")
   .addParam("studio", "Address of Studio contract")
-  .addParam("project", "ID of project to add script to")
   .setAction(async (taskArgs, hre) => {
-    await AddScript2(hre, taskArgs.studio, taskArgs.project);
+    await CreateMarkets(
+      hre,
+      taskArgs.projectIndex,
+      taskArgs.projectId,
+      taskArgs.studio
+    );
   });
 
 task("MintWeth", "Mint WETH to the specified address")
