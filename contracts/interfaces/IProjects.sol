@@ -11,5 +11,10 @@ interface IProjects {
         uint256[][] elementTokenIds;
         uint256[] blankCanvasIds;
         string metadata;
+        address auctionERC20;
+        uint256 auctionStartTime;
+        uint256 auctionEndTime;
+        uint256 auctionStartPrice;
+        uint256 auctionEndPrice;
     }
 }
