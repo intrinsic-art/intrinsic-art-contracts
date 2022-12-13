@@ -1,17 +1,17 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
-const AddWhitelistedArtist = async (
+const AddAdmin = async (
   hre: HardhatRuntimeEnvironment,
   studioAddress: string,
-  artistAddress: string
+  adminAddress: string
 ): Promise<void> => {
   const studio = await hre.ethers.getContractAt("Studio", studioAddress);
 
-  await studio.addWhitelistedArtists([artistAddress], {
+  await studio.addAdmins([adminAddress], {
     gasLimit: 8000000,
   });
 
-  console.log(`Added whitelisted artist`);
+  console.log(`Added admin`);
 };
 
-export default AddWhitelistedArtist;
+export default AddAdmin;

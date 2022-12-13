@@ -7,23 +7,20 @@ import "@typechain/hardhat";
 import "hardhat-deploy";
 import "hardhat-gas-reporter";
 import "hardhat-contract-sizer";
-import AddWhitelistedArtist from "./scripts/AddWhitelistedArtist";
+import AddAdmin from "./scripts/AddAdmin";
 import CreateProject from "./scripts/CreateProject";
 import AddScripts from "./scripts/AddScripts";
 import LockProject from "./scripts/LockProject";
-import CreateMarkets from "./scripts/CreateMarkets";
+import ScheduleAuction from "./scripts/ScheduleAuction";
 import MintWeth from "./scripts/MintWeth";
 
 dotenv.config();
 
-task(
-  "AddWhitelistedArtist",
-  "Add an artist to the whitelist so they can create a project"
-)
+task("AddAdmin", "Add an admin who can create a project")
   .addParam("studio", "Address of Studio contract")
-  .addParam("artist", "Address of the artist")
+  .addParam("admin", "Address of the new admin")
   .setAction(async (taskArgs, hre) => {
-    await AddWhitelistedArtist(hre, taskArgs.studio, taskArgs.artist);
+    await AddAdmin(hre, taskArgs.studio, taskArgs.artist);
   });
 
 task("CreateProject", "Create a project")
@@ -53,12 +50,12 @@ task("LockProject", "Lock a project")
     await LockProject(hre, taskArgs.projectId, taskArgs.studio);
   });
 
-task("CreateMarkets", "Create the element markets")
+task("ScheduleAuction", "Schedule the dutch auction")
   .addParam("projectIndex", "Index of the project in the config file")
   .addParam("projectId", "ID of project to add script to")
   .addParam("studio", "Address of Studio contract")
   .setAction(async (taskArgs, hre) => {
-    await CreateMarkets(
+    await ScheduleAuction(
       hre,
       taskArgs.projectIndex,
       taskArgs.projectId,
@@ -92,13 +89,13 @@ const config: HardhatUserConfig = {
   mocha: {
     timeout: 1000000,
   },
-  contractSizer: {
-    alphaSort: true,
-    disambiguatePaths: false,
-    runOnCompile: true,
-    strict: true,
-    only: [":Studio$"],
-  },
+  // contractSizer: {
+  //   alphaSort: true,
+  //   disambiguatePaths: false,
+  //   runOnCompile: true,
+  //   strict: true,
+  //   only: [":Studio$"],
+  // },
   namedAccounts: {
     deployer: {
       default: 0,
