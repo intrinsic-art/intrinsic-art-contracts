@@ -26,64 +26,12 @@ const config2 = {
       ["Mirror", "Rotational", "Asymmetric"],
     ],
   },
-  createAuctionData: {
-    startTime: 1000,
-    endTime: 1000000000000,
-    startPrice: ethers.utils.parseEther("1"),
-    endPrice: ethers.utils.parseEther("0.1"),
-    // artistAddress: "0x70997970c51812dc3a010c7d01b50e0d17dc79c8", // localhost
-    artistAddress: "0x7930DdA80157Fcc47ba9c3836398c82d89C16416", // Goerli
-    // erc20Token: "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707", // localhost
-    erc20Token: "0x4bAA305f6cfE512960356F8484f8a03898E3E140",
-  },
-  createAMMData: {
-    startTime: 1000,
-    // erc20Token: "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707", // localhost
-    erc20Token: "0x4bAA305f6cfE512960356F8484f8a03898E3E140",
-    constantA: [
-      [
-        ethers.utils.parseUnits("5", 16),
-        ethers.utils.parseUnits("5", 16),
-        ethers.utils.parseUnits("5", 16),
-      ],
-      [
-        ethers.utils.parseUnits("5", 16),
-        ethers.utils.parseUnits("5", 16),
-        ethers.utils.parseUnits("5", 16),
-      ],
-      [
-        ethers.utils.parseUnits("5", 16),
-        ethers.utils.parseUnits("5", 16),
-        ethers.utils.parseUnits("5", 16),
-      ],
-      [
-        ethers.utils.parseUnits("5", 16),
-        ethers.utils.parseUnits("5", 16),
-        ethers.utils.parseUnits("5", 16),
-      ],
-    ],
-    constantB: [
-      [
-        ethers.utils.parseUnits("2.23606797", 8),
-        ethers.utils.parseUnits("2.23606797", 8),
-        ethers.utils.parseUnits("2.23606797", 8),
-      ],
-      [
-        ethers.utils.parseUnits("2.23606797", 8),
-        ethers.utils.parseUnits("2.23606797", 8),
-        ethers.utils.parseUnits("2.23606797", 8),
-      ],
-      [
-        ethers.utils.parseUnits("2.23606797", 8),
-        ethers.utils.parseUnits("2.23606797", 8),
-        ethers.utils.parseUnits("2.23606797", 8),
-      ],
-      [
-        ethers.utils.parseUnits("2.23606797", 8),
-        ethers.utils.parseUnits("2.23606797", 8),
-        ethers.utils.parseUnits("2.23606797", 8),
-      ],
-    ],
+  auctionData: {
+    erc20: "0xcc36474d1B091e3a678b7dB035007d4D4Af602f8",
+    auctionStartTime: Math.trunc(Date.now() / 1000) + 10,
+    auctionEndTime: Math.trunc(Date.now() / 1000) + 10,
+    auctionStartPrice: ethers.utils.parseEther("1"),
+    auctionEndPrice: ethers.utils.parseEther("1"),
   },
 };
 

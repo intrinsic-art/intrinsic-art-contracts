@@ -127,19 +127,13 @@ const config = {
     [[1000], [1000]],
   ],
   recipients: ["0x829A64A9880Eb524c15FA828Ab4f16C8FAC1B506"], // studio address
-  createMarketData: [
-    {
-      elementCategoryIndex: 0,
-      elementIndex: 0,
-      reserveElementBalance: 500,
-      auctionElementBalance: 500,
-      erc20: "0xcc36474d1B091e3a678b7dB035007d4D4Af602f8",
-      auctionStartTime: Math.trunc(Date.now() / 1000) + 10,
-      auctionEndTime: Math.trunc(Date.now() / 1000) + 30000000,
-      auctionStartPrice: ethers.utils.parseEther("1"),
-      auctionEndPrice: ethers.utils.parseEther("0.1"),
-    },
-  ],
+  auctionData: {
+    erc20: "0xcc36474d1B091e3a678b7dB035007d4D4Af602f8",
+    auctionStartTime: Math.trunc(Date.now() / 1000) + 600, // Start auction in 10 minutes
+    auctionEndTime: Math.trunc(Date.now() / 1000) + 600,
+    auctionStartPrice: ethers.utils.parseEther("1"),
+    auctionEndPrice: ethers.utils.parseEther("1"),
+  },
 };
 
 export default config;
