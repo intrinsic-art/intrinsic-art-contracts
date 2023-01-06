@@ -121,7 +121,6 @@ contract Studio is IStudio, Marketplace, ERC721Holder, StringConverter {
         uint256[] calldata _elementCategoryIndexesToBuy,
         uint256[] calldata _elementIndexesToBuy,
         uint256[] calldata _elementQuantitiesToBuy,
-        uint256 _maxERC20ToSpend,
         uint256[] calldata _elementIndexesToWrap
     ) public {
         buyElements(

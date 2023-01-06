@@ -128,10 +128,10 @@ const projectConfigs = [
         [[1000], [1000]],
         [[1000], [1000]],
       ],
-      recipients: ["0x829A64A9880Eb524c15FA828Ab4f16C8FAC1B506"], // studio address
+      recipients: ["0x9953288E679FDe3d8BEcb2B3972c39BA4909b783"], // studio address
     },
     auctionData: {
-      erc20: "0xcc36474d1B091e3a678b7dB035007d4D4Af602f8",
+      erc20: "0xb929D02AfE8Ef1D8408Bb58F7De5f36Af8D80f19",
       auctionStartTime: Math.trunc(Date.now() / 1000) + 10,
       auctionEndTime: Math.trunc(Date.now() / 1000) + 10,
       auctionStartPrice: ethers.utils.parseEther("1"),
@@ -186,14 +186,14 @@ const projectConfigs = [
         [300, 300, 300],
         [300, 300, 300],
       ],
-      recipients: ["0x829A64A9880Eb524c15FA828Ab4f16C8FAC1B506"], // studio address
+      recipients: ["0x9953288E679FDe3d8BEcb2B3972c39BA4909b783"], // studio address
     },
     scripts: [
       `let seed,imageDimension;function setup(){seed=parseInt(tokenData.hash.slice(0,16),16),imageDimension=Math.min(windowWidth,windowHeight),createCanvas(imageDimension,imageDimension),getArt(tokenData.hash)}function getArt(e){let a,n,r,i,g,s,o,t,c;switch(seed=parseInt(e.slice(0,16),16),Complexity){case"Minimal":t=range(1,4);break;case"Balanced":t=range(16,24);break;case"Complex":t=range(40,48)}switch(colorMode(HSB,360,100,100,100),push(),Palette){case"Warm":c=range(270,450)%360;break;case"Cool":c=range(91,269);break;case"Mixed":c=range(0,360)}background(c,rangeFloor(60,100),rangeFloor(80,100)),r=range(-1,1),i=range(-.5,.5),g=range(-1,1),s=range(-1,1),n=range(.05,.8)*imageDimension,o=0;for(let e=0;e<t;e++){switch(push(),Palette){case"Warm":c=range(270,450)%360;break;case"Cool":c=range(91,269);break;case"Mixed":`,
       `c=(c+range(140,220))%360}switch(a=color(c,100,100,15),stroke(a),strokeWeight(.001*imageDimension),angleMode(DEGREES),Organization){case"Chaotic":r=range(-1,1),i=range(-.5,.5),g=range(-1,1),s=range(-1,1),n=range(.05,.8)*imageDimension,o=range(0,.01);break;case"Ordered":break;case"Emergent":r=range(-1,1),i=range(-.5,.5),g=range(-1,1),s=range(-1,1),n=range(.05,.8)*imageDimension}translate(range(0,imageDimension),range(0,imageDimension));for(let e=0;e<2*imageDimension;e++)push(),rotate(e*r*range(1-2*o,1+2*o)),line(0,0,0,n*range(1-o,1+o)),pop(),rotate(i),translate(g*range(1-o,1+o),s*range(1-o,1+o));pop()}return canvas.toDataURL()}function rnd(){return seed^=seed<<13,seed^=seed>>17,seed^=seed<<5,(seed<0?1+~seed:seed)%1e3/1e3}function range(e,a){return void 0===a&&(a=e,e=0),rnd()*(a-e)+e}function rangeFloor(e,a){return void 0===a&&(a=e,e=0),Math.floor(range(e,a))}`,
     ],
     auctionData: {
-      erc20: "0xcc36474d1B091e3a678b7dB035007d4D4Af602f8",
+      erc20: "0xb929D02AfE8Ef1D8408Bb58F7De5f36Af8D80f19",
       auctionStartTime: Math.trunc(Date.now() / 1000) + 10,
       auctionEndTime: Math.trunc(Date.now() / 1000) + 10,
       auctionStartPrice: ethers.utils.parseEther("1"),

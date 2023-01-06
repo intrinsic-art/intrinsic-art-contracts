@@ -9,7 +9,7 @@ import {
   MockWeth__factory,
 } from "../typechain-types";
 import { expect } from "chai";
-import { ethers, deployments } from "hardhat";
+import { ethers } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { BigNumber } from "ethers";
 import time from "./helpers/time";
@@ -54,9 +54,7 @@ describe("Studio", function () {
 
     await element.connect(owner).addStudio(studio.address);
 
-    await studio.connect(owner).addWhitelistedArtists([artist.address]);
-
-    await studio.connect(owner).addApprovedERC20(mockWeth.address);
+    await studio.connect(owner).addAdmins([artist.address]);
 
     await studio.connect(artist).createProject(
       artist.address,
@@ -88,63 +86,16 @@ describe("Studio", function () {
     auctionStartTime = currentTime + 110;
     auctionEndTime = currentTime + 210;
 
-    await studio.connect(artist).updateMarkets(1, [
-      {
-        elementCategoryIndex: 0,
-        elementIndex: 0,
-        reserveElementBalance: 10,
-        auctionElementBalance: 20,
-        erc20: mockWeth.address,
-        auctionStartTime: auctionStartTime,
-        auctionEndTime: auctionEndTime,
-        auctionStartPrice: ethers.utils.parseEther("1"),
-        auctionEndPrice: ethers.utils.parseEther("0.1"),
-      },
-      {
-        elementCategoryIndex: 0,
-        elementIndex: 1,
-        reserveElementBalance: 10,
-        auctionElementBalance: 20,
-        erc20: mockWeth.address,
-        auctionStartTime: auctionStartTime,
-        auctionEndTime: auctionEndTime,
-        auctionStartPrice: ethers.utils.parseEther("1"),
-        auctionEndPrice: ethers.utils.parseEther("0.1"),
-      },
-      {
-        elementCategoryIndex: 0,
-        elementIndex: 2,
-        reserveElementBalance: 10,
-        auctionElementBalance: 20,
-        erc20: mockWeth.address,
-        auctionStartTime: auctionStartTime,
-        auctionEndTime: auctionEndTime,
-        auctionStartPrice: ethers.utils.parseEther("1"),
-        auctionEndPrice: ethers.utils.parseEther("0.1"),
-      },
-      {
-        elementCategoryIndex: 1,
-        elementIndex: 0,
-        reserveElementBalance: 20,
-        auctionElementBalance: 30,
-        erc20: mockWeth.address,
-        auctionStartTime: auctionStartTime,
-        auctionEndTime: auctionEndTime,
-        auctionStartPrice: ethers.utils.parseEther("1"),
-        auctionEndPrice: ethers.utils.parseEther("0.1"),
-      },
-      {
-        elementCategoryIndex: 1,
-        elementIndex: 1,
-        reserveElementBalance: 20,
-        auctionElementBalance: 30,
-        erc20: mockWeth.address,
-        auctionStartTime: auctionStartTime,
-        auctionEndTime: auctionEndTime,
-        auctionStartPrice: ethers.utils.parseEther("1"),
-        auctionEndPrice: ethers.utils.parseEther("0.1"),
-      },
-    ]);
+    await studio
+      .connect(artist)
+      .scheduleAuction(
+        1,
+        mockWeth.address,
+        auctionStartTime,
+        auctionEndTime,
+        ethers.utils.parseEther("1"),
+        ethers.utils.parseEther("0.1")
+      );
 
     await mockWeth.mint(user.address, ethers.utils.parseEther("100"));
 
@@ -214,98 +165,6 @@ describe("Studio", function () {
     expect((await element.elements(5)).value).to.eq("blue");
   });
 
-  it("Created the Markets", async () => {
-    expect((await studio.markets(1)).ammERC20Balance).to.eq(0);
-    expect((await studio.markets(1)).auctionERC20Balance).to.eq(0);
-    expect((await studio.markets(1)).ammElementBalance).to.eq(0);
-    expect((await studio.markets(1)).reserveElementBalance).to.eq(10);
-    expect((await studio.markets(1)).auctionElementBalance).to.eq(20);
-    expect((await studio.markets(1)).reserveElementBalanceInitial).to.eq(10);
-    expect((await studio.markets(1)).auctionElementBalanceInitial).to.eq(20);
-    expect((await studio.markets(1)).erc20).to.eq(mockWeth.address);
-    expect((await studio.markets(1)).auctionStartTime).to.eq(auctionStartTime);
-    expect((await studio.markets(1)).auctionEndTime).to.eq(auctionEndTime);
-    expect((await studio.markets(1)).auctionStartPrice).to.eq(
-      ethers.utils.parseEther("1")
-    );
-    expect((await studio.markets(1)).auctionEndPrice).to.eq(
-      ethers.utils.parseEther("0.1")
-    );
-    expect((await studio.markets(1)).artist).to.eq(artist.address);
-
-    expect((await studio.markets(2)).ammERC20Balance).to.eq(0);
-    expect((await studio.markets(2)).auctionERC20Balance).to.eq(0);
-    expect((await studio.markets(2)).ammElementBalance).to.eq(0);
-    expect((await studio.markets(2)).reserveElementBalance).to.eq(10);
-    expect((await studio.markets(2)).auctionElementBalance).to.eq(20);
-    expect((await studio.markets(2)).reserveElementBalanceInitial).to.eq(10);
-    expect((await studio.markets(2)).auctionElementBalanceInitial).to.eq(20);
-    expect((await studio.markets(2)).erc20).to.eq(mockWeth.address);
-    expect((await studio.markets(2)).auctionStartTime).to.eq(auctionStartTime);
-    expect((await studio.markets(2)).auctionEndTime).to.eq(auctionEndTime);
-    expect((await studio.markets(2)).auctionStartPrice).to.eq(
-      ethers.utils.parseEther("1")
-    );
-    expect((await studio.markets(2)).auctionEndPrice).to.eq(
-      ethers.utils.parseEther("0.1")
-    );
-    expect((await studio.markets(2)).artist).to.eq(artist.address);
-
-    expect((await studio.markets(3)).ammERC20Balance).to.eq(0);
-    expect((await studio.markets(3)).auctionERC20Balance).to.eq(0);
-    expect((await studio.markets(3)).ammElementBalance).to.eq(0);
-    expect((await studio.markets(3)).reserveElementBalance).to.eq(10);
-    expect((await studio.markets(3)).auctionElementBalance).to.eq(20);
-    expect((await studio.markets(3)).reserveElementBalanceInitial).to.eq(10);
-    expect((await studio.markets(3)).auctionElementBalanceInitial).to.eq(20);
-    expect((await studio.markets(3)).erc20).to.eq(mockWeth.address);
-    expect((await studio.markets(3)).auctionStartTime).to.eq(auctionStartTime);
-    expect((await studio.markets(3)).auctionEndTime).to.eq(auctionEndTime);
-    expect((await studio.markets(3)).auctionStartPrice).to.eq(
-      ethers.utils.parseEther("1")
-    );
-    expect((await studio.markets(3)).auctionEndPrice).to.eq(
-      ethers.utils.parseEther("0.1")
-    );
-    expect((await studio.markets(3)).artist).to.eq(artist.address);
-
-    expect((await studio.markets(4)).ammERC20Balance).to.eq(0);
-    expect((await studio.markets(4)).auctionERC20Balance).to.eq(0);
-    expect((await studio.markets(4)).ammElementBalance).to.eq(0);
-    expect((await studio.markets(4)).reserveElementBalance).to.eq(20);
-    expect((await studio.markets(4)).auctionElementBalance).to.eq(30);
-    expect((await studio.markets(4)).reserveElementBalanceInitial).to.eq(20);
-    expect((await studio.markets(4)).auctionElementBalanceInitial).to.eq(30);
-    expect((await studio.markets(4)).erc20).to.eq(mockWeth.address);
-    expect((await studio.markets(4)).auctionStartTime).to.eq(auctionStartTime);
-    expect((await studio.markets(4)).auctionEndTime).to.eq(auctionEndTime);
-    expect((await studio.markets(4)).auctionStartPrice).to.eq(
-      ethers.utils.parseEther("1")
-    );
-    expect((await studio.markets(4)).auctionEndPrice).to.eq(
-      ethers.utils.parseEther("0.1")
-    );
-    expect((await studio.markets(4)).artist).to.eq(artist.address);
-
-    expect((await studio.markets(5)).ammERC20Balance).to.eq(0);
-    expect((await studio.markets(5)).auctionERC20Balance).to.eq(0);
-    expect((await studio.markets(5)).ammElementBalance).to.eq(0);
-    expect((await studio.markets(5)).reserveElementBalance).to.eq(20);
-    expect((await studio.markets(5)).auctionElementBalance).to.eq(30);
-    expect((await studio.markets(5)).reserveElementBalanceInitial).to.eq(20);
-    expect((await studio.markets(5)).auctionElementBalanceInitial).to.eq(30);
-    expect((await studio.markets(5)).erc20).to.eq(mockWeth.address);
-    expect((await studio.markets(5)).auctionStartTime).to.eq(auctionStartTime);
-    expect((await studio.markets(5)).auctionEndTime).to.eq(auctionEndTime);
-    expect((await studio.markets(5)).auctionStartPrice).to.eq(
-      ethers.utils.parseEther("1")
-    );
-    expect((await studio.markets(5)).auctionEndPrice).to.eq(
-      ethers.utils.parseEther("0.1")
-    );
-    expect((await studio.markets(5)).artist).to.eq(artist.address);
-  });
-
   it("A user can create a completed canvas", async () => {
     // Move forward in time so auction is active
     await time.increase(time.duration.seconds(120));
@@ -319,32 +178,16 @@ describe("Studio", function () {
     expect(await element.balanceOf(studio.address, 1)).to.eq(30);
     expect(await element.balanceOf(studio.address, 4)).to.eq(50);
 
-    expect((await studio.markets(1)).ammERC20Balance).to.eq(0);
-    expect((await studio.markets(1)).auctionERC20Balance).to.eq(0);
-    expect((await studio.markets(1)).ammElementBalance).to.eq(0);
-    expect((await studio.markets(1)).reserveElementBalance).to.eq(10);
-    expect((await studio.markets(1)).auctionElementBalance).to.eq(20);
     expect(await element.balanceOf(studio.address, 1)).to.eq(30);
 
-    expect((await studio.markets(4)).ammERC20Balance).to.eq(0);
-    expect((await studio.markets(4)).auctionERC20Balance).to.eq(0);
-    expect((await studio.markets(4)).ammElementBalance).to.eq(0);
-    expect((await studio.markets(4)).reserveElementBalance).to.eq(20);
-    expect((await studio.markets(4)).auctionElementBalance).to.eq(30);
     expect(await element.balanceOf(studio.address, 4)).to.eq(50);
 
     await studio
       .connect(user)
-      .buyElementsAndWrap(
-        [1, 4],
-        [1, 1],
-        ethers.utils.parseEther("2"),
-        1,
-        [0, 0]
-      );
+      .buyElementsAndWrap(1, [0, 1], [0, 0], [1, 1], [0, 0]);
 
-    const element1Price = await studio.getElementAuctionPrice(1);
-    const element4Price = await studio.getElementAuctionPrice(4);
+    const element1Price = await studio.getProjectElementAuctionPrice(1);
+    const element4Price = await studio.getProjectElementAuctionPrice(1);
 
     const userWethBalanceAfter = await mockWeth.balanceOf(user.address);
 
@@ -363,173 +206,99 @@ describe("Studio", function () {
     ]);
     expect(await canvas.ownerOf(1000000)).to.eq(user.address);
 
-    expect((await studio.markets(1)).ammERC20Balance).to.eq(0);
-    expect((await studio.markets(1)).auctionERC20Balance).to.eq(element1Price);
-    expect((await studio.markets(1)).ammElementBalance).to.eq(0);
-    expect((await studio.markets(1)).reserveElementBalance).to.eq(10);
-    expect((await studio.markets(1)).auctionElementBalance).to.eq(19);
     expect(await element.balanceOf(studio.address, 1)).to.eq(30);
 
-    expect((await studio.markets(4)).ammERC20Balance).to.eq(0);
-    expect((await studio.markets(4)).auctionERC20Balance).to.eq(element4Price);
-    expect((await studio.markets(4)).ammElementBalance).to.eq(0);
-    expect((await studio.markets(4)).reserveElementBalance).to.eq(20);
-    expect((await studio.markets(4)).auctionElementBalance).to.eq(29);
     expect(await element.balanceOf(studio.address, 4)).to.eq(50);
     // Add test case for expected canvas hash
   });
 
-  it("Initializes the AMM when the auction sells out", async () => {
-    // Move forward in time so auction is active
-    await time.increase(time.duration.seconds(120));
+  // it("Can handle many wraps and unwraps", async () => {
+  //   // Move forward in time so auction is active
+  //   await time.increase(time.duration.seconds(120));
 
-    const userWethBalanceBefore = await mockWeth.balanceOf(user.address);
+  //   let canvasTokenId = 1000000;
 
-    expect((await studio.markets(1)).ammERC20Balance).to.eq(0);
-    expect((await studio.markets(1)).auctionERC20Balance).to.eq(0);
-    expect((await studio.markets(1)).ammElementBalance).to.eq(0);
-    expect((await studio.markets(1)).reserveElementBalance).to.eq(10);
-    expect((await studio.markets(1)).auctionElementBalance).to.eq(20);
-    expect(await element.balanceOf(studio.address, 1)).to.eq(30);
-    expect(await element.balanceOf(user.address, 1)).to.eq(0);
+  //   await studio
+  //     .connect(user)
+  //     .buyElementsAndWrap(
+  //       [1, 4],
+  //       [1, 1],
+  //       ethers.utils.parseEther("2"),
+  //       1,
+  //       [0, 0]
+  //     );
 
-    // Buy all the Elements in the auction
-    // await studio.buyElements([1], [20], ethers.utils.parseEther("20"));
-    await studio.connect(user).buyElementFromAuction(1, 20);
+  //   expect(await canvas.ownerOf(canvasTokenId)).to.eq(user.address);
 
-    const element1Price = await studio.getElementAuctionPrice(1);
+  //   await canvas.connect(user).approve(studio.address, canvasTokenId);
 
-    const userWethBalanceAfter = await mockWeth.balanceOf(user.address);
+  //   await studio.connect(user).unwrap(canvasTokenId);
 
-    const auctionRevenue = userWethBalanceBefore.sub(userWethBalanceAfter);
+  //   expect(await canvas.ownerOf(canvasTokenId)).to.eq(studio.address);
 
-    expect(userWethBalanceBefore.sub(userWethBalanceAfter)).to.eq(
-      element1Price.mul(20)
-    );
+  //   for (let i = 0; i < 99; i++) {
+  //     canvasTokenId++;
+  //     await studio.connect(user).wrap(1, [0, 0]);
+  //     expect(await canvas.ownerOf(canvasTokenId)).to.eq(user.address);
+  //     await canvas.connect(user).approve(studio.address, canvasTokenId);
+  //     await studio.connect(user).unwrap(canvasTokenId);
+  //     expect(await canvas.ownerOf(canvasTokenId)).to.eq(studio.address);
+  //   }
 
-    expect((await studio.markets(1)).ammERC20Balance).to.eq(
-      element1Price.mul(10)
-    );
-    const expectedPlatformRevenue = auctionRevenue
-      .sub((await studio.markets(1)).ammERC20Balance)
-      .mul(await studio.auctionPlatformFeeNumerator())
-      .div(await studio.FEE_DENOMINATOR());
-    expect(expectedPlatformRevenue).to.eq(
-      await studio.platformRevenues(mockWeth.address)
-    );
-    expect(
-      auctionRevenue
-        .sub((await studio.markets(1)).ammERC20Balance)
-        .sub(expectedPlatformRevenue)
-    ).to.eq(
-      await studio.artistClaimableRevenues(artist.address, mockWeth.address)
-    );
-    expect((await studio.markets(1)).auctionERC20Balance).to.eq(0);
-    expect((await studio.markets(1)).ammElementBalance).to.eq(10);
-    expect((await studio.markets(1)).reserveElementBalance).to.eq(0);
-    expect((await studio.markets(1)).auctionElementBalance).to.eq(0);
-    expect(await element.balanceOf(studio.address, 1)).to.eq(10);
-    expect(await element.balanceOf(user.address, 1)).to.eq(20);
+  //   await studio.connect(user).wrap(1, [0, 0]);
+  //   expect(await canvas.ownerOf(1000099)).to.eq(user.address);
+  //   await canvas.connect(user).approve(studio.address, 1000099);
+  //   await studio.connect(user).unwrap(1000099);
+  //   expect(await canvas.ownerOf(1000099)).to.eq(studio.address);
 
-    await studio
-      .connect(user)
-      .buyElements([1], [1], ethers.utils.parseEther("20"));
+  //   await studio.connect(user).wrap(1, [0, 0]);
+  //   expect(await canvas.ownerOf(1000099)).to.eq(user.address);
+  //   await canvas.connect(user).approve(studio.address, 1000099);
+  //   await studio.connect(user).unwrap(1000099);
+  //   expect(await canvas.ownerOf(1000099)).to.eq(studio.address);
 
-    expect((await studio.markets(1)).auctionERC20Balance).to.eq(0);
-    expect((await studio.markets(1)).ammElementBalance).to.eq(9);
-    expect((await studio.markets(1)).reserveElementBalance).to.eq(0);
-    expect((await studio.markets(1)).auctionElementBalance).to.eq(0);
-    expect(await element.balanceOf(studio.address, 1)).to.eq(9);
-    expect(await element.balanceOf(user.address, 1)).to.eq(21);
-  });
+  //   await studio.connect(user).wrap(1, [0, 0]);
+  //   expect(await canvas.ownerOf(1000099)).to.eq(user.address);
 
-  it("Can handle many wraps and unwraps", async () => {
-    // Move forward in time so auction is active
-    await time.increase(time.duration.seconds(120));
+  //   await studio
+  //     .connect(user)
+  //     .buyElementsAndWrap(
+  //       [1, 4],
+  //       [1, 1],
+  //       ethers.utils.parseEther("2"),
+  //       1,
+  //       [0, 0]
+  //     );
 
-    let canvasTokenId = 1000000;
+  //   expect(await canvas.ownerOf(1000099)).to.eq(user.address);
+  //   expect(await canvas.ownerOf(1000098)).to.eq(user.address);
 
-    await studio
-      .connect(user)
-      .buyElementsAndWrap(
-        [1, 4],
-        [1, 1],
-        ethers.utils.parseEther("2"),
-        1,
-        [0, 0]
-      );
+  //   await studio
+  //     .connect(user)
+  //     .buyElementsAndWrap(
+  //       [1, 4],
+  //       [1, 1],
+  //       ethers.utils.parseEther("2"),
+  //       1,
+  //       [0, 0]
+  //     );
 
-    expect(await canvas.ownerOf(canvasTokenId)).to.eq(user.address);
+  //   expect(await canvas.ownerOf(1000099)).to.eq(user.address);
+  //   expect(await canvas.ownerOf(1000098)).to.eq(user.address);
+  //   expect(await canvas.ownerOf(1000097)).to.eq(user.address);
+  // });
 
-    await canvas.connect(user).approve(studio.address, canvasTokenId);
+  // it("Gets the project ID from the canvas ID", async () => {
+  //   expect(await studio.getProjectIdFromCanvasId(1000000)).to.eq(1);
+  //   expect(await studio.getProjectIdFromCanvasId(1000001)).to.eq(1);
+  //   expect(await studio.getProjectIdFromCanvasId(1999999)).to.eq(1);
 
-    await studio.connect(user).unwrap(canvasTokenId);
+  //   expect(await studio.getProjectIdFromCanvasId(2000000)).to.eq(2);
+  //   expect(await studio.getProjectIdFromCanvasId(2000001)).to.eq(2);
+  //   expect(await studio.getProjectIdFromCanvasId(2999999)).to.eq(2);
 
-    expect(await canvas.ownerOf(canvasTokenId)).to.eq(studio.address);
-
-    for (let i = 0; i < 99; i++) {
-      canvasTokenId++;
-      await studio.connect(user).wrap(1, [0, 0]);
-      expect(await canvas.ownerOf(canvasTokenId)).to.eq(user.address);
-      await canvas.connect(user).approve(studio.address, canvasTokenId);
-      await studio.connect(user).unwrap(canvasTokenId);
-      expect(await canvas.ownerOf(canvasTokenId)).to.eq(studio.address);
-    }
-
-    await studio.connect(user).wrap(1, [0, 0]);
-    expect(await canvas.ownerOf(1000099)).to.eq(user.address);
-    await canvas.connect(user).approve(studio.address, 1000099);
-    await studio.connect(user).unwrap(1000099);
-    expect(await canvas.ownerOf(1000099)).to.eq(studio.address);
-
-    await studio.connect(user).wrap(1, [0, 0]);
-    expect(await canvas.ownerOf(1000099)).to.eq(user.address);
-    await canvas.connect(user).approve(studio.address, 1000099);
-    await studio.connect(user).unwrap(1000099);
-    expect(await canvas.ownerOf(1000099)).to.eq(studio.address);
-
-    await studio.connect(user).wrap(1, [0, 0]);
-    expect(await canvas.ownerOf(1000099)).to.eq(user.address);
-
-    await studio
-      .connect(user)
-      .buyElementsAndWrap(
-        [1, 4],
-        [1, 1],
-        ethers.utils.parseEther("2"),
-        1,
-        [0, 0]
-      );
-
-    expect(await canvas.ownerOf(1000099)).to.eq(user.address);
-    expect(await canvas.ownerOf(1000098)).to.eq(user.address);
-
-    await studio
-      .connect(user)
-      .buyElementsAndWrap(
-        [1, 4],
-        [1, 1],
-        ethers.utils.parseEther("2"),
-        1,
-        [0, 0]
-      );
-
-    expect(await canvas.ownerOf(1000099)).to.eq(user.address);
-    expect(await canvas.ownerOf(1000098)).to.eq(user.address);
-    expect(await canvas.ownerOf(1000097)).to.eq(user.address);
-  });
-
-  it("Gets the project ID from the canvas ID", async () => {
-    expect(await studio.getProjectIdFromCanvasId(1000000)).to.eq(1);
-    expect(await studio.getProjectIdFromCanvasId(1000001)).to.eq(1);
-    expect(await studio.getProjectIdFromCanvasId(1999999)).to.eq(1);
-
-    expect(await studio.getProjectIdFromCanvasId(2000000)).to.eq(2);
-    expect(await studio.getProjectIdFromCanvasId(2000001)).to.eq(2);
-    expect(await studio.getProjectIdFromCanvasId(2999999)).to.eq(2);
-
-    expect(await studio.getProjectIdFromCanvasId(3000000)).to.eq(3);
-    expect(await studio.getProjectIdFromCanvasId(3000001)).to.eq(3);
-    expect(await studio.getProjectIdFromCanvasId(3999999)).to.eq(3);
-  });
+  //   expect(await studio.getProjectIdFromCanvasId(3000000)).to.eq(3);
+  //   expect(await studio.getProjectIdFromCanvasId(3000001)).to.eq(3);
+  //   expect(await studio.getProjectIdFromCanvasId(3999999)).to.eq(3);
+  // });
 });

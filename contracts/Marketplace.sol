@@ -92,7 +92,7 @@ abstract contract Marketplace is IMarketplace, Projects, ERC1155Holder {
         require(projects[_projectId].locked, "M03");
         require(
             _auctionStartTime >= block.timestamp + auctionStartDelay,
-            "M03"
+            "M04"
         );
         require(_auctionEndTime >= _auctionStartTime, "M05");
         require(_auctionEndPrice <= _auctionStartPrice, "M06");
