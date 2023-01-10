@@ -7,10 +7,12 @@ const projectConfigs = [
       maxSupply: 1000,
       metadata: `{
     "name": "Disentanglement",
-    "description": "Relationships",
+    "description": "Informed by the experience of separating after a long marriage, (Dis)entanglement explores the endless ways that relationships intertwine. Each unique generative image represents one of many possible moments across the arc of a relationship, from a couple eagerly pulling taut their new connection, to a union defined solely by knots hardened over time. Whether connecting threads are carefully untied, crumbling from neglect, or snapping from tension, many couples can still safely go separate ways when needed. For some, there is no easy escape. Domestic violence, sexual abuse, financial hardship, and cultural norms can all keep someone bound to a partner against their will.",
     "artistName": "Phil Smith",
     "website": "https://disentanglement.com",
     "license": "MIT",
+    "scriptLibrary": "p5.js",
+    "scriptLibraryVersion": "1.0.0"
   }`,
       elementCategoryLabels: [
         "Knots",
@@ -155,6 +157,8 @@ const projectConfigs = [
     "artistName": "Phil Smith",
     "website": "https://tacklinetorn.com",
     "license": "MIT",
+    "scriptLibrary": "p5.js",
+    "scriptLibraryVersion": "1.0.0"
   }`,
       elementCategoryLabels: [
         "Palette",
