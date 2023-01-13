@@ -1,7 +1,7 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-interface IMarketplace {
+interface IAuction {
     event AuctionScheduled(
         uint256 indexed projectId,
         address auctionERC20,

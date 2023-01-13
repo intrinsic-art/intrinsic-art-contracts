@@ -17,14 +17,14 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   } else {
     console.error("Chain not configured");
   }
-  await deployContract(hre, "Element", [owner]);
-  const element = await hre.ethers.getContract("Element");
+  await deployContract(hre, "Artwork", [owner]);
+  const artwork = await hre.ethers.getContract("Artwork");
 
   await new Promise((resolve) => setTimeout(resolve, 20000));
 
   try {
     await hre.run("verify:verify", {
-      address: element.address,
+      address: artwork.address,
       constructorArguments: [owner],
     });
   } catch (error) {

@@ -1,16 +1,16 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "./interfaces/ICanvas.sol";
-import "./interfaces/IElement.sol";
+import "./interfaces/IArtwork.sol";
+import "./interfaces/ITraits.sol";
 import "./interfaces/IProjects.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 abstract contract Projects is IProjects, Ownable {
     event ProjectCreated(uint256 projectId);
     
-    ICanvas public canvas;
-    IElement public element;
+    IArtwork public artwork;
+    ITraits public traits;
     string public baseURI;
 
     mapping(address => bool) internal admins;
@@ -36,64 +36,64 @@ abstract contract Projects is IProjects, Ownable {
         address _artistAddress,
         uint256 _maxSupply,
         string memory _metadata,
-        string[] memory _elementCategoryLabels,
-        string[] memory _elementCategoryValues,
-        string[][] memory _elementLabels,
-        string[][] memory _elementValues,
-        uint256[][][] memory _elementAmounts,
+        string[] memory _traitTypeNames,
+        string[] memory _traitTypeValues,
+        string[][] memory _traitNames,
+        string[][] memory _traitValues,
+        uint256[][][] memory _traitAmounts,
         address[] calldata _recipients
     ) external onlyAdmin {
-        uint256 projectId = canvas.createProject(address(this), _maxSupply);
+        uint256 projectId = artwork.createProject(address(this), _maxSupply);
 
         projects[projectId].artistAddress = _artistAddress;
         projects[projectId].metadata = _metadata;
-        projects[projectId].elementCategoryLabels = _elementCategoryLabels;
-        projects[projectId].elementCategoryValues = _elementCategoryValues;
-        projects[projectId].elementTokenIds = element.createElements2D(
-            _elementLabels,
-            _elementValues,
-            _elementAmounts,
+        projects[projectId].traitTypeNames = _traitTypeNames;
+        projects[projectId].traitTypeValues = _traitTypeValues;
+        projects[projectId].traitTokenIds = traits.createTraits2D(
+            _traitNames,
+            _traitValues,
+            _traitAmounts,
             _recipients
         );
 
         emit ProjectCreated(projectId);
     }
 
-    function createAndUpdateElements(
+    function createAndUpdateTraits(
         uint256 _projectId,
-        uint256[] calldata _elementCategoryIndexes,
-        uint256[] calldata _elementIndexes,
-        string[] memory _elementLabels,
-        string[] memory _elementValues,
-        uint256[][] calldata _elementAmounts,
-        address[] calldata _elementRecipients
+        uint256[] calldata _traitTypeIndexes,
+        uint256[] calldata _traitIndexes,
+        string[] memory _traitNames,
+        string[] memory _traitValues,
+        uint256[][] calldata _traitAmounts,
+        address[] calldata _traitRecipients
     ) external onlyAdmin notLocked(_projectId) {
-        require(_elementCategoryIndexes.length == _elementIndexes.length, "P03");
-        require(_elementCategoryIndexes.length == _elementLabels.length, "P03");
+        require(_traitTypeIndexes.length == _traitIndexes.length, "P03");
+        require(_traitTypeIndexes.length == _traitNames.length, "P03");
 
-        updateElements(
+        updateTraits(
             _projectId,
-            _elementCategoryIndexes,
-            _elementIndexes,
-            element.createElements(
-            _elementLabels,
-            _elementValues,
-            _elementAmounts,
-            _elementRecipients
+            _traitTypeIndexes,
+            _traitIndexes,
+            traits.createTraits(
+            _traitNames,
+            _traitValues,
+            _traitAmounts,
+            _traitRecipients
         )
         );
     }
 
-    function updateElements(
+    function updateTraits(
         uint256 _projectId,
-        uint256[] calldata _elementCategoryIndexes,
-        uint256[] calldata _elementIndexes,
-        uint256[] memory _elementTokenIds
+        uint256[] calldata _traitTypeIndexes,
+        uint256[] calldata _traitIndexes,
+        uint256[] memory _traitTokenIds
     ) public onlyAdmin notLocked(_projectId) {
-        for (uint256 i; i < _elementCategoryIndexes.length; i++) {
-            projects[_projectId].elementTokenIds[_elementCategoryIndexes[i]][
-                    _elementIndexes[i]
-                ] = _elementTokenIds[i];
+        for (uint256 i; i < _traitTypeIndexes.length; i++) {
+            projects[_projectId].traitTokenIds[_traitTypeIndexes[i]][
+                    _traitIndexes[i]
+                ] = _traitTokenIds[i];
         }
     }
 
@@ -112,18 +112,18 @@ abstract contract Projects is IProjects, Ownable {
         projects[_projectId].scripts[_scriptIndex] = (_script);
     }
 
-    function updateElementCategories(
+    function updateTraitTypes(
         uint256 _projectId,
-        string[] memory _elementCategoryLabels,
-        string[] memory _elementCategoryValues
+        string[] memory _traitTypeNames,
+        string[] memory _traitTypeValues
     ) external onlyAdmin notLocked(_projectId) {
         require(
-            _elementCategoryLabels.length == _elementCategoryValues.length,
+            _traitTypeNames.length == _traitTypeValues.length,
             "P04"
         );
 
-        projects[_projectId].elementCategoryLabels = _elementCategoryLabels;
-        projects[_projectId].elementCategoryValues = _elementCategoryValues;
+        projects[_projectId].traitTypeNames = _traitTypeNames;
+        projects[_projectId].traitTypeValues = _traitTypeValues;
     }
 
     function lockProject(uint256 _projectId)
@@ -131,8 +131,8 @@ abstract contract Projects is IProjects, Ownable {
         onlyAdmin notLocked(_projectId) 
     {
         require(
-            projects[_projectId].elementCategoryLabels.length ==
-                projects[_projectId].elementTokenIds.length,
+            projects[_projectId].traitTypeNames.length ==
+                projects[_projectId].traitTokenIds.length,
             "P03"
         );
 
@@ -192,71 +192,71 @@ abstract contract Projects is IProjects, Ownable {
       return scriptIndex;
     }
 
-    function getProjectElementCategoryLabels(uint256 _projectId) external view returns (string[] memory) {
-      return projects[_projectId].elementCategoryLabels;
+    function getProjectTraitTypeNames(uint256 _projectId) external view returns (string[] memory) {
+      return projects[_projectId].traitTypeNames;
     }
 
-    function getProjectElementCategoryValues(uint256 _projectId) external view returns (string[] memory) {
-      return projects[_projectId].elementCategoryValues;
+    function getProjectTraitTypeValues(uint256 _projectId) external view returns (string[] memory) {
+      return projects[_projectId].traitTypeValues;
     }
 
-    function getProjectElementTokenIds(uint256 _projectId) external view returns (uint256[][] memory) {
-      return projects[_projectId].elementTokenIds;
+    function getProjectTraitTokenIds(uint256 _projectId) external view returns (uint256[][] memory) {
+      return projects[_projectId].traitTokenIds;
     }
 
     function getProjectMetadata(uint256 _projectId) external view returns (string memory) {
       return projects[_projectId].metadata;
     }
 
-    function getIsAdmins(address _admin) external view returns (bool) {
+    function getIsAdmin(address _admin) external view returns (bool) {
       return admins[_admin];
     }
 
-    function getProjectElementLabels(uint256 _projectId)
+    function getProjectTraitNames(uint256 _projectId)
         public
         view
-        returns (string[][] memory elementLabels)
+        returns (string[][] memory traitNames)
     {
-        uint256 elementCategoryLength = projects[_projectId]
-            .elementCategoryLabels
+        uint256 traitTypesLength = projects[_projectId]
+            .traitTypeNames
             .length;
-        elementLabels = new string[][](elementCategoryLength);
+        traitNames = new string[][](traitTypesLength);
 
-        for (uint256 i; i < elementCategoryLength; i++) {
-            uint256 innerElementsLength = projects[_projectId]
-                .elementTokenIds[i]
+        for (uint256 i; i < traitTypesLength; i++) {
+            uint256 innerTraitsLength = projects[_projectId]
+                .traitTokenIds[i]
                 .length;
-            string[] memory innerElementLabels = new string[](innerElementsLength);
-            for (uint256 j; j < innerElementsLength; j++) {
-                innerElementLabels[j] = element.getElementLabel(
-                    projects[_projectId].elementTokenIds[i][j]
+            string[] memory innerTraitNames = new string[](innerTraitsLength);
+            for (uint256 j; j < innerTraitsLength; j++) {
+                innerTraitNames[j] = traits.getTraitName(
+                    projects[_projectId].traitTokenIds[i][j]
                 );
             }
-            elementLabels[i] = innerElementLabels;
+            traitNames[i] = innerTraitNames;
         }
     }
 
-    function getProjectElementValues(uint256 _projectId)
+    function getProjectTraitValues(uint256 _projectId)
         public
         view
-        returns (string[][] memory elementValues)
+        returns (string[][] memory traitValues)
     {
-        uint256 elementCategoryLength = projects[_projectId]
-            .elementCategoryLabels
+        uint256 traitTypeLength = projects[_projectId]
+            .traitTypeNames
             .length;
-        elementValues = new string[][](elementCategoryLength);
+        traitValues = new string[][](traitTypeLength);
 
-        for (uint256 i; i < elementCategoryLength; i++) {
-            uint256 innerElementsLength = projects[_projectId]
-                .elementTokenIds[i]
+        for (uint256 i; i < traitTypeLength; i++) {
+            uint256 innerTraitsLength = projects[_projectId]
+                .traitTokenIds[i]
                 .length;
-            string[] memory innerElementValues = new string[](innerElementsLength);
-            for (uint256 j; j < innerElementsLength; j++) {
-                innerElementValues[j] = element.getElementValue(
-                    projects[_projectId].elementTokenIds[i][j]
+            string[] memory innerTraitValues = new string[](innerTraitsLength);
+            for (uint256 j; j < innerTraitsLength; j++) {
+                innerTraitValues[j] = traits.getTraitValue(
+                    projects[_projectId].traitTokenIds[i][j]
                 );
             }
-            elementValues[i] = innerElementValues;
+            traitValues[i] = innerTraitValues;
         }
     }
 

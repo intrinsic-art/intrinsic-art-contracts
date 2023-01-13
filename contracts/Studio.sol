@@ -5,184 +5,184 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import "./interfaces/IStudio.sol";
-import "./Marketplace.sol";
+import "./Auction.sol";
 import "./StringConverter.sol";
 
-contract Studio is IStudio, Marketplace, ERC721Holder, StringConverter {
-    mapping(uint256 => CanvasData) public canvases;
+contract Studio is IStudio, Auction, ERC721Holder, StringConverter {
+    mapping(uint256 => ArtworkData) public artworkData;
     mapping(address => uint256) public userNonces;
 
     constructor(
         address _owner,
-        address _canvas,
-        address _element,
+        address _artwork,
+        address _traits,
         uint256 _auctionStartDelay,
         string memory _baseURI
     ) {
         _transferOwnership(_owner);
-        canvas = ICanvas(_canvas);
-        element = IElement(_element);
+        artwork = IArtwork(_artwork);
+        traits = ITraits(_traits);
         auctionStartDelay = _auctionStartDelay;
         baseURI = _baseURI;
     }
 
-    function wrap(uint256 _projectId, uint256[] calldata _elementIndexes)
+    function createArtwork(uint256 _projectId, uint256[] calldata _traitIndexes)
         public
-        returns (uint256 _canvasTokenId)
+        returns (uint256 _artworkTokenId)
     {
         require(
-            _elementIndexes.length ==
-                projects[_projectId].elementCategoryLabels.length,
+            _traitIndexes.length ==
+                projects[_projectId].traitTypeNames.length,
             "S01"
         );
 
         if (
-            canvas.getProjectSupply(_projectId) <
-            canvas.getProjectMaxSupply(_projectId)
+            artwork.getProjectSupply(_projectId) <
+            artwork.getProjectMaxSupply(_projectId)
         ) {
-            _canvasTokenId = canvas.mint(_projectId, msg.sender);
+            _artworkTokenId = artwork.mint(_projectId, msg.sender);
         } else {
-            require(projects[_projectId].blankCanvasIds.length > 0, "S02");
-            _canvasTokenId = projects[_projectId].blankCanvasIds[
-                projects[_projectId].blankCanvasIds.length - 1
+            require(projects[_projectId].blankArtworkIds.length > 0, "S02");
+            _artworkTokenId = projects[_projectId].blankArtworkIds[
+                projects[_projectId].blankArtworkIds.length - 1
             ];
-            projects[_projectId].blankCanvasIds.pop();
-            canvas.safeTransferFrom(address(this), msg.sender, _canvasTokenId);
+            projects[_projectId].blankArtworkIds.pop();
+            artwork.safeTransferFrom(address(this), msg.sender, _artworkTokenId);
         }
 
         bytes32 newHash = keccak256(
             abi.encodePacked(msg.sender, userNonces[msg.sender])
         );
 
-        canvases[_canvasTokenId].hash = newHash;
+        artworkData[_artworkTokenId].hash = newHash;
 
-        uint256[] memory elementTokenIds = new uint256[](
-            _elementIndexes.length
+        uint256[] memory traitTokenIds = new uint256[](
+            _traitIndexes.length
         );
 
-        for (uint256 i; i < _elementIndexes.length; i++) {
-            elementTokenIds[i] = projects[_projectId].elementTokenIds[i][
-                _elementIndexes[i]
+        for (uint256 i; i < _traitIndexes.length; i++) {
+            traitTokenIds[i] = projects[_projectId].traitTokenIds[i][
+                _traitIndexes[i]
             ];
 
-            element.safeTransferFrom(
+            traits.safeTransferFrom(
                 msg.sender,
                 address(this),
-                elementTokenIds[i],
+                traitTokenIds[i],
                 1,
                 ""
             );
         }
 
-        canvases[_canvasTokenId].wrapped = true;
-        canvases[_canvasTokenId].wrappedElementTokenIds = elementTokenIds;
+        artworkData[_artworkTokenId].created = true;
+        artworkData[_artworkTokenId].traitTokenIds = traitTokenIds;
         userNonces[msg.sender]++;
 
-        emit CanvasWrapped(_canvasTokenId, msg.sender);
+        emit ArtworkCreated(_artworkTokenId, msg.sender);
     }
 
-    function unwrap(uint256 _canvasId) public {
-        require(msg.sender == canvas.ownerOf(_canvasId), "S03");
-        require(canvases[_canvasId].wrapped, "S04");
+    function decomposeArtwork(uint256 _artworkTokenId) public {
+        require(msg.sender == artwork.ownerOf(_artworkTokenId), "S03");
+        require(artworkData[_artworkTokenId].created, "S04");
 
-        // Transfer elements to the user
+        // Transfer traits to the user
         for (
             uint256 i;
-            i < canvases[_canvasId].wrappedElementTokenIds.length;
+            i < artworkData[_artworkTokenId].traitTokenIds.length;
             i++
         ) {
-            element.safeTransferFrom(
+            traits.safeTransferFrom(
                 address(this),
                 msg.sender,
-                canvases[_canvasId].wrappedElementTokenIds[i],
+                artworkData[_artworkTokenId].traitTokenIds[i],
                 1,
                 ""
             );
         }
 
-        // Reset canvas state to blank canvas
-        canvases[_canvasId].hash = 0;
-        canvases[_canvasId].wrapped = false;
-        canvases[_canvasId].wrappedElementTokenIds = new uint256[](0);
+        // Clear Artwork state
+        artworkData[_artworkTokenId].hash = 0;
+        artworkData[_artworkTokenId].created = false;
+        artworkData[_artworkTokenId].traitTokenIds = new uint256[](0);
 
-        // Transfer canvas from the user to this address
-        canvas.safeTransferFrom(msg.sender, address(this), _canvasId);
+        // Transfer artwork ERC-721 from the user to this address
+        artwork.safeTransferFrom(msg.sender, address(this), _artworkTokenId);
 
         // Add the canvas ID to the array of blank canvses held by the studio
-        projects[getProjectIdFromCanvasId(_canvasId)].blankCanvasIds.push(
-            _canvasId
+        projects[getProjectIdFromCanvasId(_artworkTokenId)].blankArtworkIds.push(
+            _artworkTokenId
         );
 
-        emit CanvasUnwrapped(_canvasId, msg.sender);
+        emit ArtworkDecomposed(_artworkTokenId, msg.sender);
     }
 
-    function buyElementsAndWrap(
+    function buyTraitsCreateArtwork(
         uint256 _projectId,
-        uint256[] calldata _elementCategoryIndexesToBuy,
-        uint256[] calldata _elementIndexesToBuy,
-        uint256[] calldata _elementQuantitiesToBuy,
-        uint256[] calldata _elementIndexesToWrap
+        uint256[] calldata _traitTypeIndexesToBuy,
+        uint256[] calldata _traitIndexesToBuy,
+        uint256[] calldata _traitQuantitiesToBuy,
+        uint256[] calldata _traitIndexesToWrap
     ) public {
-        buyElements(
+        buyTraits(
             _projectId,
-            _elementCategoryIndexesToBuy,
-            _elementIndexesToBuy,
-            _elementQuantitiesToBuy
+            _traitTypeIndexesToBuy,
+            _traitIndexesToBuy,
+            _traitQuantitiesToBuy
         );
-        wrap(_projectId, _elementIndexesToWrap);
+        createArtwork(_projectId, _traitIndexesToWrap);
     }
 
-    function getCanvasURI(uint256 _canvasTokenId)
+    function getArtworkURI(uint256 _artworkTokenId)
         external
         view
         returns (string memory)
     {
-        return string.concat(baseURI, toString(_canvasTokenId));
+        return string.concat(baseURI, toString(_artworkTokenId));
     }
 
-    function getCanvasHash(uint256 _canvasId) external view returns (bytes32) {
-        return canvases[_canvasId].hash;
+    function getArtworkHash(uint256 _artworkId) external view returns (bytes32) {
+        return artworkData[_artworkId].hash;
     }
 
-    function getCanvasElementLabels(uint256 _canvasId)
+    function getArtworkTraitNames(uint256 _artworkTokenId)
         external
         view
-        returns (string[] memory elementLabels)
+        returns (string[] memory traitNames)
     {
-        uint256 elementLabelsLength = canvases[_canvasId]
-            .wrappedElementTokenIds
+        uint256 traitNamesLength = artworkData[_artworkTokenId]
+            .traitTokenIds
             .length;
-        elementLabels = new string[](elementLabelsLength);
+        traitNames = new string[](traitNamesLength);
 
-        for (uint256 i; i < elementLabelsLength; i++) {
-            elementLabels[i] = element.getElementLabel(
-                canvases[_canvasId].wrappedElementTokenIds[i]
+        for (uint256 i; i < traitNamesLength; i++) {
+            traitNames[i] = traits.getTraitName(
+                artworkData[_artworkTokenId].traitTokenIds[i]
             );
         }
     }
 
-    function getCanvasElementValues(uint256 _canvasId)
+    function getArtworkTraitValues(uint256 _artworkTokenId)
         external
         view
-        returns (string[] memory elementValues)
+        returns (string[] memory traitValues)
     {
-        uint256 elementValuesLength = canvases[_canvasId]
-            .wrappedElementTokenIds
+        uint256 traitValuesLength = artworkData[_artworkTokenId]
+            .traitTokenIds
             .length;
-        elementValues = new string[](elementValuesLength);
+        traitValues = new string[](traitValuesLength);
 
-        for (uint256 i; i < elementValuesLength; i++) {
-            elementValues[i] = element.getElementValue(
-                canvases[_canvasId].wrappedElementTokenIds[i]
+        for (uint256 i; i < traitValuesLength; i++) {
+            traitValues[i] = traits.getTraitValue(
+                artworkData[_artworkTokenId].traitTokenIds[i]
             );
         }
     }
 
-    function getIsCanvasWrapped(uint256 _canvasId)
+    function getIsArtworkCreated(uint256 _artworkTokenId)
         external
         view
         returns (bool)
     {
-        return canvases[_canvasId].wrapped;
+        return artworkData[_artworkTokenId].created;
     }
 }

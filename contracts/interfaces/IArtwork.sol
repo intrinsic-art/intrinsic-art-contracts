@@ -1,7 +1,7 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-interface ICanvas {
+interface IArtwork {
     function initialize(address _owner) external;
 
     function safeTransferFrom(address _from, address _to, uint256 _tokenId) external payable;

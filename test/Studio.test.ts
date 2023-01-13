@@ -1,10 +1,10 @@
 import {
-  Canvas,
-  Canvas__factory,
+  Artwork,
+  Artwork__factory,
   Studio,
   Studio__factory,
-  Element,
-  Element__factory,
+  Traits,
+  Traits__factory,
   MockWeth,
   MockWeth__factory,
 } from "../typechain-types";
@@ -15,8 +15,8 @@ import { BigNumber } from "ethers";
 import time from "./helpers/time";
 
 describe("Studio", function () {
-  let canvas: Canvas;
-  let element: Element;
+  let artwork: Artwork;
+  let traits: Traits;
   let studio: Studio;
   let mockWeth: MockWeth;
 
@@ -39,20 +39,20 @@ describe("Studio", function () {
     // await deployments.fixture();
 
     // Get deployed contracts
-    canvas = await new Canvas__factory(deployer).deploy(owner.address);
-    element = await new Element__factory(deployer).deploy(owner.address);
+    artwork = await new Artwork__factory(deployer).deploy(owner.address);
+    traits = await new Traits__factory(deployer).deploy(owner.address);
     studio = await new Studio__factory(deployer).deploy(
       owner.address,
-      canvas.address,
-      element.address,
+      artwork.address,
+      traits.address,
       100,
       "https://intrinsic.art/"
     );
     mockWeth = await new MockWeth__factory(deployer).deploy();
 
-    await canvas.connect(owner).addStudio(studio.address);
+    await artwork.connect(owner).addStudio(studio.address);
 
-    await element.connect(owner).addStudio(studio.address);
+    await traits.connect(owner).addStudio(studio.address);
 
     await studio.connect(owner).addAdmins([artist.address]);
 
@@ -103,12 +103,12 @@ describe("Studio", function () {
       .connect(user)
       .approve(studio.address, ethers.utils.parseEther("100"));
 
-    await element.connect(user).setApprovalForAll(studio.address, true);
+    await traits.connect(user).setApprovalForAll(studio.address, true);
   });
 
   it("Initializes Studio contract", async () => {
-    expect(await studio.element()).to.eq(element.address);
-    expect(await studio.canvas()).to.eq(canvas.address);
+    expect(await studio.traits()).to.eq(traits.address);
+    expect(await studio.artwork()).to.eq(artwork.address);
   });
 
   it("Created the Studio project", async () => {
@@ -119,72 +119,72 @@ describe("Studio", function () {
       "Test Script 1",
       "Test Script 2",
     ]);
-    expect(await studio.getProjectElementCategoryLabels(1)).to.deep.eq([
+    expect(await studio.getProjectTraitTypeNames(1)).to.deep.eq([
       "Hair Color",
       "Eye Color",
     ]);
-    expect(await studio.getProjectElementCategoryValues(1)).to.deep.eq([
+    expect(await studio.getProjectTraitTypeValues(1)).to.deep.eq([
       "hairColor",
       "eyeColor",
     ]);
-    expect(await studio.getProjectElementTokenIds(1)).to.deep.eq([
+    expect(await studio.getProjectTraitTokenIds(1)).to.deep.eq([
       [BigNumber.from("1"), BigNumber.from("2"), BigNumber.from("3")],
       [BigNumber.from("4"), BigNumber.from("5")],
     ]);
-    expect(await studio.getProjectElementLabels(1)).to.deep.eq([
+    expect(await studio.getProjectTraitNames(1)).to.deep.eq([
       ["Blonde", "Brown", "Black"],
       ["Green", "Blue"],
     ]);
-    expect(await studio.getProjectElementValues(1)).to.deep.eq([
+    expect(await studio.getProjectTraitValues(1)).to.deep.eq([
       ["blonde", "brown", "black"],
       ["green", "blue"],
     ]);
     expect(await studio.getProjectIsLocked(1)).to.eq(true);
   });
 
-  it("Created the Canvas project", async () => {
-    expect((await canvas.projects(1)).studio).to.eq(studio.address);
-    expect((await canvas.projects(1)).supply).to.eq(0);
-    expect((await canvas.projects(1)).maxSupply).to.eq(100);
+  it("Created the Artwork project", async () => {
+    expect((await artwork.projects(1)).studio).to.eq(studio.address);
+    expect((await artwork.projects(1)).supply).to.eq(0);
+    expect((await artwork.projects(1)).maxSupply).to.eq(100);
   });
 
   it("Created the Elements", async () => {
-    expect((await element.elements(1)).label).to.eq("Blonde");
-    expect((await element.elements(1)).value).to.eq("blonde");
+    expect((await traits.traits(1)).name).to.eq("Blonde");
+    expect((await traits.traits(1)).value).to.eq("blonde");
 
-    expect((await element.elements(2)).label).to.eq("Brown");
-    expect((await element.elements(2)).value).to.eq("brown");
+    expect((await traits.traits(2)).name).to.eq("Brown");
+    expect((await traits.traits(2)).value).to.eq("brown");
 
-    expect((await element.elements(3)).label).to.eq("Black");
-    expect((await element.elements(3)).value).to.eq("black");
+    expect((await traits.traits(3)).name).to.eq("Black");
+    expect((await traits.traits(3)).value).to.eq("black");
 
-    expect((await element.elements(4)).label).to.eq("Green");
-    expect((await element.elements(4)).value).to.eq("green");
+    expect((await traits.traits(4)).name).to.eq("Green");
+    expect((await traits.traits(4)).value).to.eq("green");
 
-    expect((await element.elements(5)).label).to.eq("Blue");
-    expect((await element.elements(5)).value).to.eq("blue");
+    expect((await traits.traits(5)).name).to.eq("Blue");
+    expect((await traits.traits(5)).value).to.eq("blue");
   });
 
-  it("A user can create a completed canvas", async () => {
+  it("A user can create artwork", async () => {
     // Move forward in time so auction is active
     await time.increase(time.duration.seconds(120));
 
     const userWethBalanceBefore = await mockWeth.balanceOf(user.address);
 
-    expect(await studio.getIsCanvasWrapped(1000000)).to.eq(false);
+    expect(await studio.getIsArtworkCreated(1000000)).to.eq(false);
     expect(await studio.userNonces(user.address)).to.eq(0);
-    expect(await studio.getCanvasElementLabels(1000000)).to.deep.eq([]);
-    expect(await studio.getCanvasElementValues(1000000)).to.deep.eq([]);
-    expect(await element.balanceOf(studio.address, 1)).to.eq(30);
-    expect(await element.balanceOf(studio.address, 4)).to.eq(50);
+    expect(await studio.getArtworkTraitNames(1000000)).to.deep.eq([]);
+    expect(await studio.getArtworkTraitValues(1000000)).to.deep.eq([]);
+    expect(await traits.balanceOf(studio.address, 1)).to.eq(30);
+    expect(await traits.balanceOf(studio.address, 4)).to.eq(50);
 
-    expect(await element.balanceOf(studio.address, 1)).to.eq(30);
+    expect(await traits.balanceOf(studio.address, 1)).to.eq(30);
 
-    expect(await element.balanceOf(studio.address, 4)).to.eq(50);
+    expect(await traits.balanceOf(studio.address, 4)).to.eq(50);
 
     await studio
       .connect(user)
-      .buyElementsAndWrap(1, [0, 1], [0, 0], [1, 1], [0, 0]);
+      .buyTraitsCreateArtwork(1, [0, 1], [0, 0], [1, 1], [0, 0]);
 
     const element1Price = await studio.getProjectElementAuctionPrice(1);
     const element4Price = await studio.getProjectElementAuctionPrice(1);
@@ -194,21 +194,21 @@ describe("Studio", function () {
     expect(userWethBalanceBefore.sub(userWethBalanceAfter)).to.eq(
       element1Price.add(element4Price)
     );
-    expect(await studio.getIsCanvasWrapped(1000000)).to.eq(true);
+    expect(await studio.getIsArtworkCreated(1000000)).to.eq(true);
     expect(await studio.userNonces(user.address)).to.eq(1);
-    expect(await studio.getCanvasElementLabels(1000000)).to.deep.eq([
+    expect(await studio.getArtworkTraitNames(1000000)).to.deep.eq([
       "Blonde",
       "Green",
     ]);
-    expect(await studio.getCanvasElementValues(1000000)).to.deep.eq([
+    expect(await studio.getArtworkTraitValues(1000000)).to.deep.eq([
       "blonde",
       "green",
     ]);
-    expect(await canvas.ownerOf(1000000)).to.eq(user.address);
+    expect(await artwork.ownerOf(1000000)).to.eq(user.address);
 
-    expect(await element.balanceOf(studio.address, 1)).to.eq(30);
+    expect(await traits.balanceOf(studio.address, 1)).to.eq(30);
 
-    expect(await element.balanceOf(studio.address, 4)).to.eq(50);
+    expect(await traits.balanceOf(studio.address, 4)).to.eq(50);
     // Add test case for expected canvas hash
   });
 

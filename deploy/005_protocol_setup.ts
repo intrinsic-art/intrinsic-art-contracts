@@ -22,12 +22,12 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     chainId === 11155111 ||
     chainId === 80001
   ) {
-    const canvas = await hre.ethers.getContract("Canvas");
-    const element = await hre.ethers.getContract("Element");
+    const artwork = await hre.ethers.getContract("Artwork");
+    const traits = await hre.ethers.getContract("Traits");
     const studio = await hre.ethers.getContract("Studio");
 
-    await canvas.addStudio(studio.address);
-    await element.addStudio(studio.address);
+    await artwork.addStudio(studio.address);
+    await traits.addStudio(studio.address);
     await studio.addAdmins([owner]);
   }
 };

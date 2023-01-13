@@ -4,9 +4,9 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
 import "./Projects.sol";
-import "./interfaces/IMarketplace.sol";
+import "./interfaces/IAuction.sol";
 
-abstract contract Marketplace is IMarketplace, Projects, ERC1155Holder {
+abstract contract Auction is IAuction, Projects, ERC1155Holder {
     using SafeERC20 for IERC20;
 
     uint256 public constant auctionPlatformFeeNumerator = 100_000_000;
@@ -17,39 +17,39 @@ abstract contract Marketplace is IMarketplace, Projects, ERC1155Holder {
         public artistClaimableRevenues; // Artist address => ERC-20 address => Amount
     mapping(address => uint256) public platformClaimableRevenues; // ERC-20 address => Revenue amount
 
-    function buyElements(
+    function buyTraits(
         uint256 _projectId,
-        uint256[] calldata _elementCategoryIndexes,
-        uint256[] calldata _elementIndexes,
-        uint256[] calldata _elementQuantities
+        uint256[] calldata _traitTypeIndexes,
+        uint256[] calldata _traitIndexes,
+        uint256[] calldata _traitQuantities
     ) public {
         require(
-            _elementCategoryIndexes.length == _elementIndexes.length,
+            _traitTypeIndexes.length == _traitIndexes.length,
             "M01"
         );
         require(
-            _elementCategoryIndexes.length == _elementQuantities.length,
+            _traitTypeIndexes.length == _traitQuantities.length,
             "M01"
         );
 
         uint256 totalQuantity;
 
-        for (uint256 i; i < _elementCategoryIndexes.length; i++) {
-            uint256 elementTokenId = projects[_projectId].elementTokenIds[
-                _elementCategoryIndexes[i]
-            ][_elementIndexes[i]];
+        for (uint256 i; i < _traitTypeIndexes.length; i++) {
+            uint256 traitTokenId = projects[_projectId].traitTokenIds[
+                _traitTypeIndexes[i]
+            ][_traitIndexes[i]];
             require(
-                element.balanceOf(address(this), elementTokenId) >=
-                    _elementQuantities[i],
+                traits.balanceOf(address(this), traitTokenId) >=
+                    _traitQuantities[i],
                 "M02"
             );
 
-            totalQuantity += _elementQuantities[i];
-            element.safeTransferFrom(
+            totalQuantity += _traitQuantities[i];
+            traits.safeTransferFrom(
                 address(this),
                 msg.sender,
-                elementTokenId,
-                _elementQuantities[i],
+                traitTokenId,
+                _traitQuantities[i],
                 ""
             );
         }
@@ -75,9 +75,9 @@ abstract contract Marketplace is IMarketplace, Projects, ERC1155Holder {
         emit ElementBought(
             msg.sender,
             _projectId,
-            _elementCategoryIndexes,
-            _elementIndexes,
-            _elementQuantities
+            _traitTypeIndexes,
+            _traitIndexes,
+            _traitQuantities
         );
     }
 

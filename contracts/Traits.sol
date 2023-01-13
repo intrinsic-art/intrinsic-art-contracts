@@ -1,24 +1,24 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "./interfaces/IElement.sol";
+import "./interfaces/ITraits.sol";
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract Element is ERC1155, ERC1155Burnable, ERC1155Supply, Ownable {
-    event ElementCreated(address indexed studio, string indexed label, string indexed value);
+contract Traits is ERC1155, ERC1155Burnable, ERC1155Supply, Ownable {
+    event TraitCreated(address indexed studio, string indexed name, string indexed value);
     event StudioAdded(address indexed studio);
     event StudioRemoved(address indexed studio);
 
-    struct ElementData {
-        string label;
+    struct TraitData {
+        string name;
         string value;
     }
 
     uint256 public nextTokenId = 1;
-    mapping(uint256 => ElementData) public elements;
+    mapping(uint256 => TraitData) public traits;
     mapping(address => bool) public studios;
 
     constructor(address _owner) ERC1155("") {
@@ -37,8 +37,8 @@ contract Element is ERC1155, ERC1155Burnable, ERC1155Supply, Ownable {
         emit StudioRemoved(_studio);
     }
 
-    function createElement(
-        string calldata _label,
+    function createTrait(
+        string calldata _name,
         string calldata _value,
         uint256[] calldata _amounts,
         address[] calldata _recipients
@@ -49,30 +49,30 @@ contract Element is ERC1155, ERC1155Burnable, ERC1155Supply, Ownable {
         tokenId = nextTokenId;
         nextTokenId++;
 
-        elements[tokenId].label = _label;
-        elements[tokenId].value = _value;
+        traits[tokenId].name = _name;
+        traits[tokenId].value = _value;
 
         for(uint256 i; i < _amounts.length; i++) {
           _mint(_recipients[i], tokenId, _amounts[i], bytes(""));
         }
 
-        emit ElementCreated(msg.sender, _label, _value);
+        emit TraitCreated(msg.sender, _name, _value);
     }
 
-    function createElements(
-        string[] calldata _labels,
+    function createTraits(
+        string[] calldata _names,
         string[] calldata _values,
         uint256[][] calldata _amounts,
         address[] calldata _recipients
     ) public returns (uint256[] memory tokenIds) {
-        require(_labels.length == _values.length, "E02");
-        require(_labels.length == _amounts.length, "E02");
+        require(_names.length == _values.length, "E02");
+        require(_names.length == _amounts.length, "E02");
 
-        tokenIds = new uint256[](_labels.length);
+        tokenIds = new uint256[](_names.length);
 
-        for (uint256 i; i < _labels.length; i++) {
-            tokenIds[i] = createElement(
-                _labels[i],
+        for (uint256 i; i < _names.length; i++) {
+            tokenIds[i] = createTrait(
+                _names[i],
                 _values[i],
                 _amounts[i],
                 _recipients
@@ -80,19 +80,19 @@ contract Element is ERC1155, ERC1155Burnable, ERC1155Supply, Ownable {
         }
     }
 
-    function createElements2D(
-        string[][] calldata _labels,
+    function createTraits2D(
+        string[][] calldata _names,
         string[][] calldata _values,
         uint256[][][] calldata _amounts,
         address[] calldata _recipients
     ) external returns (uint256[][] memory tokenIds) {
-        require(_labels.length == _values.length, "E02");
-        require(_labels.length == _amounts.length, "E02");
+        require(_names.length == _values.length, "E02");
+        require(_names.length == _amounts.length, "E02");
 
-        tokenIds = new uint256[][](_labels.length);
+        tokenIds = new uint256[][](_names.length);
 
-        for (uint256 i; i < _labels.length; i++) {
-            tokenIds[i] = createElements(_labels[i], _values[i], _amounts[i], _recipients);
+        for (uint256 i; i < _names.length; i++) {
+            tokenIds[i] = createTraits(_names[i], _values[i], _amounts[i], _recipients);
         }
     }
 
@@ -107,19 +107,19 @@ contract Element is ERC1155, ERC1155Burnable, ERC1155Supply, Ownable {
         super._beforeTokenTransfer(operator, from, to, ids, amounts, data);
     }
 
-    function getElementLabel(uint256 _tokenId)
+    function getTraitName(uint256 _tokenId)
         public
         view
         returns (string memory)
     {
-        return elements[_tokenId].label;
+        return traits[_tokenId].name;
     }
 
-    function getElementValue(uint256 _tokenId)
+    function getTraitValue(uint256 _tokenId)
         public
         view
         returns (string memory)
     {
-        return elements[_tokenId].value;
+        return traits[_tokenId].value;
     }
 }

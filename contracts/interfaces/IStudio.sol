@@ -2,12 +2,12 @@
 pragma solidity ^0.8.0;
 
 interface IStudio {
-    event CanvasWrapped(uint256 indexed canvasTokenId, address indexed wrapper);
-    event CanvasUnwrapped(uint256 indexed canvasId, address indexed unwrapper);
+    event ArtworkCreated(uint256 indexed artworkTokenId, address indexed creator);
+    event ArtworkDecomposed(uint256 indexed artworkTokenId, address indexed caller);
 
-    struct CanvasData {
-        bool wrapped;
-        uint256[] wrappedElementTokenIds;
+    struct ArtworkData {
+        bool created;
+        uint256[] traitTokenIds;
         bytes32 hash;
     }
 }

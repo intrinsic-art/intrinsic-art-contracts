@@ -6,10 +6,10 @@ interface IProjects {
         bool locked;
         address artistAddress;
         mapping(uint256 => string) scripts;
-        string[] elementCategoryLabels;
-        string[] elementCategoryValues;
-        uint256[][] elementTokenIds;
-        uint256[] blankCanvasIds;
+        string[] traitTypeNames;
+        string[] traitTypeValues;
+        uint256[][] traitTokenIds;
+        uint256[] blankArtworkIds;
         string metadata;
         address auctionERC20;
         uint256 auctionStartTime;

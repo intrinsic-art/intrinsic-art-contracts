@@ -1,12 +1,12 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "./interfaces/ICanvas.sol";
+import "./interfaces/IArtwork.sol";
 import "./interfaces/IGlobalStudio.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract Canvas is
+contract Artwork is
     ERC721,
     Ownable
 {
