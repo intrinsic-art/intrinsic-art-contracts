@@ -1,5 +1,5 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import config2 from "../helpers/config2";
+import config2 from "../../helpers/config2";
 
 const CreateProject = async (
   hre: HardhatRuntimeEnvironment,

@@ -13,14 +13,18 @@ abstract contract Projects is IProjects, Ownable {
     IElement public element;
     string public baseURI;
 
-    mapping(address => bool) internal whitelistedArtists;
+    mapping(address => bool) internal admins;
     mapping(uint256 => ProjectData) internal projects;
 
-    modifier updateProject(uint256 _projectId) {
+    modifier onlyAdmin {
         require(
-            msg.sender == projects[_projectId].artistAddress,
+            admins[msg.sender],
             "P01"
         );
+        _;
+    }
+
+    modifier notLocked(uint256 _projectId) {
         require(
             !projects[_projectId].locked,
             "P02"
@@ -38,10 +42,7 @@ abstract contract Projects is IProjects, Ownable {
         string[][] memory _elementValues,
         uint256[][][] memory _elementAmounts,
         address[] calldata _recipients
-    ) external {
-        require(whitelistedArtists[msg.sender], "P03");
-        whitelistedArtists[msg.sender] = false;
-
+    ) external onlyAdmin {
         uint256 projectId = canvas.createProject(address(this), _maxSupply);
 
         projects[projectId].artistAddress = _artistAddress;
@@ -66,9 +67,9 @@ abstract contract Projects is IProjects, Ownable {
         string[] memory _elementValues,
         uint256[][] calldata _elementAmounts,
         address[] calldata _elementRecipients
-    ) external updateProject(_projectId) {
-        require(_elementCategoryIndexes.length == _elementIndexes.length, "P04");
-        require(_elementCategoryIndexes.length == _elementLabels.length, "P04");
+    ) external onlyAdmin notLocked(_projectId) {
+        require(_elementCategoryIndexes.length == _elementIndexes.length, "P03");
+        require(_elementCategoryIndexes.length == _elementLabels.length, "P03");
 
         updateElements(
             _projectId,
@@ -88,7 +89,7 @@ abstract contract Projects is IProjects, Ownable {
         uint256[] calldata _elementCategoryIndexes,
         uint256[] calldata _elementIndexes,
         uint256[] memory _elementTokenIds
-    ) public updateProject(_projectId) {
+    ) public onlyAdmin notLocked(_projectId) {
         for (uint256 i; i < _elementCategoryIndexes.length; i++) {
             projects[_projectId].elementTokenIds[_elementCategoryIndexes[i]][
                     _elementIndexes[i]
@@ -98,7 +99,7 @@ abstract contract Projects is IProjects, Ownable {
 
     function updateMetadata(uint256 _projectId, string calldata _metadata)
         external
-        updateProject(_projectId)
+        onlyAdmin notLocked(_projectId)
     {
         projects[_projectId].metadata = _metadata;
     }
@@ -107,7 +108,7 @@ abstract contract Projects is IProjects, Ownable {
         uint256 _projectId,
         uint256 _scriptIndex,
         string calldata _script
-    ) external updateProject(_projectId) {
+    ) external onlyAdmin notLocked(_projectId) {
         projects[_projectId].scripts[_scriptIndex] = (_script);
     }
 
@@ -115,7 +116,7 @@ abstract contract Projects is IProjects, Ownable {
         uint256 _projectId,
         string[] memory _elementCategoryLabels,
         string[] memory _elementCategoryValues
-    ) external updateProject(_projectId) {
+    ) external onlyAdmin notLocked(_projectId) {
         require(
             _elementCategoryLabels.length == _elementCategoryValues.length,
             "P04"
@@ -127,12 +128,12 @@ abstract contract Projects is IProjects, Ownable {
 
     function lockProject(uint256 _projectId)
         external
-        updateProject(_projectId)
+        onlyAdmin notLocked(_projectId) 
     {
         require(
             projects[_projectId].elementCategoryLabels.length ==
                 projects[_projectId].elementTokenIds.length,
-            "P04"
+            "P03"
         );
 
         projects[_projectId].locked = true;
@@ -142,21 +143,21 @@ abstract contract Projects is IProjects, Ownable {
       baseURI = _baseURI;
     }
 
-    function addWhitelistedArtists(address[] calldata _artists)
+    function addAdmins(address[] calldata _admins)
         external
         onlyOwner
     {
-        for (uint256 i; i < _artists.length; i++) {
-            whitelistedArtists[_artists[i]] = true;
+        for (uint256 i; i < _admins.length; i++) {
+            admins[_admins[i]] = true;
         }
     }
 
-    function removeWhitelistedArtists(address[] calldata _artists)
+    function removeAdmins(address[] calldata _admins)
         external
         onlyOwner
     {
-        for (uint256 i; i < _artists.length; i++) {
-            whitelistedArtists[_artists[i]] = false;
+        for (uint256 i; i < _admins.length; i++) {
+            admins[_admins[i]] = false;
         }
     }
 
@@ -207,8 +208,8 @@ abstract contract Projects is IProjects, Ownable {
       return projects[_projectId].metadata;
     }
 
-    function getIsArtistWhitelisted(address _artist) external view returns (bool) {
-      return whitelistedArtists[_artist];
+    function getIsAdmins(address _admin) external view returns (bool) {
+      return admins[_admin];
     }
 
     function getProjectElementLabels(uint256 _projectId)

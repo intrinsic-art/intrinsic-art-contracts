@@ -7,38 +7,60 @@ import "@typechain/hardhat";
 import "hardhat-deploy";
 import "hardhat-gas-reporter";
 import "hardhat-contract-sizer";
+import AddAdmin from "./scripts/AddAdmin";
 import CreateProject from "./scripts/CreateProject";
-import AddScript from "./scripts/AddScript";
-import CreateProject2 from "./scripts/CreateProject2";
-import AddScript2 from "./scripts/AddScript2";
+import AddScripts from "./scripts/AddScripts";
+import LockProject from "./scripts/LockProject";
+import ScheduleAuction from "./scripts/ScheduleAuction";
 import MintWeth from "./scripts/MintWeth";
 
 dotenv.config();
 
+task("AddAdmin", "Add an admin who can create a project")
+  .addParam("studio", "Address of Studio contract")
+  .addParam("admin", "Address of the new admin")
+  .setAction(async (taskArgs, hre) => {
+    await AddAdmin(hre, taskArgs.studio, taskArgs.artist);
+  });
+
 task("CreateProject", "Create a project")
+  .addParam("projectIndex", "Index of the project in the config file")
   .addParam("studio", "Address of Studio contract")
   .setAction(async (taskArgs, hre) => {
-    await CreateProject(hre, taskArgs.studio);
+    await CreateProject(hre, taskArgs.projectIndex, taskArgs.studio);
   });
 
-task("CreateProject2", "Create a project")
+task("AddScripts", "Add a script to a project")
+  .addParam("projectIndex", "Index of the project in the config file")
+  .addParam("projectId", "ID of project to add script to")
   .addParam("studio", "Address of Studio contract")
   .setAction(async (taskArgs, hre) => {
-    await CreateProject2(hre, taskArgs.studio);
+    await AddScripts(
+      hre,
+      taskArgs.projectIndex,
+      taskArgs.projectId,
+      taskArgs.studio
+    );
   });
 
-task("AddScript", "Add a script to a project")
+task("LockProject", "Lock a project")
+  .addParam("projectId", "ID of project to add script to")
   .addParam("studio", "Address of Studio contract")
-  .addParam("project", "ID of project to add script to")
   .setAction(async (taskArgs, hre) => {
-    await AddScript(hre, taskArgs.studio, taskArgs.project);
+    await LockProject(hre, taskArgs.projectId, taskArgs.studio);
   });
 
-task("AddScript2", "Add a script to a project")
+task("ScheduleAuction", "Schedule the dutch auction")
+  .addParam("projectIndex", "Index of the project in the config file")
+  .addParam("projectId", "ID of project to add script to")
   .addParam("studio", "Address of Studio contract")
-  .addParam("project", "ID of project to add script to")
   .setAction(async (taskArgs, hre) => {
-    await AddScript2(hre, taskArgs.studio, taskArgs.project);
+    await ScheduleAuction(
+      hre,
+      taskArgs.projectIndex,
+      taskArgs.projectId,
+      taskArgs.studio
+    );
   });
 
 task("MintWeth", "Mint WETH to the specified address")
@@ -56,7 +78,7 @@ task("MintWeth", "Mint WETH to the specified address")
 
 const config: HardhatUserConfig = {
   solidity: {
-    version: "0.8.13",
+    version: "0.8.17",
     settings: {
       optimizer: {
         enabled: true,
@@ -67,18 +89,20 @@ const config: HardhatUserConfig = {
   mocha: {
     timeout: 1000000,
   },
-  contractSizer: {
-    alphaSort: true,
-    disambiguatePaths: false,
-    runOnCompile: true,
-    strict: true,
-    only: [":Studio$"],
-  },
+  // contractSizer: {
+  //   alphaSort: true,
+  //   disambiguatePaths: false,
+  //   runOnCompile: true,
+  //   strict: true,
+  //   only: [":Studio$"],
+  // },
   namedAccounts: {
     deployer: {
       default: 0,
       mainnet: `privatekey://${process.env.MAINNET_DEPLOYER_PRIVATE_KEY}`,
       goerli: `privatekey://${process.env.GOERLI_DEPLOYER_PRIVATE_KEY}`,
+      sepolia: `privatekey://${process.env.SEPOLIA_DEPLOYER_PRIVATE_KEY}`,
+      polygonMumbai: `privatekey://${process.env.POLYGON_MUMBAI_DEPLOYER_PRIVATE_KEY}`,
     },
   },
   networks: {
@@ -92,9 +116,24 @@ const config: HardhatUserConfig = {
       url: process.env.GOERLI_PROVIDER,
       accounts: [process.env.GOERLI_DEPLOYER_PRIVATE_KEY || ""],
     },
+    sepolia: {
+      chainId: 11155111,
+      url: process.env.SEPOLIA_PROVIDER,
+      accounts: [process.env.SEPOLIA_DEPLOYER_PRIVATE_KEY || ""],
+    },
+    polygonMumbai: {
+      chainId: 80001,
+      url: process.env.POLYGON_MUMBAI_PROVIDER,
+      accounts: [process.env.POLYGON_MUMBAI_DEPLOYER_PRIVATE_KEY || ""],
+    },
   },
   etherscan: {
-    apiKey: process.env.ETHERSCAN_API_KEY,
+    apiKey: {
+      mainnet: `${process.env.ETHERSCAN_ETHEREUM_API_KEY}`,
+      goerli: `${process.env.ETHERSCAN_ETHEREUM_API_KEY}`,
+      sepolia: `${process.env.ETHERSCAN_ETHEREUM_API_KEY}`,
+      polygonMumbai: `${process.env.ETHERSCAN_POLYGON_API_KEY}`,
+    },
   },
 };
 

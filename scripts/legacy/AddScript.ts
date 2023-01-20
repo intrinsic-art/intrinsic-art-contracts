@@ -1,5 +1,5 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import script from "../helpers/script";
+import script from "../../helpers/script";
 
 const AddScript = async (
   hre: HardhatRuntimeEnvironment,
