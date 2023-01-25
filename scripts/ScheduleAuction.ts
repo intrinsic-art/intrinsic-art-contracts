@@ -11,16 +11,14 @@ const ScheduleAuction = async (
 
   console.log(
     "auction start time: ",
-    projectConfigs[projectIndex].auctionData.auctionStartTime
+    projectConfigs[projectIndex].scheduleAuctionData.auctionStartTime
   );
 
   await studio.scheduleAuction(
-    projectId,
-    projectConfigs[projectIndex].auctionData.erc20,
-    projectConfigs[projectIndex].auctionData.auctionStartTime,
-    projectConfigs[projectIndex].auctionData.auctionEndTime,
-    projectConfigs[projectIndex].auctionData.auctionStartPrice,
-    projectConfigs[projectIndex].auctionData.auctionEndPrice,
+    projectConfigs[projectIndex].scheduleAuctionData.auctionStartTime,
+    projectConfigs[projectIndex].scheduleAuctionData.auctionEndTime,
+    projectConfigs[projectIndex].scheduleAuctionData.auctionStartPrice,
+    projectConfigs[projectIndex].scheduleAuctionData.auctionEndPrice,
     {
       gasLimit: 8000000,
     }

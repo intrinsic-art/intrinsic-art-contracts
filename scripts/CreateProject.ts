@@ -8,20 +8,20 @@ const CreateProject = async (
 ): Promise<void> => {
   const studio = await hre.ethers.getContractAt("Studio", studioAddress);
 
-  await studio.createProject(
-    projectConfigs[projectConfigIndex].createProjectData.artistAddress,
-    projectConfigs[projectConfigIndex].createProjectData.maxSupply,
-    projectConfigs[projectConfigIndex].createProjectData.metadata,
-    projectConfigs[projectConfigIndex].createProjectData.elementCategoryLabels,
-    projectConfigs[projectConfigIndex].createProjectData.elementCategoryValues,
-    projectConfigs[projectConfigIndex].createProjectData.elementLabels,
-    projectConfigs[projectConfigIndex].createProjectData.elementValues,
-    projectConfigs[projectConfigIndex].createProjectData.elementAmounts,
-    projectConfigs[projectConfigIndex].createProjectData.recipients,
-    {
-      gasLimit: 20000000,
-    }
-  );
+  // await studio.createProject(
+  //   projectConfigs[projectConfigIndex].createProjectData.artistAddress,
+  //   projectConfigs[projectConfigIndex].createProjectData.maxSupply,
+  //   projectConfigs[projectConfigIndex].createProjectData.metadata,
+  //   projectConfigs[projectConfigIndex].createProjectData.elementCategoryLabels,
+  //   projectConfigs[projectConfigIndex].createProjectData.elementCategoryValues,
+  //   projectConfigs[projectConfigIndex].createProjectData.elementLabels,
+  //   projectConfigs[projectConfigIndex].createProjectData.elementValues,
+  //   projectConfigs[projectConfigIndex].createProjectData.elementAmounts,
+  //   projectConfigs[projectConfigIndex].createProjectData.recipients,
+  //   {
+  //     gasLimit: 20000000,
+  //   }
+  // );
 
   console.log("Created project");
 };
