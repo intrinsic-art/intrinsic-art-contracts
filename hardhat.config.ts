@@ -7,6 +7,7 @@ import "@typechain/hardhat";
 import "hardhat-deploy";
 import "hardhat-gas-reporter";
 import "hardhat-contract-sizer";
+import "hardhat-abi-exporter";
 import AddAdmin from "./scripts/AddAdmin";
 import CreateProject from "./scripts/CreateProject";
 import AddScripts from "./scripts/AddScripts";
@@ -88,6 +89,14 @@ const config: HardhatUserConfig = {
   },
   mocha: {
     timeout: 1000000,
+  },
+  abiExporter: {
+    path: "./abi",
+    runOnCompile: true,
+    clear: true,
+    flat: false,
+    spacing: 2,
+    pretty: false,
   },
   // contractSizer: {
   //   alphaSort: true,

@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
 
 const config = {
-  artistAddress: "0x7930DdA80157Fcc47ba9c3836398c82d89C16416", // Sepolia
+  artistAddress: "0xAa9D46AE079851116967c6573f961B304095C34a", // Sepolia
   maxSupply: 1000,
   metadata: `{
     "name": "Disentanglement",

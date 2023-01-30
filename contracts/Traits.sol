@@ -7,11 +7,25 @@ import "@openzeppelin/contracts-upgradeable/token/ERC1155/extensions/ERC1155Burn
 import "@openzeppelin/contracts-upgradeable/token/ERC1155/extensions/ERC1155SupplyUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-contract Traits is ERC1155Upgradeable, ERC1155BurnableUpgradeable, ERC1155SupplyUpgradeable {
+contract Traits is
+    ERC1155Upgradeable,
+    ERC1155BurnableUpgradeable,
+    ERC1155SupplyUpgradeable
+{
     event TraitCreated(
         address indexed studio,
         string indexed name,
         string indexed value
+    );
+
+    event TraitsAndTypesCreated(
+        string[] traitTypeNames,
+        string[] traitTypeValues,
+        uint256[] traitTokenIds,
+        string[] traitNames,
+        string[] traitValues,
+        uint256[] traitTypeIndexes,
+        uint256[] traitMaxSupplys
     );
 
     struct Trait {
@@ -34,24 +48,12 @@ contract Traits is ERC1155Upgradeable, ERC1155BurnableUpgradeable, ERC1155Supply
         _;
     }
 
-    function initialize(address _studio, string memory _uri) external initializer {
-      __ERC1155_init(_uri);
-      studio = _studio;
-    }
-
-    function createTrait(
-        string calldata _name,
-        string calldata _value,
-        uint256 _typeIndex,
-        uint256 _maxSupply
-    ) private returns (uint256 tokenId) {
-        tokenId = nextTokenId;
-        nextTokenId++;
-
-        traits[tokenId].name = _name;
-        traits[tokenId].value = _value;
-        traits[tokenId].typeIndex = _typeIndex;
-        traits[tokenId].maxSupply = _maxSupply;
+    function initialize(
+        address _studio,
+        string memory _uri
+    ) external initializer {
+        __ERC1155_init(_uri);
+        studio = _studio;
     }
 
     function createTraitsAndTypes(
@@ -63,7 +65,6 @@ contract Traits is ERC1155Upgradeable, ERC1155BurnableUpgradeable, ERC1155Supply
         uint256[] calldata _traitMaxSupplys
     ) external onlyStudio {
         require(_traitTypeNames.length == _traitTypeValues.length, "E02");
-
         require(_traitNames.length == _traitValues.length, "E02");
         require(_traitNames.length == _traitTypeIndexes.length, "E02");
         require(_traitNames.length == _traitMaxSupplys.length, "E02");
@@ -71,15 +72,30 @@ contract Traits is ERC1155Upgradeable, ERC1155BurnableUpgradeable, ERC1155Supply
         traitTypeNames = _traitTypeNames;
         traitTypeValues = _traitTypeValues;
 
+        uint256[] memory traitTokenIds = new uint256[](_traitNames.length);
+
         // Loop through traits
         for (uint256 i; i < _traitNames.length; i++) {
-            createTrait(
-                _traitNames[i],
-                _traitValues[i],
-                _traitTypeIndexes[i],
-                _traitMaxSupplys[i]
-            );
+            uint256 tokenId = nextTokenId;
+            nextTokenId++;
+
+            traits[tokenId].name = _traitNames[i];
+            traits[tokenId].value = _traitValues[i];
+            traits[tokenId].typeIndex = _traitTypeIndexes[i];
+            traits[tokenId].maxSupply = _traitMaxSupplys[i];
+
+            traitTokenIds[i] = tokenId;
         }
+
+        emit TraitsAndTypesCreated(
+            _traitTypeNames,
+            _traitTypeValues,
+            traitTokenIds,
+            _traitNames,
+            _traitValues,
+            _traitTypeIndexes,
+            _traitMaxSupplys
+        );
     }
 
     function mintBatch(
@@ -89,7 +105,8 @@ contract Traits is ERC1155Upgradeable, ERC1155BurnableUpgradeable, ERC1155Supply
     ) external onlyStudio {
         for (uint256 i; i < _tokenIds.length; i++) {
             require(
-                totalSupply(_tokenIds[i]) + _amounts[i] <= traits[_tokenIds[i]].maxSupply,
+                totalSupply(_tokenIds[i]) + _amounts[i] <=
+                    traits[_tokenIds[i]].maxSupply,
                 "Trait max supply reached"
             );
         }
@@ -164,28 +181,28 @@ contract Traits is ERC1155Upgradeable, ERC1155BurnableUpgradeable, ERC1155Supply
         super._beforeTokenTransfer(operator, from, to, ids, amounts, data);
     }
 
-    function getTraitName(uint256 _tokenId)
-        public
-        view
-        returns (string memory)
-    {
+    function getTraitName(
+        uint256 _tokenId
+    ) public view returns (string memory) {
         return traits[_tokenId].name;
     }
 
-    function getTraitValue(uint256 _tokenId)
-        public
-        view
-        returns (string memory)
-    {
+    function getTraitValue(
+        uint256 _tokenId
+    ) public view returns (string memory) {
         return traits[_tokenId].value;
     }
 
-    function getTraitTypeName(uint256 _tokenId) public view returns (string memory) {
-      return traitTypeNames[traits[_tokenId].typeIndex];
+    function getTraitTypeName(
+        uint256 _tokenId
+    ) public view returns (string memory) {
+        return traitTypeNames[traits[_tokenId].typeIndex];
     }
 
-    function getTraitTypeValue(uint256 _tokenId) public view returns (string memory) {
-      return traitTypeValues[traits[_tokenId].typeIndex];
+    function getTraitTypeValue(
+        uint256 _tokenId
+    ) public view returns (string memory) {
+        return traitTypeValues[traits[_tokenId].typeIndex];
     }
 
     function getTraits()

@@ -73,7 +73,7 @@ contract Studio is
     event PlatformRevenueClaimed(uint256 claimedRevenue);
     event ArtistRevenueClaimed(uint256 claimedRevenue);
 
-    // event ProjectCreated(uint256 projectId);
+    event ProjectCreated(string baseURI, address artistAddress, uint256 maxSupply, string metadata);
 
     modifier onlyAdmin() {
         require(admins[msg.sender], "P01");
@@ -109,7 +109,7 @@ contract Studio is
         maxSupply = _maxSupply;
         metadata = _metadata;
 
-        // emit ProjectCreated(projectId);
+        emit ProjectCreated(_baseURI, _artistAddress, _maxSupply, _metadata);
     }
 
     function createTraits(
@@ -252,10 +252,9 @@ contract Studio is
         totalSupply++;
 
         _artworkTokenId = nextTokenId;
+        nextTokenId++;
 
         require(totalSupply <= maxSupply, "Minted out");
-
-        _safeMint(msg.sender, _artworkTokenId);
 
         bytes32 newHash = keccak256(
             abi.encodePacked(msg.sender, userNonces[msg.sender])
@@ -271,6 +270,8 @@ contract Studio is
             newHash,
             msg.sender
         );
+
+        _safeMint(msg.sender, _artworkTokenId);
     }
 
     function decomposeArtwork(uint256 _artworkTokenId) public {
