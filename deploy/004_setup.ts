@@ -30,6 +30,7 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
 
     const traits = await hre.ethers.getContract("Traits");
     const studio = await hre.ethers.getContract("Studio");
+    const projectRegistry = await hre.ethers.getContract("ProjectRegistry");
 
     console.log("Initializing projects");
 
@@ -46,6 +47,10 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     await traits.initialize(studio.address, "https://intrinsic.art/traits");
 
     console.log("Initialized Traits");
+
+    await projectRegistry.initialize(owner, [owner]);
+
+    console.log("Initialzied Project Registry");
 
     await new Promise((resolve) => setTimeout(resolve, 60000));
 
@@ -107,6 +112,8 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
         gasLimit: 8000000,
       }
     );
+
+    await projectRegistry.registerProject(studio.address, traits.address);
   }
 };
 

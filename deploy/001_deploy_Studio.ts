@@ -8,7 +8,7 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
 
   const studio = await hre.ethers.getContract("Studio");
 
-  // await new Promise((resolve) => setTimeout(resolve, 20000));
+  await new Promise((resolve) => setTimeout(resolve, 20000));
 
   try {
     await hre.run("verify:verify", {

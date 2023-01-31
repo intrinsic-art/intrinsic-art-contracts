@@ -24,9 +24,9 @@ contract Studio is
     uint256 public constant auctionPlatformFeeNumerator = 100_000_000;
     uint256 public constant FEE_DENOMINATOR = 1_000_000_000;
 
-    uint256 nextTokenId = 1;
-    uint256 totalSupply;
-    uint256 maxSupply;
+    uint256 public nextTokenId = 1;
+    uint256 public totalSupply;
+    uint256 public maxSupply;
 
     bool public locked;
     address public artistAddress;
