@@ -2,58 +2,46 @@
 pragma solidity ^0.8.0;
 
 import "./interfaces/ITraits.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC1155/extensions/ERC1155BurnableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC1155/extensions/ERC1155SupplyUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "./interfaces/IStudio.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
+import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
 
-contract Traits is
-    ERC1155Upgradeable,
-    ERC1155BurnableUpgradeable,
-    ERC1155SupplyUpgradeable
-{
-    event TraitCreated(
-        address indexed studio,
-        string indexed name,
-        string indexed value
-    );
-
-    event TraitsAndTypesCreated(
-        string[] traitTypeNames,
-        string[] traitTypeValues,
-        uint256[] traitTokenIds,
-        string[] traitNames,
-        string[] traitValues,
-        uint256[] traitTypeIndexes,
-        uint256[] traitMaxSupplys
-    );
-
-    struct Trait {
-        string name;
-        string value;
-        uint256 typeIndex;
-        uint256 maxSupply;
-    }
-
-    address public studio;
-    uint256 public nextTokenId = 1;
-    uint256 traitTypesLength;
-    // todo: move these into a struct array
-    string[] traitTypeNames;
-    string[] traitTypeValues;
-    mapping(uint256 => Trait) public traits;
+contract Traits is ITraits, ERC1155, ERC1155Supply, Ownable {
+    uint256 public constant auctionPlatformFeeNumerator = 100_000;
+    uint256 public constant FEE_DENOMINATOR = 1_000_000;
+    uint256 public artistClaimableRevenues;
+    uint256 public platformClaimableRevenues;
+    IStudio public studio;
+    uint256 public auctionStartTime;
+    uint256 public auctionEndTime;
+    uint256 public auctionStartPrice;
+    uint256 public auctionEndPrice;
+    address payable public platformRevenueClaimer;
+    address payable public artistRevenueClaimer;
+    string public constant version = "1.0.0";
+    TraitType[] private _traitTypes;
+    Trait[] private _traits;
 
     modifier onlyStudio() {
-        require(msg.sender == studio, "Only the studio can call this function");
+        require(
+            msg.sender == address(studio),
+            "T01"
+        );
         _;
     }
 
-    function initialize(
+    constructor(
         address _studio,
-        string memory _uri
-    ) external initializer {
-        __ERC1155_init(_uri);
-        studio = _studio;
+        string memory _uri,
+        address _owner,
+        address payable _platformRevenueClaimer,
+        address payable _artistRevenueClaimer
+    ) ERC1155(_uri) {
+        studio = IStudio(_studio);
+        _transferOwnership(_owner);
+        platformRevenueClaimer = _platformRevenueClaimer;
+        artistRevenueClaimer = _artistRevenueClaimer;
     }
 
     function createTraitsAndTypes(
@@ -62,56 +50,116 @@ contract Traits is
         string[] calldata _traitNames,
         string[] calldata _traitValues,
         uint256[] calldata _traitTypeIndexes,
-        uint256[] calldata _traitMaxSupplys
-    ) external onlyStudio {
-        require(_traitTypeNames.length == _traitTypeValues.length, "E02");
-        require(_traitNames.length == _traitValues.length, "E02");
-        require(_traitNames.length == _traitTypeIndexes.length, "E02");
-        require(_traitNames.length == _traitMaxSupplys.length, "E02");
-
-        traitTypeNames = _traitTypeNames;
-        traitTypeValues = _traitTypeValues;
-
-        uint256[] memory traitTokenIds = new uint256[](_traitNames.length);
-
-        // Loop through traits
-        for (uint256 i; i < _traitNames.length; i++) {
-            uint256 tokenId = nextTokenId;
-            nextTokenId++;
-
-            traits[tokenId].name = _traitNames[i];
-            traits[tokenId].value = _traitValues[i];
-            traits[tokenId].typeIndex = _traitTypeIndexes[i];
-            traits[tokenId].maxSupply = _traitMaxSupplys[i];
-
-            traitTokenIds[i] = tokenId;
-        }
-
-        emit TraitsAndTypesCreated(
-            _traitTypeNames,
-            _traitTypeValues,
-            traitTokenIds,
-            _traitNames,
-            _traitValues,
-            _traitTypeIndexes,
-            _traitMaxSupplys
+        uint256[] calldata _traitMaxRevenues
+    ) external onlyOwner {
+        require(!studio.locked(), "T02");
+        require(_traitTypeNames.length != 0, "T03");
+        require(_traitNames.length != 0, "T04");
+        require(_traitTypeNames.length == _traitTypeValues.length, "T05");
+        require(
+            _traitNames.length == _traitValues.length &&
+                _traitNames.length == _traitTypeIndexes.length &&
+                _traitNames.length == _traitMaxRevenues.length,
+            "T06"
         );
-    }
 
-    function mintBatch(
-        address _to,
-        uint256[] memory _tokenIds,
-        uint256[] memory _amounts
-    ) external onlyStudio {
-        for (uint256 i; i < _tokenIds.length; i++) {
-            require(
-                totalSupply(_tokenIds[i]) + _amounts[i] <=
-                    traits[_tokenIds[i]].maxSupply,
-                "Trait max supply reached"
+        // Push trait types to array
+        for (uint256 i; i < _traitTypeNames.length; i++) {
+            _traitTypes.push(
+                TraitType({
+                    name: _traitTypeNames[i],
+                    value: _traitTypeValues[i]
+                })
             );
         }
 
-        _mintBatch(_to, _tokenIds, _amounts, "");
+        // Push traits to array
+        for (uint256 i; i < _traitNames.length; i++) {
+            _traits.push(
+                Trait({
+                    name: _traitNames[i],
+                    value: _traitValues[i],
+                    typeIndex: _traitTypeIndexes[i],
+                    maxRevenue: _traitMaxRevenues[i],
+                    totalRevenue: 0
+                })
+            );
+        }
+    }
+
+    function scheduleAuction(
+        uint256 _auctionStartTime,
+        uint256 _auctionEndTime,
+        uint256 _auctionStartPrice,
+        uint256 _auctionEndPrice
+    ) external onlyOwner {
+        require(studio.locked(), "T07");
+        require(_auctionEndTime >= _auctionStartTime, "T08");
+        require(_auctionEndPrice <= _auctionStartPrice, "T09");
+
+        auctionStartTime = _auctionStartTime;
+        auctionEndTime = _auctionEndTime;
+        auctionStartPrice = _auctionStartPrice;
+        auctionEndPrice = _auctionEndPrice;
+    }
+
+    function updateURI(string memory _uri) external onlyOwner {
+        _setURI(_uri);
+    }
+
+    function updatePlatformRevenueClaimer(address payable _claimer) external onlyOwner {
+      platformRevenueClaimer = _claimer;
+    }
+
+    function updateArtistRevenueClaimer(address payable _claimer) external {
+      require(msg.sender == artistRevenueClaimer, "T10");
+
+      artistRevenueClaimer = _claimer;
+    }
+
+    function buyTraits(
+        address _recipient,
+        uint256[] calldata _traitTokenIds,
+        uint256[] calldata _traitAmounts
+    ) public payable {
+        require(_traitTokenIds.length == _traitAmounts.length, "T11");
+
+        uint256 _traitCount;
+        uint256 _traitPrice = traitPrice();
+
+        for (uint256 i; i < _traitAmounts.length; i++) {
+            _traitCount += _traitAmounts[i];
+
+            uint256 newTraitRevenue = _traits[_traitTokenIds[i]].totalRevenue +
+                (_traitPrice * _traitAmounts[i]);
+
+            require(
+                newTraitRevenue <= _traits[_traitTokenIds[i]].maxRevenue,
+                "T12"
+            );
+
+            _traits[_traitTokenIds[i]].totalRevenue = newTraitRevenue;
+        }
+
+        uint256 ethCost = _traitCount * _traitPrice;
+
+        require(msg.value >= ethCost, "T13");
+
+        _mintBatch(_recipient, _traitTokenIds, _traitAmounts, "");
+
+        uint256 platformRevenue = (msg.value * auctionPlatformFeeNumerator) /
+            FEE_DENOMINATOR;
+        platformClaimableRevenues += platformRevenue;
+        artistClaimableRevenues += msg.value - platformRevenue;
+
+        emit TraitsBought(_recipient, _traitTokenIds, _traitAmounts);
+    }
+
+    function maxSupply(uint256 _tokenId) public view returns (uint256) {
+        return
+            totalSupply(_tokenId) +
+            ((_traits[_tokenId].maxRevenue - _traits[_tokenId].totalRevenue) /
+                auctionEndPrice);
     }
 
     function transferTraitsToCreateArtwork(
@@ -119,20 +167,19 @@ contract Traits is
         uint256[] calldata _traitTokenIds
     ) external onlyStudio {
         require(
-            _traitTokenIds.length == traitTypeNames.length,
-            "Incorrect number of traits specified"
+            _traitTokenIds.length == _traitTypes.length,
+            "T14"
         );
 
         uint256[] memory amounts = new uint256[](_traitTokenIds.length);
         for (uint256 i; i < _traitTokenIds.length; i++) {
             require(
-                traits[_traitTokenIds[i]].typeIndex == i,
-                "Invalid trait token IDs"
+                _traits[_traitTokenIds[i]].typeIndex == i,
+                "T15"
             );
             amounts[i] = 1;
         }
 
-        // Transfer the traits from the caller to the Studio contract
         _safeBatchTransferFrom(
             _caller,
             address(studio),
@@ -147,20 +194,19 @@ contract Traits is
         uint256[] calldata _traitTokenIds
     ) external onlyStudio {
         require(
-            _traitTokenIds.length == traitTypeNames.length,
-            "Incorrect number of traits specified"
+            _traitTokenIds.length == _traitTypes.length,
+            "T16"
         );
 
         uint256[] memory amounts = new uint256[](_traitTokenIds.length);
         for (uint256 i; i < _traitTokenIds.length; i++) {
             require(
-                traits[_traitTokenIds[i]].typeIndex == i,
-                "Invalid trait token IDs"
+                _traits[_traitTokenIds[i]].typeIndex == i,
+                "T17"
             );
             amounts[i] = 1;
         }
 
-        // Transfer the traits from the Studio contract to the caller
         _safeBatchTransferFrom(
             address(studio),
             _caller,
@@ -170,6 +216,30 @@ contract Traits is
         );
     }
 
+    function claimPlatformRevenue() external {
+        require(msg.sender == platformRevenueClaimer, "T18");
+        uint256 claimedRevenue = platformClaimableRevenues;
+        require(claimedRevenue > 0, "T19");
+
+        platformClaimableRevenues = 0;
+
+        emit PlatformRevenueClaimed(claimedRevenue);
+
+        platformRevenueClaimer.transfer(claimedRevenue);
+    }
+
+    function claimArtistRevenue() external {
+        require(msg.sender == artistRevenueClaimer, "T20");
+        uint256 claimedRevenue = artistClaimableRevenues;
+        require(claimedRevenue > 0, "T21");
+
+        artistClaimableRevenues = 0;
+
+        emit ArtistRevenueClaimed(claimedRevenue);
+
+        artistRevenueClaimer.transfer(claimedRevenue);
+    }
+
     function _beforeTokenTransfer(
         address operator,
         address from,
@@ -177,35 +247,11 @@ contract Traits is
         uint256[] memory ids,
         uint256[] memory amounts,
         bytes memory data
-    ) internal override(ERC1155Upgradeable, ERC1155SupplyUpgradeable) {
+    ) internal override(ERC1155, ERC1155Supply) {
         super._beforeTokenTransfer(operator, from, to, ids, amounts, data);
     }
 
-    function getTraitName(
-        uint256 _tokenId
-    ) public view returns (string memory) {
-        return traits[_tokenId].name;
-    }
-
-    function getTraitValue(
-        uint256 _tokenId
-    ) public view returns (string memory) {
-        return traits[_tokenId].value;
-    }
-
-    function getTraitTypeName(
-        uint256 _tokenId
-    ) public view returns (string memory) {
-        return traitTypeNames[traits[_tokenId].typeIndex];
-    }
-
-    function getTraitTypeValue(
-        uint256 _tokenId
-    ) public view returns (string memory) {
-        return traitTypeValues[traits[_tokenId].typeIndex];
-    }
-
-    function getTraits()
+    function traits()
         public
         view
         returns (
@@ -217,7 +263,8 @@ contract Traits is
             string[] memory _traitTypeValues
         )
     {
-        uint256 traitCount = nextTokenId - 1;
+        uint256 traitCount = _traits.length;
+
         _traitTokenIds = new uint256[](traitCount);
         _traitNames = new string[](traitCount);
         _traitValues = new string[](traitCount);
@@ -227,11 +274,64 @@ contract Traits is
 
         for (uint256 i = 0; i < traitCount; i++) {
             _traitTokenIds[i] = i + 1;
-            _traitNames[i] = traits[i + 1].name;
-            _traitValues[i] = traits[i + 1].value;
-            _traitTypeIndexes[i] = traits[i + 1].typeIndex;
-            _traitTypeNames[i] = traitTypeNames[traits[i + 1].typeIndex];
-            _traitTypeValues[i] = traitTypeValues[traits[i + 1].typeIndex];
+            _traitNames[i] = _traits[i + 1].name;
+            _traitValues[i] = _traits[i + 1].value;
+            _traitTypeIndexes[i] = _traits[i + 1].typeIndex;
+            _traitTypeNames[i] = _traitTypes[_traits[i + 1].typeIndex].name;
+            _traitTypeValues[i] = _traitTypes[_traits[i + 1].typeIndex].value;
+        }
+    }
+
+    function traitTypes()
+        external
+        view
+        returns (
+            string[] memory _traitTypeNames,
+            string[] memory _traitTypeValues
+        )
+    {
+        uint256 traitTypeCount = _traitTypes.length;
+
+        _traitTypeNames = new string[](traitTypeCount);
+        _traitTypeValues = new string[](traitTypeCount);
+    }
+
+    function trait(
+        uint256 _tokenId
+    )
+        public
+        view
+        returns (
+            string memory _traitName,
+            string memory _traitValue,
+            string memory _traitTypeName,
+            string memory _traitTypeValue
+        )
+    {
+        _traitName = _traits[_tokenId].name;
+        _traitValue = _traits[_tokenId].value;
+        _traitTypeName = _traitTypes[_traits[_tokenId].typeIndex].name;
+        _traitTypeValue = _traitTypes[_traits[_tokenId].typeIndex].value;
+    }
+
+    function traitPrice() public view returns (uint256 _price) {
+        require(
+            block.timestamp >= auctionStartTime,
+            "T22"
+        );
+
+        if (block.timestamp > auctionEndTime) {
+            // Auction has ended
+            _price = auctionEndPrice;
+        } else {
+            // Auction is active
+            _price =
+                auctionStartPrice -
+                (
+                    (((block.timestamp - auctionStartTime) *
+                        (auctionStartPrice - auctionEndPrice)) /
+                        (auctionEndTime - auctionStartTime))
+                );
         }
     }
 }

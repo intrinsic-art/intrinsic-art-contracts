@@ -2,26 +2,29 @@
 pragma solidity ^0.8.0;
 
 interface ITraits {
-    function safeTransferFrom(
-        address _from,
-        address _to,
-        uint256 _id,
-        uint256 _value,
-        bytes calldata _data
-    ) external;
+    event TraitsBought(
+        address indexed recipient,
+        uint256[] traitTokenIds,
+        uint256[] traitQuantities
+    );
 
-    function safeBatchTransferFrom(
-        address from,
-        address to,
-        uint256[] memory ids,
-        uint256[] memory amounts,
-        bytes memory data
-    ) external;
+    event PlatformRevenueClaimed(uint256 claimedRevenue);
+    event ArtistRevenueClaimed(uint256 claimedRevenue);
+    event PlatormRevenueClaimerUpdated(address indexed claimer);
+    event ArtistRevenueClaimerUpdated(address indexed claimer);
 
-    function balanceOf(address _owner, uint256 _id)
-        external
-        view
-        returns (uint256);
+    struct TraitType {
+        string name;
+        string value;
+    }
+
+    struct Trait {
+        string name;
+        string value;
+        uint256 typeIndex;
+        uint256 maxRevenue;
+        uint256 totalRevenue;
+    }
 
     function createTraitsAndTypes(
         string[] memory _traitTypeNames,
@@ -29,14 +32,29 @@ interface ITraits {
         string[] calldata _traitNames,
         string[] calldata _traitValues,
         uint256[] calldata _traitTypeIndexes,
-        uint256[] calldata _traitMaxSupplys
+        uint256[] calldata _traitMaxRevenues
     ) external;
 
-    function mintBatch(
-        address _to,
-        uint256[] memory _tokenIds,
-        uint256[] memory _amounts
+    function scheduleAuction(
+        uint256 _auctionStartTime,
+        uint256 _auctionEndTime,
+        uint256 _auctionStartPrice,
+        uint256 _auctionEndPrice
     ) external;
+
+    function updateURI(string memory _uri) external;
+
+    function updatePlatformRevenueClaimer(address payable _claimer) external;
+
+    function updateArtistRevenueClaimer(address payable _claimer) external;
+
+    function buyTraits(
+        address _recipient,
+        uint256[] calldata _traitTokenIds,
+        uint256[] calldata _traitAmounts
+    ) external payable;
+
+    function maxSupply(uint256 _tokenId) external view returns (uint256);
 
     function transferTraitsToCreateArtwork(
         address _caller,
@@ -48,21 +66,11 @@ interface ITraits {
         uint256[] calldata _traitTokenIds
     ) external;
 
-    function getTraitName(uint256 _tokenId)
-        external
-        view
-        returns (string memory);
+    function claimPlatformRevenue() external;
 
-    function getTraitValue(uint256 _tokenId)
-        external
-        view
-        returns (string memory);
+    function claimArtistRevenue() external;
 
-    function getTraitTypeName(uint256 _tokenId) external view returns (string memory);
-
-    function getTraitTypeValue(uint256 _tokenId) external view returns (string memory);
-
-    function getTraits()
+    function traits()
         external
         view
         returns (
@@ -73,4 +81,26 @@ interface ITraits {
             string[] memory _traitTypeNames,
             string[] memory _traitTypeValues
         );
+
+    function traitTypes()
+        external
+        view
+        returns (
+            string[] memory _traitTypeNames,
+            string[] memory _traitTypeValues
+        );
+
+    function trait(
+        uint256 _tokenId
+    )
+        external
+        view
+        returns (
+            string memory _traitName,
+            string memory _traitValue,
+            string memory _traitTypeName,
+            string memory _traitTypeValue
+        );
+
+    function traitPrice() external view returns (uint256 _price);
 }
