@@ -1,13 +1,30 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { deployContract } from "../helpers/deployContract";
 
 const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
-  await deployContract(hre, "ProjectRegistry", []);
+  const {
+    deployments: { deploy, execute },
+    getNamedAccounts,
+  } = hre;
+  const { deployer } = await getNamedAccounts();
+
+  await deploy("ProjectRegistry", {
+    log: true,
+    from: deployer,
+    args: [],
+  });
 
   await new Promise((resolve) => setTimeout(resolve, 20000));
 
   const projectRegistry = await hre.ethers.getContract("ProjectRegistry");
+
+  await execute(
+    "ProjectRegistry",
+    { log: true, from: deployer },
+    "initialize",
+    deployer,
+    [deployer]
+  );
 
   try {
     await hre.run("verify:verify", {

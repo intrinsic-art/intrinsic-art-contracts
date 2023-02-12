@@ -1,32 +1,62 @@
 import { ethers } from "ethers";
 
-const projectConfigs = [
-  // string memory _baseURI,
-  // address _artistAddress,
-  // uint256 _maxSupply,
-  // string memory _metadata
+interface ProjectConfig {
+  studioConstructorData: {
+    name: string;
+    symbol: string;
+    baseURI: string;
+    scriptJSON: string;
+    artistAddress: string;
+    owner: string;
+  };
+  traitsConstructorData: {
+    uri: string;
+    owner: string;
+    platformRevenueClaimer: string;
+    artistRevenueClaimer: string;
+  };
+  createTraitsData: {
+    traitTypeNames: string[];
+    traitTypeValues: string[];
+    traitNames: string[];
+    traitValues: string[];
+    traitTypeIndexes: number[];
+    traitMaxRevenues: ethers.BigNumber[];
+  };
+  scheduleAuctionData: {
+    auctionStartTime: number;
+    auctionEndTime: number;
+    auctionStartPrice: ethers.BigNumber;
+    auctionEndPrice: ethers.BigNumber;
+  };
+  scripts: string[];
+}
+
+const projectConfigs: ProjectConfig[] = [
   {
-    createProjectData: {
-      baseURI: "https://intrinsic.art/artwork/uri/",
-      artistAddress: "0xAa9D46AE079851116967c6573f961B304095C34a", // Sepolia
-      maxSupply: 1000,
-      metadata: `{
-    "name": "Disentanglement",
-    "description": "Informed by the experience of separating after a long marriage, (Dis)entanglement explores the endless ways that relationships intertwine. Each unique generative image represents one of many possible moments across the arc of a relationship, from a couple eagerly pulling taut their new connection, to a union defined solely by knots hardened over time. Whether connecting threads are carefully untied, crumbling from neglect, or snapping from tension, many couples can still safely go separate ways when needed. For some, there is no easy escape. Domestic violence, sexual abuse, financial hardship, and cultural norms can all keep someone bound to a partner against their will.",
-    "artistName": "Phil Smith",
-    "website": "https://disentanglement.com",
-    "license": "MIT",
-    "scriptLibrary": "p5.js",
-    "scriptLibraryVersion": "1.0.0"
-  }`,
+    studioConstructorData: {
+      name: "intrinsic.art Disentanglement",
+      symbol: "INSC",
+      baseURI: "https://api.intrinsic.art/",
+      scriptJSON: `{
+        "name": "Disentanglement",
+        "description": "Informed by the experience of separating after a long marriage, (Dis)entanglement explores the endless ways that relationships intertwine. Each unique generative image represents one of many possible moments across the arc of a relationship, from a couple eagerly pulling taut their new connection, to a union defined solely by knots hardened over time. Whether connecting threads are carefully untied, crumbling from neglect, or snapping from tension, many couples can still safely go separate ways when needed. For some, there is no easy escape. Domestic violence, sexual abuse, financial hardship, and cultural norms can all keep someone bound to a partner against their will.",
+        "artistName": "Phil Smith",
+        "website": "https://disentanglement.com",
+        "license": "MIT",
+        "scriptLibrary": "p5.js",
+        "scriptLibraryVersion": "1.0.0",
+        "aspectRatio": "1"
+      }`,
+      artistAddress: "0xAa9D46AE079851116967c6573f961B304095C34a",
+      owner: "0xAa9D46AE079851116967c6573f961B304095C34a",
     },
-    // address _traits,
-    // string[] memory _traitTypeNames,
-    // string[] memory _traitTypeValues,
-    // string[] calldata _traitNames,
-    // string[] calldata _traitValues,
-    // uint256[] calldata _traitTypeIndexes,
-    // uint256[] calldata _traitMaxSupplys
+    traitsConstructorData: {
+      uri: "https://api.intrinsic.art/",
+      owner: "0xAa9D46AE079851116967c6573f961B304095C34a",
+      platformRevenueClaimer: "0xAa9D46AE079851116967c6573f961B304095C34a",
+      artistRevenueClaimer: "0xAa9D46AE079851116967c6573f961B304095C34a",
+    },
     createTraitsData: {
       traitTypeNames: [
         "Knots",
@@ -126,13 +156,44 @@ const projectConfigs = [
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2,
         2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7,
       ],
-      traitMaxSupplys: [
-        1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000,
-        1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000,
-        1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000,
+      traitMaxRevenues: [
+        ethers.utils.parseEther("0.1"),
+        ethers.utils.parseEther("0.1"),
+        ethers.utils.parseEther("0.1"),
+        ethers.utils.parseEther("0.1"),
+        ethers.utils.parseEther("0.1"),
+        ethers.utils.parseEther("0.1"),
+        ethers.utils.parseEther("0.1"),
+        ethers.utils.parseEther("0.1"),
+        ethers.utils.parseEther("0.1"),
+        ethers.utils.parseEther("0.1"),
+        ethers.utils.parseEther("0.1"),
+        ethers.utils.parseEther("0.1"),
+        ethers.utils.parseEther("0.1"),
+        ethers.utils.parseEther("0.1"),
+        ethers.utils.parseEther("0.1"),
+        ethers.utils.parseEther("0.1"),
+        ethers.utils.parseEther("0.1"),
+        ethers.utils.parseEther("0.1"),
+        ethers.utils.parseEther("0.1"),
+        ethers.utils.parseEther("0.1"),
+        ethers.utils.parseEther("0.1"),
+        ethers.utils.parseEther("0.1"),
+        ethers.utils.parseEther("0.1"),
+        ethers.utils.parseEther("0.1"),
+        ethers.utils.parseEther("0.1"),
+        ethers.utils.parseEther("0.1"),
+        ethers.utils.parseEther("0.1"),
+        ethers.utils.parseEther("0.1"),
+        ethers.utils.parseEther("0.1"),
+        ethers.utils.parseEther("0.1"),
+        ethers.utils.parseEther("0.1"),
+        ethers.utils.parseEther("0.1"),
+        ethers.utils.parseEther("0.1"),
+        ethers.utils.parseEther("0.1"),
+        ethers.utils.parseEther("0.1"),
       ],
     },
-
     scheduleAuctionData: {
       auctionStartTime: Math.trunc(Date.now() / 1000) + 10,
       auctionEndTime: Math.trunc(Date.now() / 1000) + 10,
@@ -147,63 +208,88 @@ const projectConfigs = [
       `airChaos*-.15*r,.15*t*r)):(m=range(-u*i,rightHairChaos*u*i),V=range(rightHairChaos*u*i,u*i),e=U+.1*r,a=.02*-r,s=U+m+.1*r,d=o*r*.25-.001*r,S=U+V+g*r+.1*r,p=o*r*.75,c=U+g*r+.1*r,b=o*r+range(o*rightHairChaos*-.15*r,.15*o*r)),strokeWeight(L),stroke(F),strokeCap(SQUARE),noFill(),(f&&leftFlipped||!f&&rightFlipped)&&applyMatrix(1,0,0,-1,0,r),bezier(e+u/16,a,s+u/16,d,S+u/16,p,c+u/16,b),stroke(k),bezier(e,a,s,d,S,p,c,b),(f&&leftFlipped||!f&&rightFlipped)&&(resetMatrix(),rotate90&&(translate(r,0),rotate(90)))}fill(G),noStroke(),rect(L+.75*u,p-.25*u,r,.75*u),noFill(),stroke(A),gradientLine(drawingContext,Math.round(L+13*u/16),p,r,p,A,x,u/2)}}pop()}function setGradient(e,a,r,t,l,n,o,i){if(noFill(),strokeWeight(1.5),colorMode(RGB),"Y"==o)for(let o=a;o<=a+t;o++){var g=map(o,a,a+t,0,1),s=lerpColor(l,n,Math.pow(g,i));stroke(s),line(e,o,e+r,o)}else if("Xlr"==o)for(let o=e;o<=e+r;o++){var d=map(o,e,e+r,0,1),c=lerpColor(l,n,Math.pow(d,i));stroke(c),line(o,a,o,a+t)}else if("Xrl"==o)for(let o=e;o>=e-r;o--){var b=map(o,e,e-r,0,1);c=lerpColor(l,n,Math.pow(b,i));stroke(c),line(o,a,o,a+t)}colorMode(HSB)}function shuffleArrayEntropy(e,a){for(let r=0;r<e.length;r++){let t=r-Math.round(r*a),l=r+Math.round((e.length-1-r)*a);const n=Math.round(range(t,l));[e[r],e[n]]=[e[n],e[r]]}}function rnd(){return seed^=seed<<13,seed^=seed>>17,seed^=seed<<5,(seed<0?1+~seed:seed)%1e3/1e3}function range(e,a){return void 0===a&&(a=e,e=0),rnd()*(a-e)+e}function rangeFloor(e,a){return void 0===a&&(a=e,e=0),Math.floor(range(e,a))}`,
     ],
   },
-  // {
-  //   createProjectData: {
-  //     artistAddress: "0xAa9D46AE079851116967c6573f961B304095C34a", // Sepolia
-  //     maxSupply: 1000,
-  //     metadata: `{
-  //   "name": "Tack Line Torn",
-  //   "description": "Tack Line Torn description",
-  //   "artistName": "Phil Smith",
-  //   "website": "https://tacklinetorn.com",
-  //   "license": "MIT",
-  //   "scriptLibrary": "p5.js",
-  //   "scriptLibraryVersion": "1.0.0"
-  // }`,
-  //     elementCategoryLabels: [
-  //       "Palette",
-  //       "Complexity",
-  //       "Organization",
-  //       "Symmetry",
-  //     ],
-  //     elementCategoryValues: [
-  //       "palette",
-  //       "complexity",
-  //       "organization",
-  //       "symmetry",
-  //     ],
-  //     elementLabels: [
-  //       ["Warm", "Cool", "Mixed"],
-  //       ["Minimal", "Balanced", "Complex"],
-  //       ["Chaotic", "Ordered", "Emergent"],
-  //       ["Mirror", "Rotational", "Asymmetric"],
-  //     ],
-  //     elementValues: [
-  //       ["warm", "cool", "mixed"],
-  //       ["minimal", "balanced", "complex"],
-  //       ["chaotic", "ordered", "emergent"],
-  //       ["mirror", "rotational", "asymmetric"],
-  //     ],
-  //     elementAmounts: [
-  //       [300, 300, 300],
-  //       [300, 300, 300],
-  //       [300, 300, 300],
-  //       [300, 300, 300],
-  //     ],
-  //     recipients: ["0x408b223EC52A5248d84DE22745A1B100875C3E28"], // studio address
-  //   },
-  //   scripts: [
-  //     `let seed,imageDimension;function setup(){seed=parseInt(tokenData.hash.slice(0,16),16),imageDimension=Math.min(windowWidth,windowHeight),createCanvas(imageDimension,imageDimension),getArt(tokenData.hash)}function getArt(e){let a,n,r,i,g,s,o,t,c;switch(seed=parseInt(e.slice(0,16),16),Complexity){case"Minimal":t=range(1,4);break;case"Balanced":t=range(16,24);break;case"Complex":t=range(40,48)}switch(colorMode(HSB,360,100,100,100),push(),Palette){case"Warm":c=range(270,450)%360;break;case"Cool":c=range(91,269);break;case"Mixed":c=range(0,360)}background(c,rangeFloor(60,100),rangeFloor(80,100)),r=range(-1,1),i=range(-.5,.5),g=range(-1,1),s=range(-1,1),n=range(.05,.8)*imageDimension,o=0;for(let e=0;e<t;e++){switch(push(),Palette){case"Warm":c=range(270,450)%360;break;case"Cool":c=range(91,269);break;case"Mixed":`,
-  //     `c=(c+range(140,220))%360}switch(a=color(c,100,100,15),stroke(a),strokeWeight(.001*imageDimension),angleMode(DEGREES),Organization){case"Chaotic":r=range(-1,1),i=range(-.5,.5),g=range(-1,1),s=range(-1,1),n=range(.05,.8)*imageDimension,o=range(0,.01);break;case"Ordered":break;case"Emergent":r=range(-1,1),i=range(-.5,.5),g=range(-1,1),s=range(-1,1),n=range(.05,.8)*imageDimension}translate(range(0,imageDimension),range(0,imageDimension));for(let e=0;e<2*imageDimension;e++)push(),rotate(e*r*range(1-2*o,1+2*o)),line(0,0,0,n*range(1-o,1+o)),pop(),rotate(i),translate(g*range(1-o,1+o),s*range(1-o,1+o));pop()}return canvas.toDataURL()}function rnd(){return seed^=seed<<13,seed^=seed>>17,seed^=seed<<5,(seed<0?1+~seed:seed)%1e3/1e3}function range(e,a){return void 0===a&&(a=e,e=0),rnd()*(a-e)+e}function rangeFloor(e,a){return void 0===a&&(a=e,e=0),Math.floor(range(e,a))}`,
-  //   ],
-  //   auctionData: {
-  //     erc20: "0xfF20f4Fd07bcAe90fC78c07AFb1c18d70748E2EA",
-  //     auctionStartTime: Math.trunc(Date.now() / 1000) + 10,
-  //     auctionEndTime: Math.trunc(Date.now() / 1000) + 10,
-  //     auctionStartPrice: ethers.utils.parseEther("1"),
-  //     auctionEndPrice: ethers.utils.parseEther("1"),
-  //   },
-  // },
+  {
+    studioConstructorData: {
+      name: "intrinsic.art Tack Line Torn",
+      symbol: "INSC",
+      baseURI: "https://api.intrinsic.art/",
+      scriptJSON: `{
+        "name": "Tack Line Torn",
+        "description": "Tack Line Torn is a generative art project that takes the viewer on a visual journey through the chaos of a tearing sail tack line. In sailing, a tack line is crucial to the stability and direction of a vessel, and in this project, the once-reliable line is portrayed as it breaks apart in real-time. The piece is a representation of the unpredictable nature of life, as the path of fragmentation is unique with each viewing. The project is a visual and auditory experience, as the tearing of the tack line is accompanied by a dynamic soundscape that adds to the sense of chaos and unpredictability. The fragmented line symbolizes the loss of control and the fragility of stability, and invites the viewer to contemplate the beauty that can be found in the midst of destruction. Tack Line Torn is an immersive and thought-provoking generative art project that explores the themes of unpredictability, transience, and the beauty of chaos."
+        "artistName": "Phil Smith",
+        "website": "https://tacklinetorn.com",
+        "license": "MIT",
+        "scriptLibrary": "p5.js",
+        "scriptLibraryVersion": "1.0.0",
+        "aspectRatio": "1"
+      }`,
+      artistAddress: "0xAa9D46AE079851116967c6573f961B304095C34a",
+      owner: "0xAa9D46AE079851116967c6573f961B304095C34a",
+    },
+    traitsConstructorData: {
+      uri: "https://api.intrinsic.art/",
+      owner: "0xAa9D46AE079851116967c6573f961B304095C34a",
+      platformRevenueClaimer: "0xAa9D46AE079851116967c6573f961B304095C34a",
+      artistRevenueClaimer: "0xAa9D46AE079851116967c6573f961B304095C34a",
+    },
+    createTraitsData: {
+      traitTypeNames: ["Palette", "Complexity", "Organization", "Symmetry"],
+      traitTypeValues: ["palette", "complexity", "organization", "symmetry"],
+      traitNames: [
+        "Warm",
+        "Cool",
+        "Mixed",
+        "Minimal",
+        "Balanced",
+        "Complex",
+        "Chaotic",
+        "Ordered",
+        "Emergent",
+        "Mirror",
+        "Rotational",
+        "Asymmetric",
+      ],
+      traitValues: [
+        "warm",
+        "cool",
+        "mixed",
+        "minimal",
+        "balanced",
+        "complex",
+        "chaotic",
+        "ordered",
+        "emergent",
+        "mirror",
+        "rotational",
+        "asymmetric",
+      ],
+      traitTypeIndexes: [0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3],
+      traitMaxRevenues: [
+        ethers.utils.parseEther("0.1"),
+        ethers.utils.parseEther("0.1"),
+        ethers.utils.parseEther("0.1"),
+        ethers.utils.parseEther("0.1"),
+        ethers.utils.parseEther("0.1"),
+        ethers.utils.parseEther("0.1"),
+        ethers.utils.parseEther("0.1"),
+        ethers.utils.parseEther("0.1"),
+        ethers.utils.parseEther("0.1"),
+        ethers.utils.parseEther("0.1"),
+        ethers.utils.parseEther("0.1"),
+        ethers.utils.parseEther("0.1"),
+      ],
+    },
+    scheduleAuctionData: {
+      auctionStartTime: Math.trunc(Date.now() / 1000) + 10,
+      auctionEndTime: Math.trunc(Date.now() / 1000) + 10,
+      auctionStartPrice: ethers.utils.parseEther("0.001"),
+      auctionEndPrice: ethers.utils.parseEther("0.001"),
+    },
+    scripts: [
+      `let seed,imageDimension;function setup(){seed=parseInt(tokenData.hash.slice(0,16),16),imageDimension=Math.min(windowWidth,windowHeight),createCanvas(imageDimension,imageDimension),getArt(tokenData.hash)}function getArt(e){let a,n,r,i,g,s,o,t,c;switch(seed=parseInt(e.slice(0,16),16),Complexity){case"Minimal":t=range(1,4);break;case"Balanced":t=range(16,24);break;case"Complex":t=range(40,48)}switch(colorMode(HSB,360,100,100,100),push(),Palette){case"Warm":c=range(270,450)%360;break;case"Cool":c=range(91,269);break;case"Mixed":c=range(0,360)}background(c,rangeFloor(60,100),rangeFloor(80,100)),r=range(-1,1),i=range(-.5,.5),g=range(-1,1),s=range(-1,1),n=range(.05,.8)*imageDimension,o=0;for(let e=0;e<t;e++){switch(push(),Palette){case"Warm":c=range(270,450)%360;break;case"Cool":c=range(91,269);break;case"Mixed":`,
+      `c=(c+range(140,220))%360}switch(a=color(c,100,100,15),stroke(a),strokeWeight(.001*imageDimension),angleMode(DEGREES),Organization){case"Chaotic":r=range(-1,1),i=range(-.5,.5),g=range(-1,1),s=range(-1,1),n=range(.05,.8)*imageDimension,o=range(0,.01);break;case"Ordered":break;case"Emergent":r=range(-1,1),i=range(-.5,.5),g=range(-1,1),s=range(-1,1),n=range(.05,.8)*imageDimension}translate(range(0,imageDimension),range(0,imageDimension));for(let e=0;e<2*imageDimension;e++)push(),rotate(e*r*range(1-2*o,1+2*o)),line(0,0,0,n*range(1-o,1+o)),pop(),rotate(i),translate(g*range(1-o,1+o),s*range(1-o,1+o));pop()}return canvas.toDataURL()}function rnd(){return seed^=seed<<13,seed^=seed>>17,seed^=seed<<5,(seed<0?1+~seed:seed)%1e3/1e3}function range(e,a){return void 0===a&&(a=e,e=0),rnd()*(a-e)+e}function rangeFloor(e,a){return void 0===a&&(a=e,e=0),Math.floor(range(e,a))}`,
+    ],
+  },
 ];
 
 export default projectConfigs;

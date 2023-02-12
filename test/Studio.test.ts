@@ -14,66 +14,64 @@ describe("Studio", function () {
   let traits: Traits;
   let studio: Studio;
 
-  // wallets
   let deployer: SignerWithAddress;
   let owner: SignerWithAddress;
-  let admin: SignerWithAddress;
-  let artist: SignerWithAddress;
   let user: SignerWithAddress;
 
-  // vars
   let currentTime;
   let auctionStartTime: number;
   let auctionEndTime: number;
 
   beforeEach(async function () {
-    // get signers
-    [deployer, owner, admin, artist, user] = await ethers.getSigners();
+    [deployer, owner, user] = await ethers.getSigners();
 
-    // Run deploy scripts
-    // await deployments.fixture();
-
-    // Get deployed contracts
-    studio = await new Studio__factory(deployer).deploy();
-
-    traits = await new Traits__factory(deployer).deploy();
-
-    await studio.initialize(
+    studio = await new Studio__factory(deployer).deploy(
       "Intrinsic.art Disentanglement",
       "INSC",
-      traits.address,
+      "https://artwork.intrinsic.art/",
+      "testJSON",
       owner.address,
-      [owner.address, admin.address]
+      owner.address
     );
 
-    await traits.initialize(studio.address, "testURI");
+    traits = await new Traits__factory(deployer).deploy(
+      studio.address,
+      "https://trait.intrinsic.art/",
+      owner.address,
+      owner.address,
+      owner.address
+    );
 
-    await studio
-      .connect(admin)
-      .createProject("TestUri", artist.address, 100, "Test metadata");
+    await studio.connect(owner).setTraits(traits.address);
 
-    await studio
-      .connect(admin)
-      .createTraits(
+    await traits
+      .connect(owner)
+      .createTraitsAndTypes(
         ["Hair Color", "Eye Color"],
         ["hairColor", "eyeColor"],
         ["Blonde", "Brown", "Black", "Green", "Blue"],
         ["blonde", "brown", "black", "green", "blue"],
         [0, 0, 0, 1, 1],
-        [30, 30, 30, 50, 50]
+        [
+          ethers.utils.parseEther("10"),
+          ethers.utils.parseEther("10"),
+          ethers.utils.parseEther("10"),
+          ethers.utils.parseEther("10"),
+          ethers.utils.parseEther("10"),
+        ]
       );
 
-    await studio.connect(admin).updateScript(0, "Test Script 1");
-    await studio.connect(admin).updateScript(1, "Test Script 2");
+    await studio.connect(owner).updateScript(0, "Test Script 1");
+    await studio.connect(owner).updateScript(1, "Test Script 2");
 
-    await studio.connect(admin).lockProject();
+    await studio.connect(owner).lockProject();
 
     currentTime = (await ethers.provider.getBlock("latest")).timestamp;
     auctionStartTime = currentTime + 110;
     auctionEndTime = currentTime + 210;
 
-    await studio
-      .connect(admin)
+    await traits
+      .connect(owner)
       .scheduleAuction(
         auctionStartTime,
         auctionEndTime,
@@ -82,26 +80,27 @@ describe("Studio", function () {
       );
   });
 
-  it("Initializes Studio contract", async () => {
+  it("Initializes contracts", async () => {
     expect(await studio.traits()).to.eq(traits.address);
+    expect(await traits.studio()).to.eq(studio.address);
   });
 
   it("Created the Studio project", async () => {
-    expect(await studio.getProjectMetadata()).to.eq("Test metadata");
-    expect(await studio.getProjectArtist()).to.eq(artist.address);
-    expect(await studio.getProjectScriptCount()).to.eq(2);
-    expect(await studio.getProjectScripts()).to.deep.eq([
+    expect(await studio.artistAddress()).to.eq(owner.address);
+    expect(await studio.baseURI()).to.eq("https://artwork.intrinsic.art/");
+    expect(await studio.projectScriptCount()).to.eq(2);
+    expect(await studio.projectScripts()).to.deep.eq([
       "Test Script 1",
       "Test Script 2",
     ]);
 
-    expect(await studio.getTraits()).to.deep.eq([
+    expect(await traits.traits()).to.deep.eq([
       [
+        BigNumber.from("0"),
         BigNumber.from("1"),
         BigNumber.from("2"),
         BigNumber.from("3"),
         BigNumber.from("4"),
-        BigNumber.from("5"),
       ],
       ["Blonde", "Brown", "Black", "Green", "Blue"],
       ["blonde", "brown", "black", "green", "blue"],
@@ -116,65 +115,67 @@ describe("Studio", function () {
       ["hairColor", "hairColor", "hairColor", "eyeColor", "eyeColor"],
     ]);
 
-    expect(await studio.getProjectIsLocked()).to.eq(true);
+    expect(await traits.traitTypes()).to.deep.eq([
+      ["Hair Color", "Eye Color"],
+      ["hairColor", "eyeColor"],
+    ]);
+
+    expect(await studio.locked()).to.eq(true);
   });
 
   it("Created the Traits", async () => {
-    expect(await traits.getTraitName(1)).to.eq("Blonde");
-    expect(await traits.getTraitValue(1)).to.eq("blonde");
+    expect((await traits.trait(0))._traitName).to.eq("Blonde");
+    expect((await traits.trait(0))._traitValue).to.eq("blonde");
 
-    expect(await traits.getTraitName(2)).to.eq("Brown");
-    expect(await traits.getTraitValue(2)).to.eq("brown");
+    expect((await traits.trait(1))._traitName).to.eq("Brown");
+    expect((await traits.trait(1))._traitValue).to.eq("brown");
 
-    expect(await traits.getTraitName(3)).to.eq("Black");
-    expect(await traits.getTraitValue(3)).to.eq("black");
+    expect((await traits.trait(2))._traitName).to.eq("Black");
+    expect((await traits.trait(2))._traitValue).to.eq("black");
 
-    expect(await traits.getTraitName(4)).to.eq("Green");
-    expect(await traits.getTraitValue(4)).to.eq("green");
+    expect((await traits.trait(3))._traitName).to.eq("Green");
+    expect((await traits.trait(3))._traitValue).to.eq("green");
 
-    expect(await traits.getTraitName(5)).to.eq("Blue");
-    expect(await traits.getTraitValue(5)).to.eq("blue");
+    expect((await traits.trait(4))._traitName).to.eq("Blue");
+    expect((await traits.trait(4))._traitValue).to.eq("blue");
   });
 
-  it("A user can create artwork", async () => {
+  it.only("A user can create artwork", async () => {
     // Move forward in time so auction is active
     await time.increase(time.duration.seconds(120));
 
-    const studioEthBalanceBefore = await ethers.provider.getBalance(
-      studio.address
-    );
+    expect(await ethers.provider.getBalance(studio.address)).to.eq(0);
+    expect(await ethers.provider.getBalance(traits.address)).to.eq(0);
 
-    const ethAmount = (await studio.getTraitAuctionPrice()).mul(2);
+    const ethAmount = (await traits.traitPrice()).mul(2);
 
     await expect(studio.ownerOf(1)).to.be.revertedWith(
-      "ERC721: owner query for nonexistent token"
+      "ERC721: invalid token ID"
     );
-    expect(await studio.userNonces(user.address)).to.eq(0);
-    expect(await studio.getArtworkTraits(1)).to.deep.eq([[], [], []]);
+    expect(await studio.userNonce(user.address)).to.eq(0);
+    await expect(studio.artwork(0)).to.be.revertedWith(
+      "ERC721: invalid token ID"
+    );
 
-    // uint256[] calldata _traitTokenIdsToBuy,
-    // uint256[] calldata _traitQuantitiesToBuy,
-    // uint256[] calldata _traitTokenIdsToCreateArtwork
-
-    await studio.connect(user).buyTraitsCreateArtwork([1, 4], [1, 1], [1, 4], {
+    await studio.connect(user).buyTraitsCreateArtwork([0, 3], [1, 1], [0, 3], {
       value: ethAmount,
     });
 
-    const studioEthBalanceAfter = await ethers.provider.getBalance(
-      studio.address
-    );
+    expect(await ethers.provider.getBalance(studio.address)).to.eq(0);
+    expect(await ethers.provider.getBalance(traits.address)).to.eq(ethAmount);
 
-    expect(studioEthBalanceBefore.add(ethAmount)).to.eq(studioEthBalanceAfter);
+    expect(await studio.ownerOf(0)).to.eq(user.address);
 
-    expect(await studio.ownerOf(1)).to.eq(user.address);
-
-    expect(await studio.getArtworkTraits(1)).to.deep.eq([
-      [BigNumber.from("1"), BigNumber.from("4")],
+    expect(await studio.artwork(0)).to.deep.eq([
+      [BigNumber.from("0"), BigNumber.from("3")],
       ["Blonde", "Green"],
       ["blonde", "green"],
+      ["Hair Color", "Eye Color"],
+      ["hairColor", "eyeColor"],
+      "0x5a8f80d9a123dbba1811456d072dbadcdabc36e00ee55625e7335e44d77be5a7",
     ]);
 
-    expect(await studio.userNonces(user.address)).to.eq(1);
+    expect(await studio.userNonce(user.address)).to.eq(1);
     // Add test case for expected canvas hash
   });
 

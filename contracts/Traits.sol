@@ -145,14 +145,14 @@ contract Traits is ITraits, ERC1155, ERC1155Supply, Ownable {
 
         require(msg.value >= ethCost, "T13");
 
-        _mintBatch(_recipient, _traitTokenIds, _traitAmounts, "");
-
         uint256 platformRevenue = (msg.value * auctionPlatformFeeNumerator) /
             FEE_DENOMINATOR;
         platformClaimableRevenues += platformRevenue;
         artistClaimableRevenues += msg.value - platformRevenue;
 
         emit TraitsBought(_recipient, _traitTokenIds, _traitAmounts);
+
+        _mintBatch(_recipient, _traitTokenIds, _traitAmounts, "");
     }
 
     function maxSupply(uint256 _tokenId) public view returns (uint256) {
@@ -273,12 +273,12 @@ contract Traits is ITraits, ERC1155, ERC1155Supply, Ownable {
         _traitTypeValues = new string[](traitCount);
 
         for (uint256 i = 0; i < traitCount; i++) {
-            _traitTokenIds[i] = i + 1;
-            _traitNames[i] = _traits[i + 1].name;
-            _traitValues[i] = _traits[i + 1].value;
-            _traitTypeIndexes[i] = _traits[i + 1].typeIndex;
-            _traitTypeNames[i] = _traitTypes[_traits[i + 1].typeIndex].name;
-            _traitTypeValues[i] = _traitTypes[_traits[i + 1].typeIndex].value;
+            _traitTokenIds[i] = i;
+            _traitNames[i] = _traits[i].name;
+            _traitValues[i] = _traits[i].value;
+            _traitTypeIndexes[i] = _traits[i].typeIndex;
+            _traitTypeNames[i] = _traitTypes[_traits[i].typeIndex].name;
+            _traitTypeValues[i] = _traitTypes[_traits[i].typeIndex].value;
         }
     }
 
@@ -294,6 +294,11 @@ contract Traits is ITraits, ERC1155, ERC1155Supply, Ownable {
 
         _traitTypeNames = new string[](traitTypeCount);
         _traitTypeValues = new string[](traitTypeCount);
+
+        for(uint256 i; i < traitTypeCount; i++) {
+          _traitTypeNames[i] = _traitTypes[i].name;
+          _traitTypeValues[i] = _traitTypes[i].value;
+        }
     }
 
     function trait(

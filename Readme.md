@@ -41,11 +41,7 @@ npx hardhat AddProject
 ##Example Project Creation Scripts
 #Disentanglement
 
-npx hardhat CreateProject --studio 0x408b223EC52A5248d84DE22745A1B100875C3E28 --project-index 0 --network goerli
+npx hardhat deploy --network goerli
 
-npx hardhat AddScripts --project-index 0 --project-id 1 --studio 0x408b223EC52A5248d84DE22745A1B100875C3E28 --network goerli
-
-npx hardhat LockProject --project-id 1 --studio 0x408b223EC52A5248d84DE22745A1B100875C3E28 --network goerli
-
-npx hardhat ScheduleAuction --project-index 0 --project-id 1 --studio 0x408b223EC52A5248d84DE22745A1B100875C3E28 --network goerli
+npx hardhat CreateProject --project-index 0 --network goerli
 
