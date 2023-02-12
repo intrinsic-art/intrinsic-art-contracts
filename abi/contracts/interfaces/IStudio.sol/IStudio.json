@@ -1,0 +1,343 @@
+[
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "artistAddress",
+        "type": "address"
+      }
+    ],
+    "name": "ArtistAddressUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "artworkTokenId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256[]",
+        "name": "traitTokenIds",
+        "type": "uint256[]"
+      },
+      {
+        "indexed": false,
+        "internalType": "bytes32",
+        "name": "hash",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "creator",
+        "type": "address"
+      }
+    ],
+    "name": "ArtworkCreated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "artworkTokenId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "caller",
+        "type": "address"
+      }
+    ],
+    "name": "ArtworkDecomposed",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "baseURI",
+        "type": "string"
+      }
+    ],
+    "name": "BaseURIUpdated",
+    "type": "event"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_artworkTokenId",
+        "type": "uint256"
+      }
+    ],
+    "name": "artwork",
+    "outputs": [
+      {
+        "internalType": "uint256[]",
+        "name": "_traitTokenIds",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "string[]",
+        "name": "_traitNames",
+        "type": "string[]"
+      },
+      {
+        "internalType": "string[]",
+        "name": "_traitValues",
+        "type": "string[]"
+      },
+      {
+        "internalType": "string[]",
+        "name": "_traitTypeNames",
+        "type": "string[]"
+      },
+      {
+        "internalType": "string[]",
+        "name": "_traitTypeValues",
+        "type": "string[]"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "_hash",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256[]",
+        "name": "_traitTokenIdsToBuy",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "_traitQuantitiesToBuy",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "_traitTokenIdsToCreateArtwork",
+        "type": "uint256[]"
+      }
+    ],
+    "name": "buyTraitsCreateArtwork",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256[]",
+        "name": "_traitTokenIds",
+        "type": "uint256[]"
+      }
+    ],
+    "name": "createArtwork",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "_artworkTokenId",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_artworkTokenId",
+        "type": "uint256"
+      }
+    ],
+    "name": "decomposeArtwork",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "lockProject",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "locked",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "projectScriptCount",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "projectScripts",
+    "outputs": [
+      {
+        "internalType": "string[]",
+        "name": "_scripts",
+        "type": "string[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "projectTraits",
+    "outputs": [
+      {
+        "internalType": "uint256[]",
+        "name": "_traitTokenIds",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "string[]",
+        "name": "_traitNames",
+        "type": "string[]"
+      },
+      {
+        "internalType": "string[]",
+        "name": "_traitValues",
+        "type": "string[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "_traitTypeIndexes",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "string[]",
+        "name": "_traitTypeNames",
+        "type": "string[]"
+      },
+      {
+        "internalType": "string[]",
+        "name": "_traitTypeValues",
+        "type": "string[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_traits",
+        "type": "address"
+      }
+    ],
+    "name": "setTraits",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes4",
+        "name": "interfaceId",
+        "type": "bytes4"
+      }
+    ],
+    "name": "supportsInterface",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      }
+    ],
+    "name": "tokenURI",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "_baseURI",
+        "type": "string"
+      }
+    ],
+    "name": "updateBaseURI",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_scriptIndex",
+        "type": "uint256"
+      },
+      {
+        "internalType": "string",
+        "name": "_script",
+        "type": "string"
+      }
+    ],
+    "name": "updateScript",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  }
+]
