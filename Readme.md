@@ -45,3 +45,5 @@ npx hardhat deploy --network goerli
 
 npx hardhat CreateProject --project-index 0 --network goerli
 
+npx hardhat CreateProject --project-index 1 --network goerli
+
