@@ -97,7 +97,7 @@ const CreateProject = async (
     projectConfigs[projectIndex].createTraitsData.traitMaxRevenues
   );
 
-  const scripts = projectConfigs[0].scripts;
+  const scripts = projectConfigs[projectIndex].scripts;
 
   for (const [scriptNumber, script] of scripts.entries()) {
     console.log("Uploading script ", scriptNumber);
@@ -120,10 +120,10 @@ const CreateProject = async (
     "Traits",
     { log: true, from: deployer },
     "scheduleAuction",
-    projectConfigs[0].scheduleAuctionData.auctionStartTime,
-    projectConfigs[0].scheduleAuctionData.auctionEndTime,
-    projectConfigs[0].scheduleAuctionData.auctionStartPrice,
-    projectConfigs[0].scheduleAuctionData.auctionEndPrice
+    projectConfigs[projectIndex].scheduleAuctionData.auctionStartTime,
+    projectConfigs[projectIndex].scheduleAuctionData.auctionEndTime,
+    projectConfigs[projectIndex].scheduleAuctionData.auctionStartPrice,
+    projectConfigs[projectIndex].scheduleAuctionData.auctionEndPrice
   );
 
   await execute(
