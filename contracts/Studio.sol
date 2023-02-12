@@ -15,7 +15,6 @@ contract Studio is IStudio, IERC721Metadata, ERC721, ERC1155Holder, Ownable {
 
     bool public locked;
     uint256 public nextTokenId;
-    uint256 public totalSupply;
     address public artistAddress;
     ITraits public traits;
     string public baseURI;
@@ -81,7 +80,6 @@ contract Studio is IStudio, IERC721Metadata, ERC721, ERC1155Holder, Ownable {
         );
         _artworkTokenId = nextTokenId;
         nextTokenId++;
-        totalSupply++;
         artworkData[_artworkTokenId].hash = _hash;
         artworkData[_artworkTokenId].traitTokenIds = _traitTokenIds;
         userNonces[msg.sender]++;
@@ -98,7 +96,6 @@ contract Studio is IStudio, IERC721Metadata, ERC721, ERC1155Holder, Ownable {
         // Clear Artwork state
         artworkData[_artworkTokenId].hash = 0;
         artworkData[_artworkTokenId].traitTokenIds = new uint256[](0);
-        totalSupply--;
 
         emit ArtworkDecomposed(_artworkTokenId, msg.sender);
 

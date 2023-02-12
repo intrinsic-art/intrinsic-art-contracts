@@ -57,7 +57,7 @@ const config: HardhatUserConfig = {
       chainId: 5,
       url: process.env.GOERLI_PROVIDER,
       accounts: [process.env.GOERLI_DEPLOYER_PRIVATE_KEY || ""],
-      saveDeployments: false,
+      saveDeployments: true,
     },
   },
   etherscan: {
