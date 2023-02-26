@@ -172,11 +172,21 @@ describe("Studio", function () {
       ["blonde", "green"],
       ["Hair Color", "Eye Color"],
       ["hairColor", "eyeColor"],
-      "0x5a8f80d9a123dbba1811456d072dbadcdabc36e00ee55625e7335e44d77be5a7",
+      "0x1f9022ec10ae66f52f8498c2c7cb4b7a2024054b0c121c48b508e71689cdd886",
     ]);
 
     expect(await studio.userNonce(user.address)).to.eq(1);
-    // Add test case for expected canvas hash
+
+    expect(await traits.balanceOf(user.address, 0)).to.eq(0);
+    expect(await traits.balanceOf(user.address, 3)).to.eq(0);
+
+    await studio.connect(user).decomposeArtwork(0);
+
+    await expect(studio.artwork(0)).to.be.revertedWith(
+      "ERC721: invalid token ID"
+    );
+    expect(await traits.balanceOf(user.address, 0)).to.eq(1);
+    expect(await traits.balanceOf(user.address, 3)).to.eq(1);
   });
 
   // it("Can handle many wraps and unwraps", async () => {
