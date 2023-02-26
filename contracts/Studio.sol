@@ -94,6 +94,7 @@ contract Studio is IStudio, IERC721Metadata, ERC721, ERC1155Holder, Ownable {
         require(msg.sender == _ownerOf(_artworkTokenId), "S05");
 
         // Clear Artwork state
+        uint256[] memory traitTokenIds = artworkData[_artworkTokenId].traitTokenIds;
         artworkData[_artworkTokenId].hash = 0;
         artworkData[_artworkTokenId].traitTokenIds = new uint256[](0);
 
@@ -102,7 +103,7 @@ contract Studio is IStudio, IERC721Metadata, ERC721, ERC1155Holder, Ownable {
         _burn(_artworkTokenId);
         traits.transferTraitsToDecomposeArtwork(
             msg.sender,
-            artworkData[_artworkTokenId].traitTokenIds
+            traitTokenIds
         );
     }
 
