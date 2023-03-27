@@ -31,6 +31,61 @@
     "type": "constructor"
   },
   {
+    "inputs": [],
+    "name": "AuctionNotLive",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InvalidArrayLengths",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InvalidAuction",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InvalidEthAmount",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InvalidTraits",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "Locked",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "MintedOut",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "NoRevenue",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "NotLocked",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "OnlyClaimer",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "OnlyStudio",
+    "type": "error"
+  },
+  {
     "anonymous": false,
     "inputs": [
       {
@@ -246,12 +301,38 @@
   },
   {
     "inputs": [],
+    "name": "AUCTION_PLATFORM_FEE_NUMERATOR",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "FEE_DENOMINATOR",
     "outputs": [
       {
         "internalType": "uint256",
         "name": "",
         "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "VERSION",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
       }
     ],
     "stateMutability": "view",
@@ -299,19 +380,6 @@
   {
     "inputs": [],
     "name": "auctionEndTime",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "auctionPlatformFeeNumerator",
     "outputs": [
       {
         "internalType": "uint256",
@@ -942,19 +1010,6 @@
       }
     ],
     "name": "uri",
-    "outputs": [
-      {
-        "internalType": "string",
-        "name": "",
-        "type": "string"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "version",
     "outputs": [
       {
         "internalType": "string",

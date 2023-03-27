@@ -1,28 +1,33 @@
 //SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity =0.8.19;
 
-import "./interfaces/ITraits.sol";
-import "./interfaces/IStudio.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
-import "@openzeppelin/contracts/utils/Strings.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
+import {ITraits} from "./interfaces/ITraits.sol";
+import {IStudio} from "./interfaces/IStudio.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import {ERC1155Holder, ERC1155Receiver, IERC165} from "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import {IERC721Metadata} from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 
 contract Studio is IStudio, IERC721Metadata, ERC721, ERC1155Holder, Ownable {
     using Strings for uint256;
     using Strings for address;
 
     bool public locked;
-    uint256 public nextTokenId;
     address public artistAddress;
     ITraits public traits;
     string public baseURI;
     string public scriptJSON;
-    string public constant version = "1.0.0";
+    string public constant VERSION = "1.0.0";
+    uint256 public nextTokenId;
     mapping(uint256 => string) private scripts;
     mapping(uint256 => ArtworkData) private artworkData;
     mapping(address => uint256) private userNonces;
+
+    error TraitsAlreadySet();
+    error Locked();
+    error OnlyArtist();
+    error OnlyArtworkOwner();
 
     constructor(
         string memory _name,
@@ -39,7 +44,7 @@ contract Studio is IStudio, IERC721Metadata, ERC721, ERC1155Holder, Ownable {
     }
 
     function setTraits(address _traits) external onlyOwner {
-        require(address(traits) == address(0), "S01");
+        if (address(traits) != address(0)) revert TraitsAlreadySet();
 
         traits = ITraits(_traits);
     }
@@ -48,7 +53,7 @@ contract Studio is IStudio, IERC721Metadata, ERC721, ERC1155Holder, Ownable {
         uint256 _scriptIndex,
         string calldata _script
     ) external onlyOwner {
-        require(!locked, "S02");
+        if (locked) revert Locked();
 
         scripts[_scriptIndex] = (_script);
     }
@@ -60,14 +65,14 @@ contract Studio is IStudio, IERC721Metadata, ERC721, ERC1155Holder, Ownable {
     }
 
     function updateArtistAddress(address _artistAddress) external {
-        require(msg.sender == artistAddress, "S03");
+        if (msg.sender != artistAddress) revert OnlyArtist();
 
         artistAddress = _artistAddress;
         emit ArtistAddressUpdated(_artistAddress);
     }
 
     function lockProject() external onlyOwner {
-        require(!locked, "S04");
+        if (locked) revert Locked();
 
         locked = true;
     }
@@ -91,20 +96,18 @@ contract Studio is IStudio, IERC721Metadata, ERC721, ERC1155Holder, Ownable {
     }
 
     function decomposeArtwork(uint256 _artworkTokenId) public {
-        require(msg.sender == _ownerOf(_artworkTokenId), "S05");
+        if (msg.sender != _ownerOf(_artworkTokenId)) revert OnlyArtworkOwner();
 
         // Clear Artwork state
-        uint256[] memory traitTokenIds = artworkData[_artworkTokenId].traitTokenIds;
+        uint256[] memory traitTokenIds = artworkData[_artworkTokenId]
+            .traitTokenIds;
         artworkData[_artworkTokenId].hash = 0;
         artworkData[_artworkTokenId].traitTokenIds = new uint256[](0);
 
         emit ArtworkDecomposed(_artworkTokenId, msg.sender);
 
         _burn(_artworkTokenId);
-        traits.transferTraitsToDecomposeArtwork(
-            msg.sender,
-            traitTokenIds
-        );
+        traits.transferTraitsToDecomposeArtwork(msg.sender, traitTokenIds);
     }
 
     function buyTraitsCreateArtwork(

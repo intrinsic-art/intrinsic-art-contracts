@@ -1,15 +1,15 @@
 //SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity =0.8.19;
 
-import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 contract ProjectRegistry is OwnableUpgradeable {
     struct Project {
-      address studio;
-      address traits;
+        address studio;
+        address traits;
     }
 
-    uint256 nextProjectId = 1;
+    uint256 public projectCount;
     mapping(address => bool) public admins;
     mapping(uint256 => Project) public projects;
 
@@ -28,14 +28,17 @@ contract ProjectRegistry is OwnableUpgradeable {
         _addAdmins(_admins);
     }
 
-    function registerProject(address _studio, address _traits) external onlyAdmin {
-      projects[nextProjectId].studio = _studio;
-      projects[nextProjectId].traits = _traits;
+    function registerProject(
+        address _studio,
+        address _traits
+    ) external onlyAdmin {
+        projectCount++;
 
-      emit ProjectRegistered(nextProjectId, _studio, _traits);
+        projects[projectCount].studio = _studio;
+        projects[projectCount].traits = _traits;
 
-      nextProjectId++;
-    }    
+        emit ProjectRegistered(projectCount, _studio, _traits);
+    }
 
     function addAdmins(address[] calldata _admins) external onlyOwner {
         _addAdmins(_admins);

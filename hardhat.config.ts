@@ -20,13 +20,18 @@ task("CreateProject", "Create a project")
 
 const config: HardhatUserConfig = {
   solidity: {
-    version: "0.8.18",
+    version: "0.8.19",
     settings: {
       optimizer: {
         enabled: true,
         runs: 1000,
       },
     },
+  },
+  gasReporter: {
+    enabled: true,
+    outputFile: "gas-report.txt",
+    noColors: true,
   },
   mocha: {
     timeout: 1000000,

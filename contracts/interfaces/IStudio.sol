@@ -1,5 +1,5 @@
 //SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity =0.8.19;
 
 interface IStudio {
     struct ArtworkData {
@@ -7,12 +7,8 @@ interface IStudio {
         bytes32 hash;
     }
 
-    event ArtistAddressUpdated(
-      address indexed artistAddress
-    );
-
+    event ArtistAddressUpdated(address indexed artistAddress);
     event BaseURIUpdated(string baseURI);
-
     event ArtworkCreated(
         uint256 indexed artworkTokenId,
         uint256[] traitTokenIds,

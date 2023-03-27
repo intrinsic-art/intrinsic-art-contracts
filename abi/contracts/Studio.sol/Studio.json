@@ -36,6 +36,26 @@
     "type": "constructor"
   },
   {
+    "inputs": [],
+    "name": "Locked",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "OnlyArtist",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "OnlyArtworkOwner",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "TraitsAlreadySet",
+    "type": "error"
+  },
+  {
     "anonymous": false,
     "inputs": [
       {
@@ -204,6 +224,19 @@
     ],
     "name": "Transfer",
     "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "VERSION",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
   },
   {
     "inputs": [
@@ -890,19 +923,6 @@
         "internalType": "uint256",
         "name": "",
         "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "version",
-    "outputs": [
-      {
-        "internalType": "string",
-        "name": "",
-        "type": "string"
       }
     ],
     "stateMutability": "view",
