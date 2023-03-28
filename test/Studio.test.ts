@@ -140,7 +140,7 @@ describe("Studio", function () {
     expect((await traits.trait(4))._traitValue).to.eq("blue");
   });
 
-  it.only("A user can create artwork", async () => {
+  it.only("A user can create artwork and decompose it", async () => {
     // Move forward in time so auction is active
     await time.increase(time.duration.seconds(120));
 
