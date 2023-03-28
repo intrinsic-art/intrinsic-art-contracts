@@ -177,14 +177,18 @@ contract Traits is ITraits, ERC1155, ERC1155Supply, Ownable {
         address _caller,
         uint256[] calldata _traitTokenIds
     ) external onlyStudio {
-        if (_traitTokenIds.length != _traitTypes.length)
+        uint256 traitTokenIdsLength = _traitTokenIds.length;
+        if (traitTokenIdsLength != _traitTypes.length)
             revert InvalidArrayLengths();
 
-        uint256[] memory amounts = new uint256[](_traitTokenIds.length);
-        for (uint256 i; i < _traitTokenIds.length; i++) {
+        uint256[] memory amounts = new uint256[](traitTokenIdsLength);
+        for (uint256 i; i < traitTokenIdsLength;) {
             if (_traits[_traitTokenIds[i]].typeIndex != i)
                 revert InvalidTraits();
             amounts[i] = 1;
+            unchecked {
+              ++i;
+            }
         }
 
         _safeBatchTransferFrom(
