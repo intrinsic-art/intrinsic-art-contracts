@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
 
 interface ProjectConfig {
-  studioConstructorData: {
+  artworkConstructorData: {
     name: string;
     symbol: string;
     baseURI: string;
@@ -34,7 +34,7 @@ interface ProjectConfig {
 
 const projectConfigs: ProjectConfig[] = [
   {
-    studioConstructorData: {
+    artworkConstructorData: {
       name: "intrinsic.art Tack Line Torn",
       symbol: "INSC",
       baseURI: "https://api.intrinsic.art/",
@@ -102,8 +102,8 @@ const projectConfigs: ProjectConfig[] = [
       auctionEndPrice: ethers.utils.parseEther("0.001"),
     },
     scripts: [
-      `let seed,imageDimension;function setup(){seed=parseInt(tokenData.hash.slice(0,16),16),imageDimension=Math.min(windowWidth,windowHeight),createCanvas(imageDimension,imageDimension),getArt(tokenData.hash)}function getArt(e){let a,n,r,i,g,s,o,t,c;switch(seed=parseInt(e.slice(0,16),16),complexity){case"minimal":t=range(1,4);break;case"balanced":t=range(16,24);break;case"complex":t=range(40,48)}switch(colorMode(HSB,360,100,100,100),push(),palette){case"warm":c=range(270,450)%360;break;case"cool":c=range(91,269);break;case"mixed":c=range(0,360)}background(c,rangeFloor(60,100),rangeFloor(80,100)),r=range(-1,1),i=range(-.5,.5),g=range(-1,1),s=range(-1,1),n=range(.05,.8)*imageDimension,o=0;for(let e=0;e<t;e++){switch(push(),palette){case"warm":c=range(270,450)%360;break;case"cool":c=range(91,269);break;case"mixed":`,
-      `c=(c+range(140,220))%360}switch(a=color(c,100,100,15),stroke(a),strokeWeight(.001*imageDimension),angleMode(DEGREES),organization){case"chaotic":r=range(-1,1),i=range(-.5,.5),g=range(-1,1),s=range(-1,1),n=range(.05,.8)*imageDimension,o=range(0,.01);break;case"ordered":break;case"emergent":r=range(-1,1),i=range(-.5,.5),g=range(-1,1),s=range(-1,1),n=range(.05,.8)*imageDimension}translate(range(0,imageDimension),range(0,imageDimension));for(let e=0;e<2*imageDimension;e++)push(),rotate(e*r*range(1-2*o,1+2*o)),line(0,0,0,n*range(1-o,1+o)),pop(),rotate(i),translate(g*range(1-o,1+o),s*range(1-o,1+o));pop()}return canvas.toDataURL()}function rnd(){return seed^=seed<<13,seed^=seed>>17,seed^=seed<<5,(seed<0?1+~seed:seed)%1e3/1e3}function range(e,a){return void 0===a&&(a=e,e=0),rnd()*(a-e)+e}function rangeFloor(e,a){return void 0===a&&(a=e,e=0),Math.floor(range(e,a))}`,
+      `let seed,imageDimension,referenceRatio,referenceDimension=1e3;function setup(){seed=parseInt(tokenData.hash.slice(0,16),16),referenceRatio=(imageDimension=Math.min(windowWidth,windowHeight))/referenceDimension,createCanvas(imageDimension,imageDimension),getArt()}function getArt(){let e,n,a,r,i,$,_,g,o;switch(complexity){case"minimal":g=range(1,4);break;case"balanced":g=range(16,24);break;case"complex":g=range(40,48)}switch(colorMode(HSB,360,100,100,100),push(),palette){case"warm":o=range(270,450)%360;break;case"cool":o=range(91,269);break;case"mixed":o=range(0,360)}background(o,rangeFloor(60,100),rangeFloor(80,100)),a=range(-1,1),r=range(-.5,.5),i=range(-1,1),$=range(-1,1),n=range(.05,.8)*imageDimension,_=0;for(let t=0;t<g;t++){switch(push(),palette){case"warm":o=range(270,450)%360;break;case"cool":o=range(91,269);break;`,
+      `case"mixed":o=(o+range(140,220))%360}switch(stroke(e=color(o,100,100,15)),strokeWeight(.001*imageDimension),angleMode(DEGREES),organization){case"chaotic":a=range(-1,1),r=range(-.5,.5),i=range(-1,1),$=range(-1,1),n=range(.05,.8)*imageDimension,_=range(0,.01);break;case"ordered":break;case"emergent":a=range(-1,1),r=range(-.5,.5),i=range(-1,1),$=range(-1,1),n=range(.05,.8)*imageDimension}translate(range(0,imageDimension),range(0,imageDimension));for(let c=0;c<2*referenceDimension;c++)push(),rotate(c*a*range(1-2*_,1+2*_)),line(0,0,0,n*range(1-_,1+_)),pop(),rotate(r),translate(i*referenceRatio*range(1-_,1+_),$*referenceRatio*range(1-_,1+_));pop()}return canvas.toDataURL()}function rnd(){return seed^=seed<<13,seed^=seed>>17,((seed^=seed<<5)<0?1+~seed:seed)%1e3/1e3}function range(e,n){return void 0===n&&(n=e,e=0),rnd()*(n-e)+e}function rangeFloor(e,n){return void 0===n&&(n=e,e=0),Math.floor(range(e,n))}`,
     ],
   },
 ];

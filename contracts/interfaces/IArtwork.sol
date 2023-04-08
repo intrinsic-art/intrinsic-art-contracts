@@ -1,11 +1,18 @@
 //SPDX-License-Identifier: MIT
 pragma solidity =0.8.19;
 
-interface IStudio {
+import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+
+interface IArtwork is IERC721 {
     struct ArtworkData {
-        uint256[] traitTokenIds;
         bytes32 hash;
+        uint256[] traitTokenIds;
     }
+
+    error TraitsAlreadySet();
+    error Locked();
+    error OnlyArtist();
+    error OnlyArtworkOwner();
 
     event ArtistAddressUpdated(address indexed artistAddress);
     event BaseURIUpdated(string baseURI);

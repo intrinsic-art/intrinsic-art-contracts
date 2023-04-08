@@ -3,7 +3,7 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "_studio",
+        "name": "_artwork",
         "type": "address"
       },
       {
@@ -62,11 +62,6 @@
   },
   {
     "inputs": [],
-    "name": "MintedOut",
-    "type": "error"
-  },
-  {
-    "inputs": [],
     "name": "NoRevenue",
     "type": "error"
   },
@@ -77,12 +72,17 @@
   },
   {
     "inputs": [],
+    "name": "OnlyArtwork",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "OnlyClaimer",
     "type": "error"
   },
   {
     "inputs": [],
-    "name": "OnlyStudio",
+    "name": "SoldOut",
     "type": "error"
   },
   {
@@ -366,6 +366,19 @@
   },
   {
     "inputs": [],
+    "name": "artwork",
+    "outputs": [
+      {
+        "internalType": "contract IArtwork",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "auctionEndPrice",
     "outputs": [
       {
@@ -594,7 +607,7 @@
     "outputs": [
       {
         "internalType": "uint256",
-        "name": "",
+        "name": "_maxSupply",
         "type": "uint256"
       }
     ],
@@ -760,19 +773,6 @@
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "studio",
-    "outputs": [
-      {
-        "internalType": "contract IStudio",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
     "inputs": [
       {
         "internalType": "bytes4",
@@ -845,12 +845,50 @@
     "type": "function"
   },
   {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_tokenId",
+        "type": "uint256"
+      }
+    ],
+    "name": "traitMaxRevenue",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "_maxRevenue",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [],
     "name": "traitPrice",
     "outputs": [
       {
         "internalType": "uint256",
         "name": "_price",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_tokenId",
+        "type": "uint256"
+      }
+    ],
+    "name": "traitTotalRevenue",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "_totalRevenue",
         "type": "uint256"
       }
     ],
@@ -940,24 +978,6 @@
       }
     ],
     "name": "transferTraitsToCreateArtwork",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "_caller",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256[]",
-        "name": "_traitTokenIds",
-        "type": "uint256[]"
-      }
-    ],
-    "name": "transferTraitsToDecomposeArtwork",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

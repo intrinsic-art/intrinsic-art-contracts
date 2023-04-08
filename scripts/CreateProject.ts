@@ -12,25 +12,25 @@ const CreateProject = async (
 
   const { deployer } = await getNamedAccounts();
 
-  const studioConstructorArgs = [
-    projectConfigs[projectIndex].studioConstructorData.name,
-    projectConfigs[projectIndex].studioConstructorData.symbol,
-    projectConfigs[projectIndex].studioConstructorData.baseURI,
-    projectConfigs[projectIndex].studioConstructorData.scriptJSON,
-    projectConfigs[projectIndex].studioConstructorData.artistAddress,
-    projectConfigs[projectIndex].studioConstructorData.owner,
+  const artworkConstructorArgs = [
+    projectConfigs[projectIndex].artworkConstructorData.name,
+    projectConfigs[projectIndex].artworkConstructorData.symbol,
+    projectConfigs[projectIndex].artworkConstructorData.baseURI,
+    projectConfigs[projectIndex].artworkConstructorData.scriptJSON,
+    projectConfigs[projectIndex].artworkConstructorData.artistAddress,
+    projectConfigs[projectIndex].artworkConstructorData.owner,
   ];
 
   console.log("Deploying Contracts");
 
-  const studioDeployResult = await deploy("Studio", {
+  const artworkDeployResult = await deploy("Artwork", {
     log: true,
     from: deployer,
-    args: studioConstructorArgs,
+    args: artworkConstructorArgs,
   });
 
   const traitsConstructorArgs = [
-    studioDeployResult.address,
+    artworkDeployResult.address,
     projectConfigs[projectIndex].traitsConstructorData.uri,
     projectConfigs[projectIndex].traitsConstructorData.owner,
     projectConfigs[projectIndex].traitsConstructorData.platformRevenueClaimer,
@@ -45,9 +45,9 @@ const CreateProject = async (
 
   await new Promise((resolve) => setTimeout(resolve, 60000));
 
-  const studio = await hre.ethers.getContractAt(
-    "Studio",
-    studioDeployResult.address
+  const artwork = await hre.ethers.getContractAt(
+    "Artwork",
+    artworkDeployResult.address
   );
   const traits = await hre.ethers.getContractAt(
     "Traits",
@@ -58,8 +58,8 @@ const CreateProject = async (
 
   try {
     await hre.run("verify:verify", {
-      address: studio.address,
-      constructorArguments: studioConstructorArgs,
+      address: artwork.address,
+      constructorArguments: artworkConstructorArgs,
     });
   } catch (error) {
     console.error();
@@ -77,7 +77,7 @@ const CreateProject = async (
   console.log("Setting traits");
 
   await execute(
-    "Studio",
+    "Artwork",
     { log: true, from: deployer },
     "setTraits",
     traits.address
@@ -102,7 +102,7 @@ const CreateProject = async (
   for (const [scriptNumber, script] of scripts.entries()) {
     console.log("Uploading script ", scriptNumber);
     await execute(
-      "Studio",
+      "Artwork",
       { log: true, from: deployer },
       "updateScript",
       scriptNumber,
@@ -112,7 +112,7 @@ const CreateProject = async (
 
   console.log("Locking project");
 
-  await execute("Studio", { log: true, from: deployer }, "lockProject");
+  await execute("Artwork", { log: true, from: deployer }, "lockProject");
 
   console.log("Scheduling auction");
 
@@ -130,7 +130,7 @@ const CreateProject = async (
     "ProjectRegistry",
     { log: true, from: deployer },
     "registerProject",
-    studio.address,
+    artwork.address,
     traits.address
   );
 

@@ -5,7 +5,7 @@ import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Own
 
 contract ProjectRegistry is OwnableUpgradeable {
     struct Project {
-        address studio;
+        address artwork;
         address traits;
     }
 
@@ -13,10 +13,12 @@ contract ProjectRegistry is OwnableUpgradeable {
     mapping(address => bool) public admins;
     mapping(uint256 => Project) public projects;
 
-    event ProjectRegistered(uint256 projectId, address studio, address traits);
+    event ProjectRegistered(uint256 projectId, address artwork, address traits);
+
+    error OnlyAdmin();
 
     modifier onlyAdmin() {
-        require(admins[msg.sender], "P01");
+        if(!admins[msg.sender]) revert OnlyAdmin();
         _;
     }
 
@@ -29,15 +31,15 @@ contract ProjectRegistry is OwnableUpgradeable {
     }
 
     function registerProject(
-        address _studio,
+        address _artwork,
         address _traits
     ) external onlyAdmin {
         projectCount++;
 
-        projects[projectCount].studio = _studio;
+        projects[projectCount].artwork = _artwork;
         projects[projectCount].traits = _traits;
 
-        emit ProjectRegistered(projectCount, _studio, _traits);
+        emit ProjectRegistered(projectCount, _artwork, _traits);
     }
 
     function addAdmins(address[] calldata _admins) external onlyOwner {

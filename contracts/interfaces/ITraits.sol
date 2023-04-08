@@ -1,18 +1,9 @@
 //SPDX-License-Identifier: MIT
 pragma solidity =0.8.19;
 
-interface ITraits {
-    event TraitsBought(
-        address indexed recipient,
-        uint256[] traitTokenIds,
-        uint256[] traitQuantities
-    );
+import {IERC1155} from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 
-    event PlatformRevenueClaimed(uint256 claimedRevenue);
-    event ArtistRevenueClaimed(uint256 claimedRevenue);
-    event PlatormRevenueClaimerUpdated(address indexed claimer);
-    event ArtistRevenueClaimerUpdated(address indexed claimer);
-
+interface ITraits is IERC1155 {
     struct TraitType {
         string name;
         string value;
@@ -25,6 +16,29 @@ interface ITraits {
         uint256 maxRevenue;
         uint256 totalRevenue;
     }
+
+    event TraitsBought(
+        address indexed recipient,
+        uint256[] traitTokenIds,
+        uint256[] traitQuantities
+    );
+
+    error OnlyArtwork();
+    error Locked();
+    error InvalidArrayLengths();
+    error NotLocked();
+    error InvalidAuction();
+    error OnlyClaimer();
+    error SoldOut();
+    error InvalidEthAmount();
+    error InvalidTraits();
+    error NoRevenue();
+    error AuctionNotLive();
+
+    event PlatformRevenueClaimed(uint256 claimedRevenue);
+    event ArtistRevenueClaimed(uint256 claimedRevenue);
+    event PlatormRevenueClaimerUpdated(address indexed claimer);
+    event ArtistRevenueClaimerUpdated(address indexed claimer);
 
     function createTraitsAndTypes(
         string[] memory _traitTypeNames,
@@ -54,14 +68,9 @@ interface ITraits {
         uint256[] calldata _traitAmounts
     ) external payable;
 
-    function maxSupply(uint256 _tokenId) external view returns (uint256);
+    function maxSupply(uint256 _tokenId) external view returns (uint256 _maxSupply);
 
     function transferTraitsToCreateArtwork(
-        address _caller,
-        uint256[] calldata _traitTokenIds
-    ) external;
-
-    function transferTraitsToDecomposeArtwork(
         address _caller,
         uint256[] calldata _traitTokenIds
     ) external;
@@ -101,6 +110,14 @@ interface ITraits {
             string memory _traitTypeName,
             string memory _traitTypeValue
         );
+
+    function traitTotalRevenue(
+        uint256 _tokenId
+    ) external view returns (uint256 _totalRevenue);
+
+    function traitMaxRevenue(
+        uint256 _tokenId
+    ) external view returns (uint256 _maxRevenue);
 
     function traitPrice() external view returns (uint256 _price);
 }

@@ -2,13 +2,13 @@
 pragma solidity =0.8.19;
 
 import {ITraits} from "./interfaces/ITraits.sol";
-import {IStudio} from "./interfaces/IStudio.sol";
+import {IArtwork} from "./interfaces/IArtwork.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ERC1155} from "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import {ERC1155Supply} from "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
 
 contract Traits is ITraits, ERC1155, ERC1155Supply, Ownable {
-    IStudio public studio;
+    IArtwork public artwork;
     address payable public platformRevenueClaimer;
     address payable public artistRevenueClaimer;
     string public constant VERSION = "1.0.0";
@@ -23,31 +23,19 @@ contract Traits is ITraits, ERC1155, ERC1155Supply, Ownable {
     TraitType[] private _traitTypes;
     Trait[] private _traits;
 
-    error OnlyStudio();
-    error Locked();
-    error InvalidArrayLengths();
-    error NotLocked();
-    error InvalidAuction();
-    error OnlyClaimer();
-    error MintedOut();
-    error InvalidEthAmount();
-    error InvalidTraits();
-    error NoRevenue();
-    error AuctionNotLive();
-
-    modifier onlyStudio() {
-        if (msg.sender != address(studio)) revert OnlyStudio();
+    modifier onlyArtwork() {
+        if (msg.sender != address(artwork)) revert OnlyArtwork();
         _;
     }
 
     constructor(
-        address _studio,
+        address _artwork,
         string memory _uri,
         address _owner,
         address payable _platformRevenueClaimer,
         address payable _artistRevenueClaimer
     ) ERC1155(_uri) {
-        studio = IStudio(_studio);
+        artwork = IArtwork(_artwork);
         _transferOwnership(_owner);
         platformRevenueClaimer = _platformRevenueClaimer;
         artistRevenueClaimer = _artistRevenueClaimer;
@@ -61,7 +49,7 @@ contract Traits is ITraits, ERC1155, ERC1155Supply, Ownable {
         uint256[] calldata _traitTypeIndexes,
         uint256[] calldata _traitMaxRevenues
     ) external onlyOwner {
-        if (studio.locked()) revert Locked();
+        if (artwork.locked()) revert Locked();
         if (
             _traitTypeNames.length == 0 ||
             _traitNames.length == 0 ||
@@ -72,17 +60,21 @@ contract Traits is ITraits, ERC1155, ERC1155Supply, Ownable {
         ) revert InvalidArrayLengths();
 
         // Push trait types to array
-        for (uint256 i; i < _traitTypeNames.length; i++) {
+        for (uint256 i; i < _traitTypeNames.length; ) {
             _traitTypes.push(
                 TraitType({
                     name: _traitTypeNames[i],
                     value: _traitTypeValues[i]
                 })
             );
+
+            unchecked {
+                ++i;
+            }
         }
 
         // Push traits to array
-        for (uint256 i; i < _traitNames.length; i++) {
+        for (uint256 i; i < _traitNames.length; ) {
             _traits.push(
                 Trait({
                     name: _traitNames[i],
@@ -92,6 +84,10 @@ contract Traits is ITraits, ERC1155, ERC1155Supply, Ownable {
                     totalRevenue: 0
                 })
             );
+
+            unchecked {
+                ++i;
+            }
         }
     }
 
@@ -101,7 +97,7 @@ contract Traits is ITraits, ERC1155, ERC1155Supply, Ownable {
         uint256 _auctionStartPrice,
         uint256 _auctionEndPrice
     ) external onlyOwner {
-        if (!studio.locked()) revert NotLocked();
+        if (!artwork.locked()) revert NotLocked();
         if (
             _auctionEndTime < _auctionStartTime ||
             _auctionEndPrice > _auctionStartPrice
@@ -140,16 +136,22 @@ contract Traits is ITraits, ERC1155, ERC1155Supply, Ownable {
         uint256 _traitCount;
         uint256 _traitPrice = traitPrice();
 
-        for (uint256 i; i < _traitAmounts.length; i++) {
+        for (uint256 i; i < _traitAmounts.length; ) {
             _traitCount += _traitAmounts[i];
 
             uint256 newTraitRevenue = _traits[_traitTokenIds[i]].totalRevenue +
                 (_traitPrice * _traitAmounts[i]);
 
-            if (newTraitRevenue > _traits[_traitTokenIds[i]].maxRevenue)
-                revert MintedOut();
+            if (
+                newTraitRevenue >
+                _traits[_traitTokenIds[i]].maxRevenue + _traitPrice
+            ) revert SoldOut();
 
             _traits[_traitTokenIds[i]].totalRevenue = newTraitRevenue;
+
+            unchecked {
+                ++i;
+            }
         }
 
         uint256 ethCost = _traitCount * _traitPrice;
@@ -166,57 +168,28 @@ contract Traits is ITraits, ERC1155, ERC1155Supply, Ownable {
         _mintBatch(_recipient, _traitTokenIds, _traitAmounts, "");
     }
 
-    function maxSupply(uint256 _tokenId) public view returns (uint256) {
-        return
-            totalSupply(_tokenId) +
-            ((_traits[_tokenId].maxRevenue - _traits[_tokenId].totalRevenue) /
-                auctionEndPrice);
-    }
-
     function transferTraitsToCreateArtwork(
         address _caller,
         uint256[] calldata _traitTokenIds
-    ) external onlyStudio {
+    ) external onlyArtwork {
         if (_traitTokenIds.length != _traitTypes.length)
             revert InvalidArrayLengths();
 
         uint256[] memory amounts = new uint256[](_traitTokenIds.length);
-        for (uint256 i; i < _traitTokenIds.length;) {
+
+        for (uint256 i; i < _traitTokenIds.length; ) {
             if (_traits[_traitTokenIds[i]].typeIndex != i)
                 revert InvalidTraits();
             amounts[i] = 1;
+
             unchecked {
-              ++i;
+                ++i;
             }
         }
 
         _safeBatchTransferFrom(
             _caller,
-            address(studio),
-            _traitTokenIds,
-            amounts,
-            ""
-        );
-    }
-
-    function transferTraitsToDecomposeArtwork(
-        address _caller,
-        uint256[] calldata _traitTokenIds
-    ) external onlyStudio {
-        if (_traitTokenIds.length != _traitTypes.length)
-            revert InvalidArrayLengths();
-
-        uint256[] memory amounts = new uint256[](_traitTokenIds.length);
-        for (uint256 i; i < _traitTokenIds.length; i++) {
-            // todo: Is this check necessary?
-            if (_traits[_traitTokenIds[i]].typeIndex != i)
-                revert InvalidTraits();
-            amounts[i] = 1;
-        }
-
-        _safeBatchTransferFrom(
-            address(studio),
-            _caller,
+            address(artwork),
             _traitTokenIds,
             amounts,
             ""
@@ -247,15 +220,18 @@ contract Traits is ITraits, ERC1155, ERC1155Supply, Ownable {
         artistRevenueClaimer.transfer(claimedRevenue);
     }
 
-    function _beforeTokenTransfer(
-        address operator,
-        address from,
-        address to,
-        uint256[] memory ids,
-        uint256[] memory amounts,
-        bytes memory data
-    ) internal override(ERC1155, ERC1155Supply) {
-        super._beforeTokenTransfer(operator, from, to, ids, amounts, data);
+    function maxSupply(
+        uint256 _tokenId
+    ) public view returns (uint256 _maxSupply) {
+        if (_traits[_tokenId].maxRevenue >= _traits[_tokenId].totalRevenue) {
+            _maxSupply =
+                totalSupply(_tokenId) +
+                ((_traits[_tokenId].maxRevenue -
+                    _traits[_tokenId].totalRevenue) / auctionEndPrice) +
+                1;
+        } else {
+            _maxSupply = totalSupply(_tokenId);
+        }
     }
 
     function traits()
@@ -279,13 +255,17 @@ contract Traits is ITraits, ERC1155, ERC1155Supply, Ownable {
         _traitTypeNames = new string[](traitCount);
         _traitTypeValues = new string[](traitCount);
 
-        for (uint256 i = 0; i < traitCount; i++) {
+        for (uint256 i = 0; i < traitCount; ) {
             _traitTokenIds[i] = i;
             _traitNames[i] = _traits[i].name;
             _traitValues[i] = _traits[i].value;
             _traitTypeIndexes[i] = _traits[i].typeIndex;
             _traitTypeNames[i] = _traitTypes[_traits[i].typeIndex].name;
             _traitTypeValues[i] = _traitTypes[_traits[i].typeIndex].value;
+
+            unchecked {
+                ++i;
+            }
         }
     }
 
@@ -302,9 +282,13 @@ contract Traits is ITraits, ERC1155, ERC1155Supply, Ownable {
         _traitTypeNames = new string[](traitTypeCount);
         _traitTypeValues = new string[](traitTypeCount);
 
-        for (uint256 i; i < traitTypeCount; i++) {
+        for (uint256 i; i < traitTypeCount; ) {
             _traitTypeNames[i] = _traitTypes[i].name;
             _traitTypeValues[i] = _traitTypes[i].value;
+
+            unchecked {
+                ++i;
+            }
         }
     }
 
@@ -326,6 +310,18 @@ contract Traits is ITraits, ERC1155, ERC1155Supply, Ownable {
         _traitTypeValue = _traitTypes[_traits[_tokenId].typeIndex].value;
     }
 
+    function traitTotalRevenue(
+        uint256 _tokenId
+    ) public view returns (uint256 _totalRevenue) {
+        _totalRevenue = _traits[_tokenId].totalRevenue;
+    }
+
+    function traitMaxRevenue(
+        uint256 _tokenId
+    ) public view returns (uint256 _maxRevenue) {
+        _maxRevenue = _traits[_tokenId].maxRevenue;
+    }
+
     function traitPrice() public view returns (uint256 _price) {
         if (block.timestamp < auctionStartTime) revert AuctionNotLive();
 
@@ -342,5 +338,16 @@ contract Traits is ITraits, ERC1155, ERC1155Supply, Ownable {
                         (auctionEndTime - auctionStartTime))
                 );
         }
+    }
+
+    function _beforeTokenTransfer(
+        address operator,
+        address from,
+        address to,
+        uint256[] memory ids,
+        uint256[] memory amounts,
+        bytes memory data
+    ) internal override(ERC1155, ERC1155Supply) {
+        super._beforeTokenTransfer(operator, from, to, ids, amounts, data);
     }
 }
