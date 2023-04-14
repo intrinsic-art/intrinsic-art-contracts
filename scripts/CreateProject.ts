@@ -94,7 +94,7 @@ const CreateProject = async (
     projectConfigs[projectIndex].createTraitsData.traitNames,
     projectConfigs[projectIndex].createTraitsData.traitValues,
     projectConfigs[projectIndex].createTraitsData.traitTypeIndexes,
-    projectConfigs[projectIndex].createTraitsData.traitMaxRevenues
+    projectConfigs[projectIndex].createTraitsData.traitMaxSupplys
   );
 
   const scripts = projectConfigs[projectIndex].scripts;

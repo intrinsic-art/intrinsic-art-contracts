@@ -13,8 +13,7 @@ interface ITraits is IERC1155 {
         string name;
         string value;
         uint256 typeIndex;
-        uint256 maxRevenue;
-        uint256 totalRevenue;
+        uint256 maxSupply;
     }
 
     event TraitsBought(
@@ -29,7 +28,7 @@ interface ITraits is IERC1155 {
     error NotLocked();
     error InvalidAuction();
     error OnlyClaimer();
-    error SoldOut();
+    error MaxSupply();
     error InvalidEthAmount();
     error InvalidTraits();
     error NoRevenue();
@@ -68,8 +67,6 @@ interface ITraits is IERC1155 {
         uint256[] calldata _traitAmounts
     ) external payable;
 
-    function maxSupply(uint256 _tokenId) external view returns (uint256 _maxSupply);
-
     function transferTraitsToCreateArtwork(
         address _caller,
         uint256[] calldata _traitTokenIds
@@ -78,18 +75,6 @@ interface ITraits is IERC1155 {
     function claimPlatformRevenue() external;
 
     function claimArtistRevenue() external;
-
-    function traits()
-        external
-        view
-        returns (
-            uint256[] memory _traitTokenIds,
-            string[] memory _traitNames,
-            string[] memory _traitValues,
-            uint256[] memory _traitTypeIndexes,
-            string[] memory _traitTypeNames,
-            string[] memory _traitTypeValues
-        );
 
     function traitTypes()
         external
@@ -111,13 +96,21 @@ interface ITraits is IERC1155 {
             string memory _traitTypeValue
         );
 
-    function traitTotalRevenue(
-        uint256 _tokenId
-    ) external view returns (uint256 _totalRevenue);
-
-    function traitMaxRevenue(
-        uint256 _tokenId
-    ) external view returns (uint256 _maxRevenue);
+    function traits()
+        external
+        view
+        returns (
+            uint256[] memory _traitTokenIds,
+            string[] memory _traitNames,
+            string[] memory _traitValues,
+            uint256[] memory _traitTypeIndexes,
+            string[] memory _traitTypeNames,
+            string[] memory _traitTypeValues,
+            uint256[] memory _traitTotalSupplys,
+            uint256[] memory _traitMaxSupplys
+        );
 
     function traitPrice() external view returns (uint256 _price);
+
+    function maxSupply(uint256 _tokenId) external view returns (uint256 _maxSupply);
 }

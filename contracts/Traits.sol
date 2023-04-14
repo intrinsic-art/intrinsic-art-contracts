@@ -47,7 +47,7 @@ contract Traits is ITraits, ERC1155, ERC1155Supply, Ownable {
         string[] calldata _traitNames,
         string[] calldata _traitValues,
         uint256[] calldata _traitTypeIndexes,
-        uint256[] calldata _traitMaxRevenues
+        uint256[] calldata _traitMaxSupplys
     ) external onlyOwner {
         if (artwork.locked()) revert Locked();
         if (
@@ -56,7 +56,7 @@ contract Traits is ITraits, ERC1155, ERC1155Supply, Ownable {
             _traitTypeNames.length != _traitTypeValues.length ||
             _traitNames.length != _traitValues.length ||
             _traitNames.length != _traitTypeIndexes.length ||
-            _traitNames.length != _traitMaxRevenues.length
+            _traitNames.length != _traitMaxSupplys.length
         ) revert InvalidArrayLengths();
 
         // Push trait types to array
@@ -80,8 +80,7 @@ contract Traits is ITraits, ERC1155, ERC1155Supply, Ownable {
                     name: _traitNames[i],
                     value: _traitValues[i],
                     typeIndex: _traitTypeIndexes[i],
-                    maxRevenue: _traitMaxRevenues[i],
-                    totalRevenue: 0
+                    maxSupply: _traitMaxSupplys[i]
                 })
             );
 
@@ -139,15 +138,10 @@ contract Traits is ITraits, ERC1155, ERC1155Supply, Ownable {
         for (uint256 i; i < _traitAmounts.length; ) {
             _traitCount += _traitAmounts[i];
 
-            uint256 newTraitRevenue = _traits[_traitTokenIds[i]].totalRevenue +
-                (_traitPrice * _traitAmounts[i]);
-
             if (
-                newTraitRevenue >
-                _traits[_traitTokenIds[i]].maxRevenue + _traitPrice
-            ) revert SoldOut();
-
-            _traits[_traitTokenIds[i]].totalRevenue = newTraitRevenue;
+                totalSupply(_traitTokenIds[i]) + _traitAmounts[i] >
+                _traits[_traitTokenIds[i]].maxSupply
+            ) revert MaxSupply();
 
             unchecked {
                 ++i;
@@ -220,55 +214,6 @@ contract Traits is ITraits, ERC1155, ERC1155Supply, Ownable {
         artistRevenueClaimer.transfer(claimedRevenue);
     }
 
-    function maxSupply(
-        uint256 _tokenId
-    ) public view returns (uint256 _maxSupply) {
-        if (_traits[_tokenId].maxRevenue >= _traits[_tokenId].totalRevenue) {
-            _maxSupply =
-                totalSupply(_tokenId) +
-                ((_traits[_tokenId].maxRevenue -
-                    _traits[_tokenId].totalRevenue) / auctionEndPrice) +
-                1;
-        } else {
-            _maxSupply = totalSupply(_tokenId);
-        }
-    }
-
-    function traits()
-        public
-        view
-        returns (
-            uint256[] memory _traitTokenIds,
-            string[] memory _traitNames,
-            string[] memory _traitValues,
-            uint256[] memory _traitTypeIndexes,
-            string[] memory _traitTypeNames,
-            string[] memory _traitTypeValues
-        )
-    {
-        uint256 traitCount = _traits.length;
-
-        _traitTokenIds = new uint256[](traitCount);
-        _traitNames = new string[](traitCount);
-        _traitValues = new string[](traitCount);
-        _traitTypeIndexes = new uint256[](traitCount);
-        _traitTypeNames = new string[](traitCount);
-        _traitTypeValues = new string[](traitCount);
-
-        for (uint256 i = 0; i < traitCount; ) {
-            _traitTokenIds[i] = i;
-            _traitNames[i] = _traits[i].name;
-            _traitValues[i] = _traits[i].value;
-            _traitTypeIndexes[i] = _traits[i].typeIndex;
-            _traitTypeNames[i] = _traitTypes[_traits[i].typeIndex].name;
-            _traitTypeValues[i] = _traitTypes[_traits[i].typeIndex].value;
-
-            unchecked {
-                ++i;
-            }
-        }
-    }
-
     function traitTypes()
         external
         view
@@ -310,16 +255,45 @@ contract Traits is ITraits, ERC1155, ERC1155Supply, Ownable {
         _traitTypeValue = _traitTypes[_traits[_tokenId].typeIndex].value;
     }
 
-    function traitTotalRevenue(
-        uint256 _tokenId
-    ) public view returns (uint256 _totalRevenue) {
-        _totalRevenue = _traits[_tokenId].totalRevenue;
-    }
+    function traits()
+        public
+        view
+        returns (
+            uint256[] memory _traitTokenIds,
+            string[] memory _traitNames,
+            string[] memory _traitValues,
+            uint256[] memory _traitTypeIndexes,
+            string[] memory _traitTypeNames,
+            string[] memory _traitTypeValues,
+            uint256[] memory _traitTotalSupplys,
+            uint256[] memory _traitMaxSupplys
+        )
+    {
+        uint256 traitCount = _traits.length;
 
-    function traitMaxRevenue(
-        uint256 _tokenId
-    ) public view returns (uint256 _maxRevenue) {
-        _maxRevenue = _traits[_tokenId].maxRevenue;
+        _traitTokenIds = new uint256[](traitCount);
+        _traitNames = new string[](traitCount);
+        _traitValues = new string[](traitCount);
+        _traitTypeIndexes = new uint256[](traitCount);
+        _traitTypeNames = new string[](traitCount);
+        _traitTypeValues = new string[](traitCount);
+        _traitTotalSupplys = new uint256[](traitCount);
+        _traitMaxSupplys = new uint256[](traitCount);
+
+        for (uint256 i = 0; i < traitCount; ) {
+            _traitTokenIds[i] = i;
+            _traitNames[i] = _traits[i].name;
+            _traitValues[i] = _traits[i].value;
+            _traitTypeIndexes[i] = _traits[i].typeIndex;
+            _traitTypeNames[i] = _traitTypes[_traits[i].typeIndex].name;
+            _traitTypeValues[i] = _traitTypes[_traits[i].typeIndex].value;
+            _traitTotalSupplys[i] = totalSupply(i);
+            _traitMaxSupplys[i] = _traits[i].maxSupply;
+
+            unchecked {
+                ++i;
+            }
+        }
     }
 
     function traitPrice() public view returns (uint256 _price) {
@@ -350,4 +324,8 @@ contract Traits is ITraits, ERC1155, ERC1155Supply, Ownable {
     ) internal override(ERC1155, ERC1155Supply) {
         super._beforeTokenTransfer(operator, from, to, ids, amounts, data);
     }
+
+  function maxSupply(uint256 _tokenId) external view returns (uint256 _maxSupply) {
+    _maxSupply = _traits[_tokenId].maxSupply;
+  }
 }

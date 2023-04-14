@@ -79,7 +79,9 @@ interface IArtwork is IERC721 {
             string[] memory _traitValues,
             uint256[] memory _traitTypeIndexes,
             string[] memory _traitTypeNames,
-            string[] memory _traitTypeValues
+            string[] memory _traitTypeValues,
+            uint256[] memory _traitTotalSupplys,
+            uint256[] memory _traitMaxSupplys
         );
 
     function supportsInterface(bytes4 interfaceId) external view returns (bool);

@@ -658,6 +658,16 @@
         "internalType": "string[]",
         "name": "_traitTypeValues",
         "type": "string[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "_traitTotalSupplys",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "_traitMaxSupplys",
+        "type": "uint256[]"
       }
     ],
     "stateMutability": "view",

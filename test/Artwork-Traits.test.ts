@@ -54,13 +54,7 @@ describe("Artwork and Traits", function () {
         ["Blonde", "Brown", "Black", "Green", "Blue"],
         ["blonde", "brown", "black", "green", "blue"],
         [0, 0, 0, 1, 1],
-        [
-          ethers.utils.parseEther("10"),
-          ethers.utils.parseEther("10"),
-          ethers.utils.parseEther("10"),
-          ethers.utils.parseEther("10"),
-          ethers.utils.parseEther("10"),
-        ]
+        [10, 20, 30, 40, 50]
       );
 
     await artwork.connect(owner).updateScript(0, "Test Script 1");
@@ -117,6 +111,20 @@ describe("Artwork and Traits", function () {
       ],
       ["Hair Color", "Hair Color", "Hair Color", "Eye Color", "Eye Color"],
       ["hairColor", "hairColor", "hairColor", "eyeColor", "eyeColor"],
+      [
+        BigNumber.from(0),
+        BigNumber.from(0),
+        BigNumber.from(0),
+        BigNumber.from(0),
+        BigNumber.from(0),
+      ],
+      [
+        BigNumber.from(10),
+        BigNumber.from(20),
+        BigNumber.from(30),
+        BigNumber.from(40),
+        BigNumber.from(50),
+      ],
     ]);
 
     expect(await traits.traitTypes()).to.deep.eq([
@@ -289,73 +297,50 @@ describe("Artwork and Traits", function () {
     expect(await traits.traitPrice()).to.eq(auctionEndPrice);
   });
 
-  it("Trait total supply and max supply update correctly", async () => {
-    // Trait max revenues is 10 ETH
-    // Start Price is 1 ETH
-    // End Price is 0.1 ETH
-
-    const maxRevenue = ethers.utils.parseEther("10");
-
+  it("Trait total supplys cannot exceed max supplys", async () => {
     // Go to start of auction period
     await time.increaseTo(auctionStartTime);
-
-    expect(await traits.traitPrice()).to.eq(ethers.utils.parseEther("1"));
 
     // User has 0 of trait 0
     expect(await traits.balanceOf(user.address, 0)).to.eq(0);
 
-    // Trait 0 has 0 ETH of total revenue
-    expect(await traits.traitTotalRevenue(0)).to.eq(0);
+    expect(await traits.totalSupply(0)).to.eq(0);
 
-    // Max supply should be (10 / 0.1) + 1 = 101
-    expect(await traits.maxSupply(0)).to.eq(101);
+    expect(await traits.maxSupply(0)).to.eq(10);
 
     // Buy x1 of trait 0 with 1 ETH
     await traits.connect(user).buyTraits(user.address, [0], [1], {
       value: ethers.utils.parseEther("1"),
     });
 
-    const ethSpent1 = await traits.traitPrice();
+    expect(await traits.totalSupply(0)).to.eq(1);
+
+    expect(await traits.maxSupply(0)).to.eq(10);
 
     // User has 1 of trait 0
     expect(await traits.balanceOf(user.address, 0)).to.eq(1);
 
-    // Trait 0 has 1 ETH of total revenue
-    expect(await traits.traitTotalRevenue(0)).to.eq(ethSpent1);
-
-    // Max supply = ( 9 / 0.1 ) + 2 = 92
-    expect(await traits.maxSupply(0)).to.eq(
-      maxRevenue.sub(ethSpent1).div(auctionEndPrice).add(2)
-    );
-
-    // Increase time to end of auction
-    await time.increaseTo(auctionEndTime + 1);
-
     await expect(
-      traits.connect(user).buyTraits(user.address, [0], [92], {
-        value: ethers.utils.parseEther("9.2"),
+      traits.connect(user).buyTraits(user.address, [0], [10], {
+        value: ethers.utils.parseEther("10"),
       })
-    ).to.be.revertedWith("SoldOut()");
+    ).to.be.revertedWith("MaxSupply()");
 
-    expect(await traits.maxSupply(0)).to.eq(BigNumber.from("92"));
-
-    await traits.connect(user).buyTraits(user.address, [0], [91], {
-      value: ethers.utils.parseEther("9.1"),
+    await traits.connect(user).buyTraits(user.address, [0], [9], {
+      value: ethers.utils.parseEther("10"),
     });
 
-    // User has 92 of trait 0
-    expect(await traits.balanceOf(user.address, 0)).to.eq(92);
+    expect(await traits.totalSupply(0)).to.eq(10);
 
-    expect(await traits.traitTotalRevenue(0)).to.eq(
-      ethSpent1.add(ethers.utils.parseEther("9.1"))
-    );
+    expect(await traits.maxSupply(0)).to.eq(10);
 
-    expect(await traits.maxSupply(0)).to.eq(92);
+    // User has 1 of trait 0
+    expect(await traits.balanceOf(user.address, 0)).to.eq(10);
 
     await expect(
       traits.connect(user).buyTraits(user.address, [0], [1], {
-        value: ethers.utils.parseEther("0.1"),
+        value: ethers.utils.parseEther("1"),
       })
-    ).to.be.revertedWith("SoldOut()");
+    ).to.be.revertedWith("MaxSupply()");
   });
 });

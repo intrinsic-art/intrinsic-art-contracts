@@ -1,4 +1,4 @@
-import { ethers } from "ethers";
+import { BigNumber, ethers } from "ethers";
 
 interface ProjectConfig {
   artworkConstructorData: {
@@ -21,7 +21,7 @@ interface ProjectConfig {
     traitNames: string[];
     traitValues: string[];
     traitTypeIndexes: number[];
-    traitMaxRevenues: ethers.BigNumber[];
+    traitMaxSupplys: ethers.BigNumber[];
   };
   scheduleAuctionData: {
     auctionStartTime: number;
@@ -83,22 +83,24 @@ const projectConfigs: ProjectConfig[] = [
         "ordered",
       ],
       traitTypeIndexes: [0, 0, 0, 1, 1, 1, 2, 2, 2],
-      traitMaxRevenues: [
-        ethers.utils.parseEther("0.1"),
-        ethers.utils.parseEther("0.1"),
-        ethers.utils.parseEther("0.1"),
-        ethers.utils.parseEther("0.1"),
-        ethers.utils.parseEther("0.1"),
-        ethers.utils.parseEther("0.1"),
-        ethers.utils.parseEther("0.1"),
-        ethers.utils.parseEther("0.1"),
-        ethers.utils.parseEther("0.1"),
+      traitMaxSupplys: [
+        BigNumber.from(100),
+        BigNumber.from(100),
+        BigNumber.from(100),
+        BigNumber.from(100),
+        BigNumber.from(100),
+        BigNumber.from(100),
+        BigNumber.from(100),
+        BigNumber.from(100),
+        BigNumber.from(100),
       ],
     },
     scheduleAuctionData: {
       auctionStartTime: Math.trunc(Date.now() / 1000) + 10,
       auctionEndTime: Math.trunc(Date.now() / 1000) + 10,
-      auctionStartPrice: ethers.utils.parseEther("0.001"),
+      // auctionStartTime: 1681250400,
+      // auctionEndTime: 1681254000,
+      auctionStartPrice: ethers.utils.parseEther("0.01"),
       auctionEndPrice: ethers.utils.parseEther("0.001"),
     },
     scripts: [

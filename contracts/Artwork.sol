@@ -223,7 +223,9 @@ contract Artwork is IArtwork, IERC721Metadata, ERC721, ERC1155Holder, Ownable {
             string[] memory _traitValues,
             uint256[] memory _traitTypeIndexes,
             string[] memory _traitTypeNames,
-            string[] memory _traitTypeValues
+            string[] memory _traitTypeValues,
+            uint256[] memory _traitTotalSupplys,
+            uint256[] memory _traitMaxSupplys
         )
     {
         (
@@ -232,7 +234,9 @@ contract Artwork is IArtwork, IERC721Metadata, ERC721, ERC1155Holder, Ownable {
             _traitValues,
             _traitTypeIndexes,
             _traitTypeNames,
-            _traitTypeValues
+            _traitTypeValues,
+            _traitTotalSupplys,
+            _traitMaxSupplys
         ) = traits.traits();
     }
 
