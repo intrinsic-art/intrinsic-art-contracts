@@ -3,7 +3,7 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "_studio",
+        "name": "_artwork",
         "type": "address"
       },
       {
@@ -29,6 +29,61 @@
     ],
     "stateMutability": "nonpayable",
     "type": "constructor"
+  },
+  {
+    "inputs": [],
+    "name": "AuctionNotLive",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InvalidArrayLengths",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InvalidAuction",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InvalidEthAmount",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InvalidTraits",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "Locked",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "MaxSupply",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "NoRevenue",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "NotLocked",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "OnlyArtwork",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "OnlyClaimer",
+    "type": "error"
   },
   {
     "anonymous": false,
@@ -246,12 +301,38 @@
   },
   {
     "inputs": [],
+    "name": "AUCTION_PLATFORM_FEE_NUMERATOR",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "FEE_DENOMINATOR",
     "outputs": [
       {
         "internalType": "uint256",
         "name": "",
         "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "VERSION",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
       }
     ],
     "stateMutability": "view",
@@ -285,6 +366,19 @@
   },
   {
     "inputs": [],
+    "name": "artwork",
+    "outputs": [
+      {
+        "internalType": "contract IArtwork",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "auctionEndPrice",
     "outputs": [
       {
@@ -299,19 +393,6 @@
   {
     "inputs": [],
     "name": "auctionEndTime",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "auctionPlatformFeeNumerator",
     "outputs": [
       {
         "internalType": "uint256",
@@ -462,7 +543,7 @@
       },
       {
         "internalType": "uint256[]",
-        "name": "_traitMaxRevenues",
+        "name": "_traitMaxSupplys",
         "type": "uint256[]"
       }
     ],
@@ -526,7 +607,7 @@
     "outputs": [
       {
         "internalType": "uint256",
-        "name": "",
+        "name": "_maxSupply",
         "type": "uint256"
       }
     ],
@@ -692,19 +773,6 @@
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "studio",
-    "outputs": [
-      {
-        "internalType": "contract IStudio",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
     "inputs": [
       {
         "internalType": "bytes4",
@@ -840,6 +908,16 @@
         "internalType": "string[]",
         "name": "_traitTypeValues",
         "type": "string[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "_traitTotalSupplys",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "_traitMaxSupplys",
+        "type": "uint256[]"
       }
     ],
     "stateMutability": "view",
@@ -872,24 +950,6 @@
       }
     ],
     "name": "transferTraitsToCreateArtwork",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "_caller",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256[]",
-        "name": "_traitTokenIds",
-        "type": "uint256[]"
-      }
-    ],
-    "name": "transferTraitsToDecomposeArtwork",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -942,19 +1002,6 @@
       }
     ],
     "name": "uri",
-    "outputs": [
-      {
-        "internalType": "string",
-        "name": "",
-        "type": "string"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "version",
     "outputs": [
       {
         "internalType": "string",

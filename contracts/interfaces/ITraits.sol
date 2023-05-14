@@ -1,18 +1,9 @@
-//SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+// SPDX-License-Identifier: GNU GPLv3
+pragma solidity =0.8.19;
 
-interface ITraits {
-    event TraitsBought(
-        address indexed recipient,
-        uint256[] traitTokenIds,
-        uint256[] traitQuantities
-    );
+import {IERC1155} from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 
-    event PlatformRevenueClaimed(uint256 claimedRevenue);
-    event ArtistRevenueClaimed(uint256 claimedRevenue);
-    event PlatormRevenueClaimerUpdated(address indexed claimer);
-    event ArtistRevenueClaimerUpdated(address indexed claimer);
-
+interface ITraits is IERC1155 {
     struct TraitType {
         string name;
         string value;
@@ -22,9 +13,31 @@ interface ITraits {
         string name;
         string value;
         uint256 typeIndex;
-        uint256 maxRevenue;
-        uint256 totalRevenue;
+        uint256 maxSupply;
     }
+
+    event TraitsBought(
+        address indexed recipient,
+        uint256[] traitTokenIds,
+        uint256[] traitQuantities
+    );
+
+    error OnlyArtwork();
+    error Locked();
+    error InvalidArrayLengths();
+    error NotLocked();
+    error InvalidAuction();
+    error OnlyClaimer();
+    error MaxSupply();
+    error InvalidEthAmount();
+    error InvalidTraits();
+    error NoRevenue();
+    error AuctionNotLive();
+
+    event PlatformRevenueClaimed(uint256 claimedRevenue);
+    event ArtistRevenueClaimed(uint256 claimedRevenue);
+    event PlatormRevenueClaimerUpdated(address indexed claimer);
+    event ArtistRevenueClaimerUpdated(address indexed claimer);
 
     function createTraitsAndTypes(
         string[] memory _traitTypeNames,
@@ -54,14 +67,7 @@ interface ITraits {
         uint256[] calldata _traitAmounts
     ) external payable;
 
-    function maxSupply(uint256 _tokenId) external view returns (uint256);
-
     function transferTraitsToCreateArtwork(
-        address _caller,
-        uint256[] calldata _traitTokenIds
-    ) external;
-
-    function transferTraitsToDecomposeArtwork(
         address _caller,
         uint256[] calldata _traitTokenIds
     ) external;
@@ -69,18 +75,6 @@ interface ITraits {
     function claimPlatformRevenue() external;
 
     function claimArtistRevenue() external;
-
-    function traits()
-        external
-        view
-        returns (
-            uint256[] memory _traitTokenIds,
-            string[] memory _traitNames,
-            string[] memory _traitValues,
-            uint256[] memory _traitTypeIndexes,
-            string[] memory _traitTypeNames,
-            string[] memory _traitTypeValues
-        );
 
     function traitTypes()
         external
@@ -102,5 +96,21 @@ interface ITraits {
             string memory _traitTypeValue
         );
 
+    function traits()
+        external
+        view
+        returns (
+            uint256[] memory _traitTokenIds,
+            string[] memory _traitNames,
+            string[] memory _traitValues,
+            uint256[] memory _traitTypeIndexes,
+            string[] memory _traitTypeNames,
+            string[] memory _traitTypeValues,
+            uint256[] memory _traitTotalSupplys,
+            uint256[] memory _traitMaxSupplys
+        );
+
     function traitPrice() external view returns (uint256 _price);
+
+    function maxSupply(uint256 _tokenId) external view returns (uint256 _maxSupply);
 }

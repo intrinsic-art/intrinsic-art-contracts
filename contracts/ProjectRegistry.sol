@@ -1,22 +1,24 @@
-//SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+// SPDX-License-Identifier: GNU GPLv3
+pragma solidity =0.8.19;
 
-import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 contract ProjectRegistry is OwnableUpgradeable {
     struct Project {
-      address studio;
-      address traits;
+        address artwork;
+        address traits;
     }
 
-    uint256 nextProjectId = 1;
+    uint256 public projectCount;
     mapping(address => bool) public admins;
     mapping(uint256 => Project) public projects;
 
-    event ProjectRegistered(uint256 projectId, address studio, address traits);
+    event ProjectRegistered(uint256 projectId, address artwork, address traits);
+
+    error OnlyAdmin();
 
     modifier onlyAdmin() {
-        require(admins[msg.sender], "P01");
+        if(!admins[msg.sender]) revert OnlyAdmin();
         _;
     }
 
@@ -28,14 +30,17 @@ contract ProjectRegistry is OwnableUpgradeable {
         _addAdmins(_admins);
     }
 
-    function registerProject(address _studio, address _traits) external onlyAdmin {
-      projects[nextProjectId].studio = _studio;
-      projects[nextProjectId].traits = _traits;
+    function registerProject(
+        address _artwork,
+        address _traits
+    ) external onlyAdmin {
+        projectCount++;
 
-      emit ProjectRegistered(nextProjectId, _studio, _traits);
+        projects[projectCount].artwork = _artwork;
+        projects[projectCount].traits = _traits;
 
-      nextProjectId++;
-    }    
+        emit ProjectRegistered(projectCount, _artwork, _traits);
+    }
 
     function addAdmins(address[] calldata _admins) external onlyOwner {
         _addAdmins(_admins);

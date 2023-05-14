@@ -1,18 +1,21 @@
-//SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+// SPDX-License-Identifier: GNU GPLv3
+pragma solidity =0.8.19;
 
-interface IStudio {
+import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+
+interface IArtwork is IERC721 {
     struct ArtworkData {
-        uint256[] traitTokenIds;
         bytes32 hash;
+        uint256[] traitTokenIds;
     }
 
-    event ArtistAddressUpdated(
-      address indexed artistAddress
-    );
+    error TraitsAlreadySet();
+    error Locked();
+    error OnlyArtist();
+    error OnlyArtworkOwner();
 
+    event ArtistAddressUpdated(address indexed artistAddress);
     event BaseURIUpdated(string baseURI);
-
     event ArtworkCreated(
         uint256 indexed artworkTokenId,
         uint256[] traitTokenIds,
@@ -76,7 +79,9 @@ interface IStudio {
             string[] memory _traitValues,
             uint256[] memory _traitTypeIndexes,
             string[] memory _traitTypeNames,
-            string[] memory _traitTypeValues
+            string[] memory _traitTypeValues,
+            uint256[] memory _traitTotalSupplys,
+            uint256[] memory _traitMaxSupplys
         );
 
     function supportsInterface(bytes4 interfaceId) external view returns (bool);

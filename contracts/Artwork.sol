@@ -1,25 +1,25 @@
-//SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+// SPDX-License-Identifier: GNU GPLv3
+pragma solidity =0.8.19;
 
-import "./interfaces/ITraits.sol";
-import "./interfaces/IStudio.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
-import "@openzeppelin/contracts/utils/Strings.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
+import {ITraits} from "./interfaces/ITraits.sol";
+import {IArtwork} from "./interfaces/IArtwork.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import {ERC1155Holder, ERC1155Receiver, IERC165} from "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import {IERC721Metadata} from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 
-contract Studio is IStudio, IERC721Metadata, ERC721, ERC1155Holder, Ownable {
+contract Artwork is IArtwork, IERC721Metadata, ERC721, ERC1155Holder, Ownable {
     using Strings for uint256;
     using Strings for address;
 
     bool public locked;
-    uint256 public nextTokenId;
     address public artistAddress;
     ITraits public traits;
     string public baseURI;
     string public scriptJSON;
-    string public constant version = "1.0.0";
+    string public constant VERSION = "1.0.0";
+    uint256 public nextTokenId;
     mapping(uint256 => string) private scripts;
     mapping(uint256 => ArtworkData) private artworkData;
     mapping(address => uint256) private userNonces;
@@ -39,7 +39,7 @@ contract Studio is IStudio, IERC721Metadata, ERC721, ERC1155Holder, Ownable {
     }
 
     function setTraits(address _traits) external onlyOwner {
-        require(address(traits) == address(0), "S01");
+        if (address(traits) != address(0)) revert TraitsAlreadySet();
 
         traits = ITraits(_traits);
     }
@@ -48,7 +48,7 @@ contract Studio is IStudio, IERC721Metadata, ERC721, ERC1155Holder, Ownable {
         uint256 _scriptIndex,
         string calldata _script
     ) external onlyOwner {
-        require(!locked, "S02");
+        if (locked) revert Locked();
 
         scripts[_scriptIndex] = (_script);
     }
@@ -60,14 +60,14 @@ contract Studio is IStudio, IERC721Metadata, ERC721, ERC1155Holder, Ownable {
     }
 
     function updateArtistAddress(address _artistAddress) external {
-        require(msg.sender == artistAddress, "S03");
+        if (msg.sender != artistAddress) revert OnlyArtist();
 
         artistAddress = _artistAddress;
         emit ArtistAddressUpdated(_artistAddress);
     }
 
     function lockProject() external onlyOwner {
-        require(!locked, "S04");
+        if (locked) revert Locked();
 
         locked = true;
     }
@@ -91,20 +91,26 @@ contract Studio is IStudio, IERC721Metadata, ERC721, ERC1155Holder, Ownable {
     }
 
     function decomposeArtwork(uint256 _artworkTokenId) public {
-        require(msg.sender == _ownerOf(_artworkTokenId), "S05");
+        if (msg.sender != _ownerOf(_artworkTokenId)) revert OnlyArtworkOwner();
 
         // Clear Artwork state
-        uint256[] memory traitTokenIds = artworkData[_artworkTokenId].traitTokenIds;
+        uint256[] memory traitTokenIds = artworkData[_artworkTokenId]
+            .traitTokenIds;
         artworkData[_artworkTokenId].hash = 0;
         artworkData[_artworkTokenId].traitTokenIds = new uint256[](0);
 
         emit ArtworkDecomposed(_artworkTokenId, msg.sender);
 
+        uint256[] memory amounts = new uint256[](traitTokenIds.length);
+        for (uint256 i; i < amounts.length; ) {
+          amounts[i] = 1;
+          unchecked {
+            ++i;
+          }
+        }
+
         _burn(_artworkTokenId);
-        traits.transferTraitsToDecomposeArtwork(
-            msg.sender,
-            traitTokenIds
-        );
+        traits.safeBatchTransferFrom(address(this), msg.sender, traitTokenIds, amounts, "");
     }
 
     function buyTraitsCreateArtwork(
@@ -125,7 +131,7 @@ contract Studio is IStudio, IERC721Metadata, ERC721, ERC1155Holder, Ownable {
     )
         public
         view
-        override(ERC721, IERC721Metadata, IStudio)
+        override(ERC721, IERC721Metadata, IArtwork)
         returns (string memory)
     {
         _requireMinted(tokenId);
@@ -166,13 +172,17 @@ contract Studio is IStudio, IERC721Metadata, ERC721, ERC1155Holder, Ownable {
         _traitTypeNames = new string[](traitCount);
         _traitTypeValues = new string[](traitCount);
 
-        for (uint256 i; i < traitCount; i++) {
+        for (uint256 i; i < traitCount;) {
             (
                 _traitNames[i],
                 _traitValues[i],
                 _traitTypeNames[i],
                 _traitTypeValues[i]
             ) = traits.trait(_traitTokenIds[i]);
+
+            unchecked {
+              ++i;
+            }
         }
 
         _hash = artworkData[_artworkTokenId].hash;
@@ -182,8 +192,12 @@ contract Studio is IStudio, IERC721Metadata, ERC721, ERC1155Holder, Ownable {
         uint256 scriptCount = projectScriptCount();
         _scripts = new string[](scriptCount);
 
-        for (uint256 i; i < scriptCount; i++) {
+        for (uint256 i; i < scriptCount;) {
             _scripts[i] = scripts[i];
+
+            unchecked {
+              ++i;
+            }
         }
     }
 
@@ -209,7 +223,9 @@ contract Studio is IStudio, IERC721Metadata, ERC721, ERC1155Holder, Ownable {
             string[] memory _traitValues,
             uint256[] memory _traitTypeIndexes,
             string[] memory _traitTypeNames,
-            string[] memory _traitTypeValues
+            string[] memory _traitTypeValues,
+            uint256[] memory _traitTotalSupplys,
+            uint256[] memory _traitMaxSupplys
         )
     {
         (
@@ -218,7 +234,9 @@ contract Studio is IStudio, IERC721Metadata, ERC721, ERC1155Holder, Ownable {
             _traitValues,
             _traitTypeIndexes,
             _traitTypeNames,
-            _traitTypeValues
+            _traitTypeValues,
+            _traitTotalSupplys,
+            _traitMaxSupplys
         ) = traits.traits();
     }
 
@@ -231,11 +249,11 @@ contract Studio is IStudio, IERC721Metadata, ERC721, ERC1155Holder, Ownable {
     )
         public
         view
-        override(IERC165, ERC721, ERC1155Receiver, IStudio)
+        override(IERC165, ERC721, ERC1155Receiver, IArtwork)
         returns (bool)
     {
         return
-            interfaceId == type(IStudio).interfaceId ||
+            interfaceId == type(IArtwork).interfaceId ||
             super.supportsInterface(interfaceId);
     }
 }
