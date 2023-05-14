@@ -6,8 +6,9 @@ import {IArtwork} from "./interfaces/IArtwork.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ERC1155} from "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import {ERC1155Supply} from "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
+import {PaymentSplitter} from "@openzeppelin/contracts/finance/PaymentSplitter.sol";
 
-contract Traits is ITraits, ERC1155, ERC1155Supply, Ownable {
+contract Traits is ITraits, ERC1155, ERC1155Supply, Ownable, PaymentSplitter {
     IArtwork public artwork;
     address payable public platformRevenueClaimer;
     address payable public artistRevenueClaimer;
@@ -33,8 +34,10 @@ contract Traits is ITraits, ERC1155, ERC1155Supply, Ownable {
         string memory _uri,
         address _owner,
         address payable _platformRevenueClaimer,
-        address payable _artistRevenueClaimer
-    ) ERC1155(_uri) {
+        address payable _artistRevenueClaimer,
+        address[] memory _payees,
+        uint256[] memory _shares
+    ) ERC1155(_uri) PaymentSplitter(_payees, _shares) {
         artwork = IArtwork(_artwork);
         _transferOwnership(_owner);
         platformRevenueClaimer = _platformRevenueClaimer;
