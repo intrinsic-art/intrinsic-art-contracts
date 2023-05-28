@@ -107,7 +107,7 @@
       {
         "indexed": false,
         "internalType": "uint256[]",
-        "name": "traitQuantities",
+        "name": "traitAmounts",
         "type": "uint256[]"
       }
     ],

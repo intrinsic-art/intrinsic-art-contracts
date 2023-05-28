@@ -80,15 +80,15 @@ interface IArtwork is IERC721 {
     function decomposeArtwork(uint256 _artworkTokenId) external;
 
     /**
-     * Buys traits with specified quantities, and create an artwork in a single transaction
+     * Buys traits with specified amounts, and create an artwork in a single transaction
      *
      * @param _traitTokenIdsToBuy token IDs of the traits to buy
-     * @param _traitQuantitiesToBuy quantities of each trait to buy
+     * @param _traitAmountsToBuy amounts of each trait to buy
      * @param _traitTokenIdsToCreateArtwork token IDs of the traits to use to create the artwork
      */
     function buyTraitsCreateArtwork(
         uint256[] calldata _traitTokenIdsToBuy,
-        uint256[] calldata _traitQuantitiesToBuy,
+        uint256[] calldata _traitAmountsToBuy,
         uint256[] calldata _traitTokenIdsToCreateArtwork
     ) external payable;
 

@@ -141,14 +141,15 @@ contract Artwork is
     /** @inheritdoc IArtwork*/
     function buyTraitsCreateArtwork(
         uint256[] calldata _traitTokenIdsToBuy,
-        uint256[] calldata _traitQuantitiesToBuy,
+        uint256[] calldata _traitAmountsToBuy,
         uint256[] calldata _traitTokenIdsToCreateArtwork
     ) external payable {
         traits.buyTraits{value: msg.value}(
             msg.sender,
             _traitTokenIdsToBuy,
-            _traitQuantitiesToBuy
+            _traitAmountsToBuy
         );
+
         createArtwork(_traitTokenIdsToCreateArtwork);
     }
 

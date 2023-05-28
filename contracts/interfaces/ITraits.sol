@@ -19,7 +19,7 @@ interface ITraits is IERC1155 {
     event TraitsBought(
         address indexed recipient,
         uint256[] traitTokenIds,
-        uint256[] traitQuantities
+        uint256[] traitAmounts
     );
 
     error OnlyArtwork();
@@ -79,7 +79,7 @@ interface ITraits is IERC1155 {
     function updateURI(string memory _uri) external;
 
     /**
-     * Allows a user to buy any number of traits and quantities using ether
+     * Allows a user to buy any number of traits and amounts using ether
      *
      * @param _recipient the address to receive the trait tokens
      * @param _traitTokenIds the trait token IDs to buy

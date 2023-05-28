@@ -142,12 +142,10 @@ contract Traits is
 
         for (uint256 i; i < _traitAmounts.length; ) {
             _traitCount += _traitAmounts[i];
-
             if (
                 totalSupply(_traitTokenIds[i]) + _traitAmounts[i] >
                 _traits[_traitTokenIds[i]].maxSupply
             ) revert MaxSupply();
-
             unchecked {
                 ++i;
             }
@@ -177,7 +175,6 @@ contract Traits is
             if (_traits[_traitTokenIds[i]].typeIndex != i)
                 revert InvalidTraits();
             amounts[i] = 1;
-
             unchecked {
                 ++i;
             }
@@ -204,6 +201,7 @@ contract Traits is
         uint256 traitTypeCount = _traitTypes.length;
         _traitTypeNames = new string[](traitTypeCount);
         _traitTypeValues = new string[](traitTypeCount);
+
         for (uint256 i; i < traitTypeCount; ) {
             _traitTypeNames[i] = _traitTypes[i].name;
             _traitTypeValues[i] = _traitTypes[i].value;
@@ -274,7 +272,6 @@ contract Traits is
     /** @inheritdoc ITraits*/
     function traitPrice() public view returns (uint256 _price) {
         if (block.timestamp < auctionStartTime) revert AuctionNotLive();
-
         if (block.timestamp > auctionEndTime) {
             // Auction has ended
             _price = auctionEndPrice;

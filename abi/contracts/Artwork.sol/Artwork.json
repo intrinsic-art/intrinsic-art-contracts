@@ -356,7 +356,7 @@
       },
       {
         "internalType": "uint256[]",
-        "name": "_traitQuantitiesToBuy",
+        "name": "_traitAmountsToBuy",
         "type": "uint256[]"
       },
       {
