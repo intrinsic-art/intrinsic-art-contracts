@@ -2,6 +2,11 @@
   {
     "inputs": [
       {
+        "internalType": "uint96",
+        "name": "_royaltyFeeNumerator",
+        "type": "uint96"
+      },
+      {
         "internalType": "string",
         "name": "_name",
         "type": "string"
@@ -23,13 +28,18 @@
       },
       {
         "internalType": "address",
-        "name": "_artistAddress",
+        "name": "_owner",
         "type": "address"
       },
       {
-        "internalType": "address",
-        "name": "_owner",
-        "type": "address"
+        "internalType": "address[]",
+        "name": "_royaltyPayees",
+        "type": "address[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "_royaltyShares",
+        "type": "uint256[]"
       }
     ],
     "stateMutability": "nonpayable",
@@ -53,6 +63,11 @@
   {
     "inputs": [],
     "name": "TraitsAlreadySet",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "TraitsNotSet",
     "type": "error"
   },
   {
@@ -254,19 +269,6 @@
     "name": "approve",
     "outputs": [],
     "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "artistAddress",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -683,6 +685,48 @@
   {
     "inputs": [
       {
+        "internalType": "uint256",
+        "name": "_tokenId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_salePrice",
+        "type": "uint256"
+      }
+    ],
+    "name": "royaltyInfo",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "royaltySplitter",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "address",
         "name": "from",
         "type": "address"
@@ -811,7 +855,7 @@
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "tokenId",
+        "name": "_tokenId",
         "type": "uint256"
       }
     ],
@@ -871,19 +915,6 @@
       }
     ],
     "name": "transferOwnership",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "_artistAddress",
-        "type": "address"
-      }
-    ],
-    "name": "updateArtistAddress",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

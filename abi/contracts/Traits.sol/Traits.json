@@ -2,9 +2,9 @@
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "_artwork",
-        "type": "address"
+        "internalType": "uint96",
+        "name": "_royaltyFeeNumerator",
+        "type": "uint96"
       },
       {
         "internalType": "string",
@@ -13,27 +13,32 @@
       },
       {
         "internalType": "address",
+        "name": "_artwork",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
         "name": "_owner",
         "type": "address"
       },
       {
-        "internalType": "address payable",
-        "name": "_platformRevenueClaimer",
-        "type": "address"
-      },
-      {
-        "internalType": "address payable",
-        "name": "_artistRevenueClaimer",
-        "type": "address"
-      },
-      {
         "internalType": "address[]",
-        "name": "_payees",
+        "name": "_primarySalesPayees",
         "type": "address[]"
       },
       {
         "internalType": "uint256[]",
-        "name": "_shares",
+        "name": "_primarySalesShares",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "address[]",
+        "name": "_royaltyPayees",
+        "type": "address[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "_royaltyShares",
         "type": "uint256[]"
       }
     ],
@@ -58,6 +63,11 @@
   {
     "inputs": [],
     "name": "InvalidEthAmount",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InvalidTokenId",
     "type": "error"
   },
   {
@@ -96,6 +106,11 @@
     "type": "error"
   },
   {
+    "inputs": [],
+    "name": "TraitsAlreadyCreated",
+    "type": "error"
+  },
+  {
     "anonymous": false,
     "inputs": [
       {
@@ -118,32 +133,6 @@
       }
     ],
     "name": "ApprovalForAll",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "claimedRevenue",
-        "type": "uint256"
-      }
-    ],
-    "name": "ArtistRevenueClaimed",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "claimer",
-        "type": "address"
-      }
-    ],
-    "name": "ArtistRevenueClaimerUpdated",
     "type": "event"
   },
   {
@@ -245,32 +234,6 @@
       }
     ],
     "name": "PaymentReleased",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "claimedRevenue",
-        "type": "uint256"
-      }
-    ],
-    "name": "PlatformRevenueClaimed",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "claimer",
-        "type": "address"
-      }
-    ],
-    "name": "PlatormRevenueClaimerUpdated",
     "type": "event"
   },
   {
@@ -393,64 +356,12 @@
   },
   {
     "inputs": [],
-    "name": "AUCTION_PLATFORM_FEE_NUMERATOR",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "FEE_DENOMINATOR",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
     "name": "VERSION",
     "outputs": [
       {
         "internalType": "string",
         "name": "",
         "type": "string"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "artistClaimableRevenues",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "artistRevenueClaimer",
-    "outputs": [
-      {
-        "internalType": "address payable",
-        "name": "",
-        "type": "address"
       }
     ],
     "stateMutability": "view",
@@ -593,20 +504,6 @@
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "claimArtistRevenue",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "claimPlatformRevenue",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
     "inputs": [
       {
         "internalType": "string[]",
@@ -739,32 +636,6 @@
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "platformClaimableRevenues",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "platformRevenueClaimer",
-    "outputs": [
-      {
-        "internalType": "address payable",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
     "inputs": [
       {
         "internalType": "address",
@@ -886,6 +757,48 @@
     "name": "renounceOwnership",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_tokenId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_salePrice",
+        "type": "uint256"
+      }
+    ],
+    "name": "royaltyInfo",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "royaltySplitter",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -1249,32 +1162,6 @@
   {
     "inputs": [
       {
-        "internalType": "address payable",
-        "name": "_claimer",
-        "type": "address"
-      }
-    ],
-    "name": "updateArtistRevenueClaimer",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address payable",
-        "name": "_claimer",
-        "type": "address"
-      }
-    ],
-    "name": "updatePlatformRevenueClaimer",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
         "internalType": "string",
         "name": "_uri",
         "type": "string"
@@ -1289,7 +1176,7 @@
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "",
+        "name": "_tokenId",
         "type": "uint256"
       }
     ],

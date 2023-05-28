@@ -4,19 +4,30 @@ pragma solidity =0.8.19;
 import {ITraits} from "./interfaces/ITraits.sol";
 import {IArtwork} from "./interfaces/IArtwork.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {ERC1155} from "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
+import {ERC1155, IERC165} from "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import {ERC1155Supply} from "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
 import {PaymentSplitter} from "@openzeppelin/contracts/finance/PaymentSplitter.sol";
+import {ERC2981} from "@openzeppelin/contracts/token/common/ERC2981.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
-contract Traits is ITraits, ERC1155, ERC1155Supply, Ownable, PaymentSplitter {
+/**
+ * Implements ERC-1155 standard for trait tokens,
+ * and provides Dutch Auction functionality for initial trait sales
+ */
+contract Traits is
+    ITraits,
+    ERC2981,
+    ERC1155,
+    ERC1155Supply,
+    Ownable,
+    PaymentSplitter
+{
+    using Strings for uint256;
+    using Strings for address;
+
     IArtwork public artwork;
-    address payable public platformRevenueClaimer;
-    address payable public artistRevenueClaimer;
+    address public royaltySplitter;
     string public constant VERSION = "1.0.0";
-    uint256 public constant AUCTION_PLATFORM_FEE_NUMERATOR = 100_000;
-    uint256 public constant FEE_DENOMINATOR = 1_000_000;
-    uint256 public artistClaimableRevenues;
-    uint256 public platformClaimableRevenues;
     uint256 public auctionStartTime;
     uint256 public auctionEndTime;
     uint256 public auctionStartPrice;
@@ -24,26 +35,26 @@ contract Traits is ITraits, ERC1155, ERC1155Supply, Ownable, PaymentSplitter {
     TraitType[] private _traitTypes;
     Trait[] private _traits;
 
-    modifier onlyArtwork() {
-        if (msg.sender != address(artwork)) revert OnlyArtwork();
-        _;
-    }
-
     constructor(
-        address _artwork,
+        uint96 _royaltyFeeNumerator,
         string memory _uri,
+        address _artwork,
         address _owner,
-        address payable _platformRevenueClaimer,
-        address payable _artistRevenueClaimer,
-        address[] memory _payees,
-        uint256[] memory _shares
-    ) ERC1155(_uri) PaymentSplitter(_payees, _shares) {
+        address[] memory _primarySalesPayees,
+        uint256[] memory _primarySalesShares,
+        address[] memory _royaltyPayees,
+        uint256[] memory _royaltyShares
+    ) ERC1155(_uri) PaymentSplitter(_primarySalesPayees, _primarySalesShares) {
         artwork = IArtwork(_artwork);
         _transferOwnership(_owner);
-        platformRevenueClaimer = _platformRevenueClaimer;
-        artistRevenueClaimer = _artistRevenueClaimer;
+        address _royaltySplitter = address(
+            new PaymentSplitter(_royaltyPayees, _royaltyShares)
+        );
+        _setDefaultRoyalty(_royaltySplitter, _royaltyFeeNumerator);
+        royaltySplitter = _royaltySplitter;
     }
 
+    /** @inheritdoc ITraits*/
     function createTraitsAndTypes(
         string[] memory _traitTypeNames,
         string[] memory _traitTypeValues,
@@ -53,6 +64,8 @@ contract Traits is ITraits, ERC1155, ERC1155Supply, Ownable, PaymentSplitter {
         uint256[] calldata _traitMaxSupplys
     ) external onlyOwner {
         if (artwork.locked()) revert Locked();
+        if (_traits.length != 0 || _traitTypes.length != 0)
+            revert TraitsAlreadyCreated();
         if (
             _traitTypeNames.length == 0 ||
             _traitNames.length == 0 ||
@@ -70,7 +83,6 @@ contract Traits is ITraits, ERC1155, ERC1155Supply, Ownable, PaymentSplitter {
                     value: _traitTypeValues[i]
                 })
             );
-
             unchecked {
                 ++i;
             }
@@ -86,13 +98,13 @@ contract Traits is ITraits, ERC1155, ERC1155Supply, Ownable, PaymentSplitter {
                     maxSupply: _traitMaxSupplys[i]
                 })
             );
-
             unchecked {
                 ++i;
             }
         }
     }
 
+    /** @inheritdoc ITraits*/
     function scheduleAuction(
         uint256 _auctionStartTime,
         uint256 _auctionEndTime,
@@ -111,27 +123,17 @@ contract Traits is ITraits, ERC1155, ERC1155Supply, Ownable, PaymentSplitter {
         auctionEndPrice = _auctionEndPrice;
     }
 
+    /** @inheritdoc ITraits*/
     function updateURI(string memory _uri) external onlyOwner {
         _setURI(_uri);
     }
 
-    function updatePlatformRevenueClaimer(
-        address payable _claimer
-    ) external onlyOwner {
-        platformRevenueClaimer = _claimer;
-    }
-
-    function updateArtistRevenueClaimer(address payable _claimer) external {
-        if (msg.sender != artistRevenueClaimer) revert OnlyClaimer();
-
-        artistRevenueClaimer = _claimer;
-    }
-
+    /** @inheritdoc ITraits*/
     function buyTraits(
         address _recipient,
         uint256[] calldata _traitTokenIds,
         uint256[] calldata _traitAmounts
-    ) public payable {
+    ) external payable {
         if (_traitTokenIds.length != _traitAmounts.length)
             revert InvalidArrayLengths();
 
@@ -155,20 +157,17 @@ contract Traits is ITraits, ERC1155, ERC1155Supply, Ownable, PaymentSplitter {
 
         if (msg.value < ethCost) revert InvalidEthAmount();
 
-        uint256 platformRevenue = (msg.value * AUCTION_PLATFORM_FEE_NUMERATOR) /
-            FEE_DENOMINATOR;
-        platformClaimableRevenues += platformRevenue;
-        artistClaimableRevenues += msg.value - platformRevenue;
-
         emit TraitsBought(_recipient, _traitTokenIds, _traitAmounts);
 
         _mintBatch(_recipient, _traitTokenIds, _traitAmounts, "");
     }
 
+    /** @inheritdoc ITraits*/
     function transferTraitsToCreateArtwork(
         address _caller,
         uint256[] calldata _traitTokenIds
-    ) external onlyArtwork {
+    ) external {
+        if (msg.sender != address(artwork)) revert OnlyArtwork();
         if (_traitTokenIds.length != _traitTypes.length)
             revert InvalidArrayLengths();
 
@@ -193,30 +192,7 @@ contract Traits is ITraits, ERC1155, ERC1155Supply, Ownable, PaymentSplitter {
         );
     }
 
-    function claimPlatformRevenue() external {
-        if (msg.sender != platformRevenueClaimer) revert OnlyClaimer();
-        uint256 claimedRevenue = platformClaimableRevenues;
-        if (claimedRevenue == 0) revert NoRevenue();
-
-        platformClaimableRevenues = 0;
-
-        emit PlatformRevenueClaimed(claimedRevenue);
-
-        platformRevenueClaimer.transfer(claimedRevenue);
-    }
-
-    function claimArtistRevenue() external {
-        if (msg.sender != artistRevenueClaimer) revert OnlyClaimer();
-        uint256 claimedRevenue = artistClaimableRevenues;
-        if (claimedRevenue == 0) revert NoRevenue();
-
-        artistClaimableRevenues = 0;
-
-        emit ArtistRevenueClaimed(claimedRevenue);
-
-        artistRevenueClaimer.transfer(claimedRevenue);
-    }
-
+    /** @inheritdoc ITraits*/
     function traitTypes()
         external
         view
@@ -226,24 +202,22 @@ contract Traits is ITraits, ERC1155, ERC1155Supply, Ownable, PaymentSplitter {
         )
     {
         uint256 traitTypeCount = _traitTypes.length;
-
         _traitTypeNames = new string[](traitTypeCount);
         _traitTypeValues = new string[](traitTypeCount);
-
         for (uint256 i; i < traitTypeCount; ) {
             _traitTypeNames[i] = _traitTypes[i].name;
             _traitTypeValues[i] = _traitTypes[i].value;
-
             unchecked {
                 ++i;
             }
         }
     }
 
+    /** @inheritdoc ITraits*/
     function trait(
         uint256 _tokenId
     )
-        public
+        external
         view
         returns (
             string memory _traitName,
@@ -258,8 +232,9 @@ contract Traits is ITraits, ERC1155, ERC1155Supply, Ownable, PaymentSplitter {
         _traitTypeValue = _traitTypes[_traits[_tokenId].typeIndex].value;
     }
 
+    /** @inheritdoc ITraits*/
     function traits()
-        public
+        external
         view
         returns (
             uint256[] memory _traitTokenIds,
@@ -273,7 +248,6 @@ contract Traits is ITraits, ERC1155, ERC1155Supply, Ownable, PaymentSplitter {
         )
     {
         uint256 traitCount = _traits.length;
-
         _traitTokenIds = new uint256[](traitCount);
         _traitNames = new string[](traitCount);
         _traitValues = new string[](traitCount);
@@ -282,7 +256,6 @@ contract Traits is ITraits, ERC1155, ERC1155Supply, Ownable, PaymentSplitter {
         _traitTypeValues = new string[](traitCount);
         _traitTotalSupplys = new uint256[](traitCount);
         _traitMaxSupplys = new uint256[](traitCount);
-
         for (uint256 i = 0; i < traitCount; ) {
             _traitTokenIds[i] = i;
             _traitNames[i] = _traits[i].name;
@@ -292,13 +265,13 @@ contract Traits is ITraits, ERC1155, ERC1155Supply, Ownable, PaymentSplitter {
             _traitTypeValues[i] = _traitTypes[_traits[i].typeIndex].value;
             _traitTotalSupplys[i] = totalSupply(i);
             _traitMaxSupplys[i] = _traits[i].maxSupply;
-
             unchecked {
                 ++i;
             }
         }
     }
 
+    /** @inheritdoc ITraits*/
     function traitPrice() public view returns (uint256 _price) {
         if (block.timestamp < auctionStartTime) revert AuctionNotLive();
 
@@ -317,6 +290,7 @@ contract Traits is ITraits, ERC1155, ERC1155Supply, Ownable, PaymentSplitter {
         }
     }
 
+    /** @inheritdoc ERC1155*/
     function _beforeTokenTransfer(
         address operator,
         address from,
@@ -328,7 +302,36 @@ contract Traits is ITraits, ERC1155, ERC1155Supply, Ownable, PaymentSplitter {
         super._beforeTokenTransfer(operator, from, to, ids, amounts, data);
     }
 
-  function maxSupply(uint256 _tokenId) external view returns (uint256 _maxSupply) {
-    _maxSupply = _traits[_tokenId].maxSupply;
-  }
+    /** @inheritdoc ITraits*/
+    function maxSupply(
+        uint256 _tokenId
+    ) external view returns (uint256 _maxSupply) {
+        _maxSupply = _traits[_tokenId].maxSupply;
+    }
+
+    /** @inheritdoc ITraits*/
+    function uri(
+        uint256 _tokenId
+    ) public view override(ERC1155, ITraits) returns (string memory) {
+        if (_tokenId >= _traits.length) revert InvalidTokenId();
+
+        return
+            string(
+                abi.encodePacked(
+                    super.uri(_tokenId),
+                    address(this).toHexString(),
+                    "/",
+                    _tokenId.toString()
+                )
+            );
+    }
+
+    /** @inheritdoc ITraits*/
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view override(ITraits, ERC1155, ERC2981) returns (bool) {
+        return
+            interfaceId == type(ITraits).interfaceId ||
+            super.supportsInterface(interfaceId);
+    }
 }
