@@ -140,32 +140,6 @@ interface IArtwork is IERC721 {
     function projectScriptCount() external view returns (uint256);
 
     /**
-     * Returns info about all the project traits
-     *
-     * @return _traitTokenIds token IDs of the traits
-     * @return _traitNames human readable trait names
-     * @return _traitValues trait type values used in the generative script
-     * @return _traitTypeIndexes trait type index each trait belongs to
-     * @return _traitTypeNames human readable trait type names
-     * @return _traitTypeValues trait type values used in the generative script
-     * @return _traitTotalSupplys total supply of each trait
-     * @return _traitMaxSupplys max supply of each trait
-     */
-    function projectTraits()
-        external
-        view
-        returns (
-            uint256[] memory _traitTokenIds,
-            string[] memory _traitNames,
-            string[] memory _traitValues,
-            uint256[] memory _traitTypeIndexes,
-            string[] memory _traitTypeNames,
-            string[] memory _traitTypeValues,
-            uint256[] memory _traitTotalSupplys,
-            uint256[] memory _traitMaxSupplys
-        );
-
-    /**
      * Returns the specified user's nonce, which is used to generate artwork hashes
      *
      * @param _user the address of the user

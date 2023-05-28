@@ -246,33 +246,6 @@ contract Artwork is
     }
 
     /** @inheritdoc IArtwork*/
-    function projectTraits()
-        external
-        view
-        returns (
-            uint256[] memory _traitTokenIds,
-            string[] memory _traitNames,
-            string[] memory _traitValues,
-            uint256[] memory _traitTypeIndexes,
-            string[] memory _traitTypeNames,
-            string[] memory _traitTypeValues,
-            uint256[] memory _traitTotalSupplys,
-            uint256[] memory _traitMaxSupplys
-        )
-    {
-        (
-            _traitTokenIds,
-            _traitNames,
-            _traitValues,
-            _traitTypeIndexes,
-            _traitTypeNames,
-            _traitTypeValues,
-            _traitTotalSupplys,
-            _traitMaxSupplys
-        ) = traits.traits();
-    }
-
-    /** @inheritdoc IArtwork*/
     function userNonce(address _user) external view returns (uint256) {
         return userNonces[_user];
     }

@@ -606,6 +606,12 @@ describe("Deployment and setup", function () {
       .connect(admin1)
       .registerProject(user1.address, deployer.address);
 
+    await expect(
+      projectRegistry
+        .connect(user1)
+        .registerProject(user1.address, deployer.address)
+    ).to.be.revertedWith("OnlyAdmin()");
+
     expect(await projectRegistry.projects(1)).to.deep.eq([
       user1.address,
       deployer.address,
@@ -641,5 +647,13 @@ describe("Deployment and setup", function () {
       admin1.address,
       admin2.address,
     ]);
+
+    await projectRegistry
+      .connect(owner)
+      .removeAdmins([admin1.address, admin2.address, user1.address]);
+
+    expect(await projectRegistry.admins(admin1.address)).to.eq(false);
+    expect(await projectRegistry.admins(admin2.address)).to.eq(false);
+    expect(await projectRegistry.admins(user1.address)).to.eq(false);
   });
 });

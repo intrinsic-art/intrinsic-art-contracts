@@ -222,6 +222,8 @@ contract Traits is
             string memory _traitTypeValue
         )
     {
+        if (_tokenId >= _traits.length) revert InvalidTokenId();
+
         _traitName = _traits[_tokenId].name;
         _traitValue = _traits[_tokenId].value;
         _traitTypeName = _traitTypes[_traits[_tokenId].typeIndex].name;

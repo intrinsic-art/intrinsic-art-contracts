@@ -534,6 +534,11 @@ describe("Artwork and Traits", function () {
     await time.increase(time.duration.seconds(50));
 
     expect(await traits.traitPrice()).to.eq(auctionEndPrice);
+
+    // Ensure price stays at the end price
+    await time.increase(time.duration.seconds(1000));
+
+    expect(await traits.traitPrice()).to.eq(auctionEndPrice);
   });
 
   it("Users cannot create artwork with traits they don't own", async () => {
@@ -978,5 +983,30 @@ describe("Artwork and Traits", function () {
         .connect(user1)
         .transferTraitsToCreateArtwork(artwork.address, [0, 3])
     ).to.be.revertedWith("OnlyArtwork()");
+  });
+
+  it("Traits contract address cannot be set twice", async () => {
+    await expect(
+      artwork.connect(owner).setTraits(traits.address)
+    ).to.be.revertedWith("TraitsAlreadySet()");
+  });
+
+  it("Project configuration cannot be updated once the project is locked", async () => {
+    await expect(
+      artwork.connect(owner).updateScript(0, "test script")
+    ).to.be.revertedWith("Locked");
+
+    await expect(
+      traits
+        .connect(owner)
+        .createTraitsAndTypes(
+          ["Hair Color", "Eye Color"],
+          ["hairColor", "eyeColor"],
+          ["Blonde", "Brown", "Black", "Green", "Blue"],
+          ["blonde", "brown", "black", "green", "blue"],
+          [0, 0, 0, 1, 1],
+          [10, 20, 30, 40, 50]
+        )
+    ).to.be.revertedWith("Locked");
   });
 });
