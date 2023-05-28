@@ -151,13 +151,11 @@ contract Traits is
             }
         }
 
-        uint256 ethCost = _traitCount * _traitPrice;
-
-        if (msg.value < ethCost) revert InvalidEthAmount();
-
-        emit TraitsBought(_recipient, _traitTokenIds, _traitAmounts);
+        if (msg.value < _traitCount * _traitPrice) revert InvalidEthAmount();
 
         _mintBatch(_recipient, _traitTokenIds, _traitAmounts, "");
+
+        emit TraitsBought(_recipient, _traitTokenIds, _traitAmounts);
     }
 
     /** @inheritdoc ITraits*/

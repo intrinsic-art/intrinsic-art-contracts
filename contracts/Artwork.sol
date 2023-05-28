@@ -102,10 +102,10 @@ contract Artwork is
         artworkData[_artworkTokenId].traitTokenIds = _traitTokenIds;
         userNonces[msg.sender]++;
 
-        emit ArtworkCreated(_artworkTokenId, _traitTokenIds, _hash, msg.sender);
-
         traits.transferTraitsToCreateArtwork(msg.sender, _traitTokenIds);
         _safeMint(msg.sender, _artworkTokenId);
+
+        emit ArtworkCreated(_artworkTokenId, _traitTokenIds, _hash, msg.sender);
     }
 
     /** @inheritdoc IArtwork*/
@@ -117,8 +117,6 @@ contract Artwork is
             .traitTokenIds;
         artworkData[_artworkTokenId].hash = 0;
         artworkData[_artworkTokenId].traitTokenIds = new uint256[](0);
-
-        emit ArtworkDecomposed(_artworkTokenId, msg.sender);
 
         uint256[] memory amounts = new uint256[](traitTokenIds.length);
         for (uint256 i; i < amounts.length; ) {
@@ -136,6 +134,8 @@ contract Artwork is
             amounts,
             ""
         );
+
+        emit ArtworkDecomposed(_artworkTokenId, msg.sender);
     }
 
     /** @inheritdoc IArtwork*/
