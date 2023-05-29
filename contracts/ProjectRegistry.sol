@@ -1,35 +1,29 @@
 // SPDX-License-Identifier: GNU GPLv3
 pragma solidity =0.8.19;
 
-import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {IProjectRegistry} from "./interfaces/IProjectRegistry.sol";
 
-contract ProjectRegistry is OwnableUpgradeable {
-    struct Project {
-        address artwork;
-        address traits;
-    }
-
+/**
+ * Provides functionality for registering the Traits and Artwork
+ * contract addresses for each intrinsic.art project
+ */
+contract ProjectRegistry is IProjectRegistry, Ownable {
     uint256 public projectCount;
     mapping(address => bool) public admins;
     mapping(uint256 => Project) public projects;
 
-    event ProjectRegistered(uint256 projectId, address artwork, address traits);
-
-    error OnlyAdmin();
-
     modifier onlyAdmin() {
-        if(!admins[msg.sender]) revert OnlyAdmin();
+        if (!admins[msg.sender]) revert OnlyAdmin();
         _;
     }
 
-    function initialize(
-        address _owner,
-        address[] calldata _admins
-    ) external initializer {
+    constructor(address _owner, address[] memory _admins) {
         _transferOwnership(_owner);
         _addAdmins(_admins);
     }
 
+    /** @inheritdoc IProjectRegistry*/
     function registerProject(
         address _artwork,
         address _traits
@@ -42,23 +36,39 @@ contract ProjectRegistry is OwnableUpgradeable {
         emit ProjectRegistered(projectCount, _artwork, _traits);
     }
 
-    function addAdmins(address[] calldata _admins) external onlyOwner {
+    /** @inheritdoc IProjectRegistry*/
+    function addAdmins(address[] memory _admins) external onlyOwner {
         _addAdmins(_admins);
     }
 
-    function _addAdmins(address[] calldata _admins) private {
-        for (uint256 i; i < _admins.length; i++) {
-            admins[_admins[i]] = true;
-        }
-    }
-
-    function removeAdmins(address[] calldata _admins) external onlyOwner {
+    /** @inheritdoc IProjectRegistry*/
+    function removeAdmins(address[] memory _admins) external onlyOwner {
         _removeAdmins(_admins);
     }
 
-    function _removeAdmins(address[] calldata _admins) private {
+    /**
+     * Adds multiple addresses to be made admins
+     *
+     * @param _admins the addresses to make admins
+     */
+    function _addAdmins(address[] memory _admins) private {
+        for (uint256 i; i < _admins.length; i++) {
+            admins[_admins[i]] = true;
+
+            emit AdminAdded(_admins[i]);
+        }
+    }
+
+    /**
+     * Removes multiple addresses from being admins
+     *
+     * @param _admins the addresses remove from being admins
+     */
+    function _removeAdmins(address[] memory _admins) private {
         for (uint256 i; i < _admins.length; i++) {
             admins[_admins[i]] = false;
+
+            emit AdminRemoved(_admins[i]);
         }
     }
 }

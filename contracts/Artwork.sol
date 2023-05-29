@@ -3,18 +3,31 @@ pragma solidity =0.8.19;
 
 import {ITraits} from "./interfaces/ITraits.sol";
 import {IArtwork} from "./interfaces/IArtwork.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import {ERC1155Holder, ERC1155Receiver, IERC165} from "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
-import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import {ERC2981} from "@openzeppelin/contracts/token/common/ERC2981.sol";
+import {PaymentSplitter} from "@openzeppelin/contracts/finance/PaymentSplitter.sol";
 import {IERC721Metadata} from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
+import {ERC1155Holder, ERC1155Receiver, IERC165} from "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
 
-contract Artwork is IArtwork, IERC721Metadata, ERC721, ERC1155Holder, Ownable {
+/**
+ * Implements ERC-721 standard for artwork tokens,
+ * and provides functions for creating and decomposing artwork
+ */
+contract Artwork is
+    IArtwork,
+    IERC721Metadata,
+    Ownable,
+    ERC721,
+    ERC2981,
+    ERC1155Holder
+{
     using Strings for uint256;
     using Strings for address;
 
     bool public locked;
-    address public artistAddress;
+    address public royaltySplitter;
     ITraits public traits;
     string public baseURI;
     string public scriptJSON;
@@ -25,25 +38,33 @@ contract Artwork is IArtwork, IERC721Metadata, ERC721, ERC1155Holder, Ownable {
     mapping(address => uint256) private userNonces;
 
     constructor(
+        uint96 _royaltyFeeNumerator,
         string memory _name,
         string memory _symbol,
         string memory _baseURI,
         string memory _scriptJSON,
-        address _artistAddress,
-        address _owner
+        address _owner,
+        address[] memory _royaltyPayees,
+        uint256[] memory _royaltyShares
     ) ERC721(_name, _symbol) {
         baseURI = _baseURI;
         scriptJSON = _scriptJSON;
-        artistAddress = _artistAddress;
         _transferOwnership(_owner);
+        address _royaltySplitter = address(
+            new PaymentSplitter(_royaltyPayees, _royaltyShares)
+        );
+        _setDefaultRoyalty(_royaltySplitter, _royaltyFeeNumerator);
+        royaltySplitter = _royaltySplitter;
     }
 
+    /** @inheritdoc IArtwork*/
     function setTraits(address _traits) external onlyOwner {
         if (address(traits) != address(0)) revert TraitsAlreadySet();
 
         traits = ITraits(_traits);
     }
 
+    /** @inheritdoc IArtwork*/
     function updateScript(
         uint256 _scriptIndex,
         string calldata _script
@@ -53,25 +74,22 @@ contract Artwork is IArtwork, IERC721Metadata, ERC721, ERC1155Holder, Ownable {
         scripts[_scriptIndex] = (_script);
     }
 
+    /** @inheritdoc IArtwork*/
     function updateBaseURI(string memory _baseURI) external onlyOwner {
         baseURI = _baseURI;
 
         emit BaseURIUpdated(_baseURI);
     }
 
-    function updateArtistAddress(address _artistAddress) external {
-        if (msg.sender != artistAddress) revert OnlyArtist();
-
-        artistAddress = _artistAddress;
-        emit ArtistAddressUpdated(_artistAddress);
-    }
-
+    /** @inheritdoc IArtwork*/
     function lockProject() external onlyOwner {
         if (locked) revert Locked();
+        if (address(traits) == address(0)) revert TraitsNotSet();
 
         locked = true;
     }
 
+    /** @inheritdoc IArtwork*/
     function createArtwork(
         uint256[] calldata _traitTokenIds
     ) public returns (uint256 _artworkTokenId) {
@@ -84,13 +102,14 @@ contract Artwork is IArtwork, IERC721Metadata, ERC721, ERC1155Holder, Ownable {
         artworkData[_artworkTokenId].traitTokenIds = _traitTokenIds;
         userNonces[msg.sender]++;
 
-        emit ArtworkCreated(_artworkTokenId, _traitTokenIds, _hash, msg.sender);
-
         traits.transferTraitsToCreateArtwork(msg.sender, _traitTokenIds);
         _safeMint(msg.sender, _artworkTokenId);
+
+        emit ArtworkCreated(_artworkTokenId, _traitTokenIds, _hash, msg.sender);
     }
 
-    function decomposeArtwork(uint256 _artworkTokenId) public {
+    /** @inheritdoc IArtwork*/
+    function decomposeArtwork(uint256 _artworkTokenId) external {
         if (msg.sender != _ownerOf(_artworkTokenId)) revert OnlyArtworkOwner();
 
         // Clear Artwork state
@@ -99,42 +118,51 @@ contract Artwork is IArtwork, IERC721Metadata, ERC721, ERC1155Holder, Ownable {
         artworkData[_artworkTokenId].hash = 0;
         artworkData[_artworkTokenId].traitTokenIds = new uint256[](0);
 
-        emit ArtworkDecomposed(_artworkTokenId, msg.sender);
-
         uint256[] memory amounts = new uint256[](traitTokenIds.length);
         for (uint256 i; i < amounts.length; ) {
-          amounts[i] = 1;
-          unchecked {
-            ++i;
-          }
+            amounts[i] = 1;
+            unchecked {
+                ++i;
+            }
         }
 
         _burn(_artworkTokenId);
-        traits.safeBatchTransferFrom(address(this), msg.sender, traitTokenIds, amounts, "");
+        traits.safeBatchTransferFrom(
+            address(this),
+            msg.sender,
+            traitTokenIds,
+            amounts,
+            ""
+        );
+
+        emit ArtworkDecomposed(_artworkTokenId, msg.sender);
     }
 
+    /** @inheritdoc IArtwork*/
     function buyTraitsCreateArtwork(
         uint256[] calldata _traitTokenIdsToBuy,
-        uint256[] calldata _traitQuantitiesToBuy,
+        uint256[] calldata _traitAmountsToBuy,
         uint256[] calldata _traitTokenIdsToCreateArtwork
     ) external payable {
         traits.buyTraits{value: msg.value}(
             msg.sender,
             _traitTokenIdsToBuy,
-            _traitQuantitiesToBuy
+            _traitAmountsToBuy
         );
+
         createArtwork(_traitTokenIdsToCreateArtwork);
     }
 
+    /** @inheritdoc IArtwork*/
     function tokenURI(
-        uint256 tokenId
+        uint256 _tokenId
     )
         public
         view
         override(ERC721, IERC721Metadata, IArtwork)
         returns (string memory)
     {
-        _requireMinted(tokenId);
+        _requireMinted(_tokenId);
 
         return
             bytes(baseURI).length > 0
@@ -143,12 +171,13 @@ contract Artwork is IArtwork, IERC721Metadata, ERC721, ERC1155Holder, Ownable {
                         baseURI,
                         address(this).toHexString(),
                         "/",
-                        tokenId.toString()
+                        _tokenId.toString()
                     )
                 )
                 : "";
     }
 
+    /** @inheritdoc IArtwork*/
     function artwork(
         uint256 _artworkTokenId
     )
@@ -172,7 +201,7 @@ contract Artwork is IArtwork, IERC721Metadata, ERC721, ERC1155Holder, Ownable {
         _traitTypeNames = new string[](traitCount);
         _traitTypeValues = new string[](traitCount);
 
-        for (uint256 i; i < traitCount;) {
+        for (uint256 i; i < traitCount; ) {
             (
                 _traitNames[i],
                 _traitValues[i],
@@ -181,26 +210,28 @@ contract Artwork is IArtwork, IERC721Metadata, ERC721, ERC1155Holder, Ownable {
             ) = traits.trait(_traitTokenIds[i]);
 
             unchecked {
-              ++i;
+                ++i;
             }
         }
 
         _hash = artworkData[_artworkTokenId].hash;
     }
 
+    /** @inheritdoc IArtwork*/
     function projectScripts() external view returns (string[] memory _scripts) {
         uint256 scriptCount = projectScriptCount();
         _scripts = new string[](scriptCount);
 
-        for (uint256 i; i < scriptCount;) {
+        for (uint256 i; i < scriptCount; ) {
             _scripts[i] = scripts[i];
 
             unchecked {
-              ++i;
+                ++i;
             }
         }
     }
 
+    /** @inheritdoc IArtwork*/
     function projectScriptCount() public view returns (uint256) {
         uint256 scriptIndex;
 
@@ -214,42 +245,18 @@ contract Artwork is IArtwork, IERC721Metadata, ERC721, ERC1155Holder, Ownable {
         return scriptIndex;
     }
 
-    function projectTraits()
-        external
-        view
-        returns (
-            uint256[] memory _traitTokenIds,
-            string[] memory _traitNames,
-            string[] memory _traitValues,
-            uint256[] memory _traitTypeIndexes,
-            string[] memory _traitTypeNames,
-            string[] memory _traitTypeValues,
-            uint256[] memory _traitTotalSupplys,
-            uint256[] memory _traitMaxSupplys
-        )
-    {
-        (
-            _traitTokenIds,
-            _traitNames,
-            _traitValues,
-            _traitTypeIndexes,
-            _traitTypeNames,
-            _traitTypeValues,
-            _traitTotalSupplys,
-            _traitMaxSupplys
-        ) = traits.traits();
-    }
-
+    /** @inheritdoc IArtwork*/
     function userNonce(address _user) external view returns (uint256) {
         return userNonces[_user];
     }
 
+    /** @inheritdoc IArtwork*/
     function supportsInterface(
         bytes4 interfaceId
     )
         public
         view
-        override(IERC165, ERC721, ERC1155Receiver, IArtwork)
+        override(IERC165, ERC721, ERC1155Receiver, IArtwork, ERC2981)
         returns (bool)
     {
         return

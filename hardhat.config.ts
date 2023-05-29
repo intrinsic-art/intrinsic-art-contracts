@@ -8,6 +8,7 @@ import "hardhat-deploy";
 import "hardhat-gas-reporter";
 import "hardhat-contract-sizer";
 import "hardhat-abi-exporter";
+import "solidity-coverage";
 import CreateProject from "./scripts/CreateProject";
 
 dotenv.config();

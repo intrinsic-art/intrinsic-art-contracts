@@ -21,6 +21,11 @@
   },
   {
     "inputs": [],
+    "name": "InvalidTokenId",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "InvalidTraits",
     "type": "error"
   },
@@ -55,6 +60,11 @@
     "type": "error"
   },
   {
+    "inputs": [],
+    "name": "TraitsAlreadyCreated",
+    "type": "error"
+  },
+  {
     "anonymous": false,
     "inputs": [
       {
@@ -83,58 +93,6 @@
     "anonymous": false,
     "inputs": [
       {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "claimedRevenue",
-        "type": "uint256"
-      }
-    ],
-    "name": "ArtistRevenueClaimed",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "claimer",
-        "type": "address"
-      }
-    ],
-    "name": "ArtistRevenueClaimerUpdated",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "claimedRevenue",
-        "type": "uint256"
-      }
-    ],
-    "name": "PlatformRevenueClaimed",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "claimer",
-        "type": "address"
-      }
-    ],
-    "name": "PlatormRevenueClaimerUpdated",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
         "indexed": true,
         "internalType": "address",
         "name": "recipient",
@@ -149,7 +107,7 @@
       {
         "indexed": false,
         "internalType": "uint256[]",
-        "name": "traitQuantities",
+        "name": "traitAmounts",
         "type": "uint256[]"
       }
     ],
@@ -321,20 +279,6 @@
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "claimArtistRevenue",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "claimPlatformRevenue",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
     "inputs": [
       {
         "internalType": "string[]",
@@ -363,7 +307,7 @@
       },
       {
         "internalType": "uint256[]",
-        "name": "_traitMaxRevenues",
+        "name": "_traitMaxSupplys",
         "type": "uint256[]"
       }
     ],
@@ -680,32 +624,6 @@
   {
     "inputs": [
       {
-        "internalType": "address payable",
-        "name": "_claimer",
-        "type": "address"
-      }
-    ],
-    "name": "updateArtistRevenueClaimer",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address payable",
-        "name": "_claimer",
-        "type": "address"
-      }
-    ],
-    "name": "updatePlatformRevenueClaimer",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
         "internalType": "string",
         "name": "_uri",
         "type": "string"
@@ -714,6 +632,25 @@
     "name": "updateURI",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_tokenId",
+        "type": "uint256"
+      }
+    ],
+    "name": "uri",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   }
 ]
