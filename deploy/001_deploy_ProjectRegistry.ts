@@ -3,7 +3,7 @@ import { DeployFunction } from "hardhat-deploy/types";
 
 const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   const {
-    deployments: { deploy, execute },
+    deployments: { deploy },
     getNamedAccounts,
   } = hre;
   const { deployer } = await getNamedAccounts();
@@ -11,25 +11,17 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   await deploy("ProjectRegistry", {
     log: true,
     from: deployer,
-    args: [],
+    args: [deployer, [deployer]],
   });
 
   await new Promise((resolve) => setTimeout(resolve, 20000));
 
   const projectRegistry = await hre.ethers.getContract("ProjectRegistry");
 
-  await execute(
-    "ProjectRegistry",
-    { log: true, from: deployer },
-    "initialize",
-    deployer,
-    [deployer]
-  );
-
   try {
     await hre.run("verify:verify", {
       address: projectRegistry.address,
-      constructorArguments: [],
+      constructorArguments: [deployer, [deployer]],
     });
   } catch (error) {
     console.error();

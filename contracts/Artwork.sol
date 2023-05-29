@@ -165,7 +165,7 @@ contract Artwork is
         _requireMinted(_tokenId);
 
         return
-            bytes(baseURI).length > 0
+            bytes(baseURI).length != 0
                 ? string(
                     abi.encodePacked(
                         baseURI,

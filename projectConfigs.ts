@@ -2,18 +2,23 @@ import { BigNumber, ethers } from "ethers";
 
 interface ProjectConfig {
   artworkConstructorData: {
+    royaltyFeeNumerator: BigNumber;
     name: string;
     symbol: string;
     baseURI: string;
     scriptJSON: string;
-    artistAddress: string;
     owner: string;
+    royaltyPayees: string[];
+    royaltyShares: BigNumber[];
   };
   traitsConstructorData: {
+    royaltyFeeNumerator: BigNumber;
     uri: string;
     owner: string;
-    platformRevenueClaimer: string;
-    artistRevenueClaimer: string;
+    primarySalesPayees: string[];
+    primarySalesShares: BigNumber[];
+    royaltyPayees: string[];
+    royaltyShares: BigNumber[];
   };
   createTraitsData: {
     traitTypeNames: string[];
@@ -21,7 +26,7 @@ interface ProjectConfig {
     traitNames: string[];
     traitValues: string[];
     traitTypeIndexes: number[];
-    traitMaxSupplys: ethers.BigNumber[];
+    traitMaxSupplys: BigNumber[];
   };
   scheduleAuctionData: {
     auctionStartTime: number;
@@ -35,6 +40,7 @@ interface ProjectConfig {
 const projectConfigs: ProjectConfig[] = [
   {
     artworkConstructorData: {
+      royaltyFeeNumerator: BigNumber.from(1000),
       name: "intrinsic.art Tack Line Torn",
       symbol: "INSC",
       baseURI: "https://api.intrinsic.art/",
@@ -48,14 +54,18 @@ const projectConfigs: ProjectConfig[] = [
         "scriptLibraryVersion": "1.0.0",
         "aspectRatio": "1"
       }`,
-      artistAddress: "0xAa9D46AE079851116967c6573f961B304095C34a",
       owner: "0xAa9D46AE079851116967c6573f961B304095C34a",
+      royaltyPayees: ["0xAa9D46AE079851116967c6573f961B304095C34a"],
+      royaltyShares: [BigNumber.from(100)],
     },
     traitsConstructorData: {
+      royaltyFeeNumerator: BigNumber.from(1000),
       uri: "https://api.intrinsic.art/",
       owner: "0xAa9D46AE079851116967c6573f961B304095C34a",
-      platformRevenueClaimer: "0xAa9D46AE079851116967c6573f961B304095C34a",
-      artistRevenueClaimer: "0xAa9D46AE079851116967c6573f961B304095C34a",
+      primarySalesPayees: ["0xAa9D46AE079851116967c6573f961B304095C34a"],
+      primarySalesShares: [BigNumber.from(100)],
+      royaltyPayees: ["0xAa9D46AE079851116967c6573f961B304095C34a"],
+      royaltyShares: [BigNumber.from(100)],
     },
     createTraitsData: {
       traitTypeNames: ["Palette", "Complexity", "Organization"],

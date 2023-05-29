@@ -13,12 +13,14 @@ const CreateProject = async (
   const { deployer } = await getNamedAccounts();
 
   const artworkConstructorArgs = [
+    projectConfigs[projectIndex].artworkConstructorData.royaltyFeeNumerator,
     projectConfigs[projectIndex].artworkConstructorData.name,
     projectConfigs[projectIndex].artworkConstructorData.symbol,
     projectConfigs[projectIndex].artworkConstructorData.baseURI,
     projectConfigs[projectIndex].artworkConstructorData.scriptJSON,
-    projectConfigs[projectIndex].artworkConstructorData.artistAddress,
     projectConfigs[projectIndex].artworkConstructorData.owner,
+    projectConfigs[projectIndex].artworkConstructorData.royaltyPayees,
+    projectConfigs[projectIndex].artworkConstructorData.royaltyShares,
   ];
 
   console.log("Deploying Contracts");
@@ -30,11 +32,14 @@ const CreateProject = async (
   });
 
   const traitsConstructorArgs = [
-    artworkDeployResult.address,
+    projectConfigs[projectIndex].traitsConstructorData.royaltyFeeNumerator,
     projectConfigs[projectIndex].traitsConstructorData.uri,
+    artworkDeployResult.address,
     projectConfigs[projectIndex].traitsConstructorData.owner,
-    projectConfigs[projectIndex].traitsConstructorData.platformRevenueClaimer,
-    projectConfigs[projectIndex].traitsConstructorData.artistRevenueClaimer,
+    projectConfigs[projectIndex].traitsConstructorData.primarySalesPayees,
+    projectConfigs[projectIndex].traitsConstructorData.primarySalesShares,
+    projectConfigs[projectIndex].traitsConstructorData.royaltyPayees,
+    projectConfigs[projectIndex].traitsConstructorData.royaltyShares,
   ];
 
   const traitsDeployResult = await deploy("Traits", {

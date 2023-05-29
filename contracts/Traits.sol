@@ -254,7 +254,7 @@ contract Traits is
         _traitTypeValues = new string[](traitCount);
         _traitTotalSupplys = new uint256[](traitCount);
         _traitMaxSupplys = new uint256[](traitCount);
-        for (uint256 i = 0; i < traitCount; ) {
+        for (uint256 i; i < traitCount; ) {
             _traitTokenIds[i] = i;
             _traitNames[i] = _traits[i].name;
             _traitValues[i] = _traits[i].value;
