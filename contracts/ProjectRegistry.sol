@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GNU GPLv3
 pragma solidity =0.8.19;
 
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IProjectRegistry} from "./interfaces/IProjectRegistry.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
  * Provides functionality for registering the Traits and Artwork

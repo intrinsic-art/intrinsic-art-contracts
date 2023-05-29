@@ -3,12 +3,12 @@ pragma solidity =0.8.19;
 
 import {ITraits} from "./interfaces/ITraits.sol";
 import {IArtwork} from "./interfaces/IArtwork.sol";
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {ERC1155, IERC165} from "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
-import {ERC1155Supply} from "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
-import {PaymentSplitter} from "@openzeppelin/contracts/finance/PaymentSplitter.sol";
-import {ERC2981} from "@openzeppelin/contracts/token/common/ERC2981.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {ERC2981} from "@openzeppelin/contracts/token/common/ERC2981.sol";
+import {ERC1155, IERC165} from "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
+import {PaymentSplitter} from "@openzeppelin/contracts/finance/PaymentSplitter.sol";
+import {ERC1155Supply} from "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
 
 /**
  * Implements ERC-1155 standard for trait tokens,
