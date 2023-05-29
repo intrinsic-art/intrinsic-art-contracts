@@ -1,3 +1,6 @@
+
+![intrinsic-art-logo](https://github.com/intrinsic-art/intrinsic-art-contracts/assets/84364476/fdd34bc7-1981-44a4-a7da-67fd92a24aa4)
+
 ## Smart Contracts Overview
 The intrinsic.art NFT platform enables artists to define generative traits as fungible tokens (ERC-1155), and consumers to combine their favorite traits to purchase a unique, customized artwork (ERC-721). The smart contracts consist of three primary contracts which are outlined below.
 
