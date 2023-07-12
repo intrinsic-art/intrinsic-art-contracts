@@ -15,7 +15,6 @@ interface IArtwork is IERC721 {
     error OnlyArtist();
     error OnlyArtworkOwner();
 
-    event ArtistAddressUpdated(address indexed artistAddress);
     event BaseURIUpdated(string baseURI);
     event ArtworkCreated(
         uint256 indexed artworkTokenId,

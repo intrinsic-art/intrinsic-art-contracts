@@ -79,19 +79,6 @@
     "inputs": [
       {
         "indexed": true,
-        "internalType": "address",
-        "name": "artistAddress",
-        "type": "address"
-      }
-    ],
-    "name": "ArtistAddressUpdated",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
         "internalType": "uint256",
         "name": "artworkTokenId",
         "type": "uint256"
