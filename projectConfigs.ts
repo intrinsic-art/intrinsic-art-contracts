@@ -108,8 +108,8 @@ const projectConfigs: ProjectConfig[] = [
     scheduleAuctionData: {
       // auctionStartTime: Math.trunc(Date.now() / 1000) + 10,
       // auctionEndTime: Math.trunc(Date.now() / 1000) + 10,
-      auctionStartTime: 1689267900,
-      auctionEndTime: 1689268800,
+      auctionStartTime: 1690938900,
+      auctionEndTime: 1690939800,
       auctionStartPrice: ethers.utils.parseEther("0.1"),
       auctionEndPrice: ethers.utils.parseEther("0.01"),
     },
