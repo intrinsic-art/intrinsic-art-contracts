@@ -259,6 +259,11 @@
         "internalType": "uint256[]",
         "name": "_traitTokenIdsToCreateArtwork",
         "type": "uint256[]"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_saltNonce",
+        "type": "uint256"
       }
     ],
     "name": "buyTraitsCreateArtwork",
@@ -272,6 +277,11 @@
         "internalType": "uint256[]",
         "name": "_traitTokenIds",
         "type": "uint256[]"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_saltNonce",
+        "type": "uint256"
       }
     ],
     "name": "createArtwork",

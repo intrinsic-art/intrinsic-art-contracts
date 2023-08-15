@@ -91,10 +91,16 @@ contract Artwork is
 
     /** @inheritdoc IArtwork*/
     function createArtwork(
-        uint256[] calldata _traitTokenIds
+        uint256[] calldata _traitTokenIds,
+        uint256 _saltNonce
     ) public returns (uint256 _artworkTokenId) {
         bytes32 _hash = keccak256(
-            abi.encodePacked(address(this), msg.sender, userNonces[msg.sender])
+            abi.encodePacked(
+                address(this),
+                msg.sender,
+                userNonces[msg.sender],
+                _saltNonce
+            )
         );
         _artworkTokenId = nextTokenId;
         nextTokenId++;
@@ -142,7 +148,8 @@ contract Artwork is
     function buyTraitsCreateArtwork(
         uint256[] calldata _traitTokenIdsToBuy,
         uint256[] calldata _traitAmountsToBuy,
-        uint256[] calldata _traitTokenIdsToCreateArtwork
+        uint256[] calldata _traitTokenIdsToCreateArtwork,
+        uint256 _saltNonce
     ) external payable {
         traits.buyTraits{value: msg.value}(
             msg.sender,
@@ -150,7 +157,7 @@ contract Artwork is
             _traitAmountsToBuy
         );
 
-        createArtwork(_traitTokenIdsToCreateArtwork);
+        createArtwork(_traitTokenIdsToCreateArtwork, _saltNonce);
     }
 
     /** @inheritdoc IArtwork*/
