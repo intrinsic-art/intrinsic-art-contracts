@@ -109,6 +109,19 @@
     "anonymous": false,
     "inputs": [
       {
+        "indexed": false,
+        "internalType": "string",
+        "name": "baseURI",
+        "type": "string"
+      }
+    ],
+    "name": "BaseURIUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
         "indexed": true,
         "internalType": "uint256",
         "name": "artworkTokenId",
@@ -121,20 +134,7 @@
         "type": "address"
       }
     ],
-    "name": "ArtworkDecomposed",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "string",
-        "name": "baseURI",
-        "type": "string"
-      }
-    ],
-    "name": "BaseURIUpdated",
+    "name": "TraitsReclaimed",
     "type": "event"
   },
   {
@@ -299,19 +299,6 @@
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "_artworkTokenId",
-        "type": "uint256"
-      }
-    ],
-    "name": "decomposeArtwork",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
         "name": "tokenId",
         "type": "uint256"
       }
@@ -414,6 +401,19 @@
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_artworkTokenId",
+        "type": "uint256"
+      }
+    ],
+    "name": "reclaimTraits",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {

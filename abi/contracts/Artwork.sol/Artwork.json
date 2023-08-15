@@ -155,25 +155,6 @@
     "anonymous": false,
     "inputs": [
       {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "artworkTokenId",
-        "type": "uint256"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "caller",
-        "type": "address"
-      }
-    ],
-    "name": "ArtworkDecomposed",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
         "indexed": false,
         "internalType": "string",
         "name": "baseURI",
@@ -200,6 +181,25 @@
       }
     ],
     "name": "OwnershipTransferred",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "artworkTokenId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "caller",
+        "type": "address"
+      }
+    ],
+    "name": "TraitsReclaimed",
     "type": "event"
   },
   {
@@ -383,19 +383,6 @@
         "type": "uint256"
       }
     ],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "_artworkTokenId",
-        "type": "uint256"
-      }
-    ],
-    "name": "decomposeArtwork",
-    "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   },
@@ -622,6 +609,19 @@
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_artworkTokenId",
+        "type": "uint256"
+      }
+    ],
+    "name": "reclaimTraits",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {

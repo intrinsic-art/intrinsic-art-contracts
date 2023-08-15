@@ -30,6 +30,7 @@ describe("Artwork and Traits", function () {
   let auctionEndTime: number;
   let auctionStartPrice: BigNumber;
   let auctionEndPrice: BigNumber;
+  let traitsSaleStartTime: number;
 
   beforeEach(async function () {
     [
@@ -96,6 +97,7 @@ describe("Artwork and Traits", function () {
     auctionEndTime = currentTime + 210;
     auctionStartPrice = ethers.utils.parseEther("1");
     auctionEndPrice = ethers.utils.parseEther("0.1");
+    traitsSaleStartTime = currentTime + 300;
 
     await traits
       .connect(owner)
@@ -103,7 +105,8 @@ describe("Artwork and Traits", function () {
         auctionStartTime,
         auctionEndTime,
         auctionStartPrice,
-        auctionEndPrice
+        auctionEndPrice,
+        traitsSaleStartTime
       );
   });
 
@@ -237,7 +240,7 @@ describe("Artwork and Traits", function () {
     );
   });
 
-  it("A user can create artwork and decompose it", async () => {
+  it("A user can create artwork and reclaim traits from it", async () => {
     // Move forward in time so auction is active
     await time.increase(time.duration.seconds(120));
 
@@ -279,7 +282,7 @@ describe("Artwork and Traits", function () {
     expect(await traits.balanceOf(user1.address, 0)).to.eq(0);
     expect(await traits.balanceOf(user1.address, 3)).to.eq(0);
 
-    await artwork.connect(user1).decomposeArtwork(0);
+    await artwork.connect(user1).reclaimTraits(0);
 
     await expect(artwork.artwork(0)).to.be.revertedWith(
       "ERC721: invalid token ID"
@@ -339,7 +342,7 @@ describe("Artwork and Traits", function () {
     await expect(traits.uri(6)).to.be.revertedWith("InvalidTokenId()");
   });
 
-  it("Artwork token IDs increment even if previous ones are decomposed", async () => {
+  it("Artwork token IDs increment even if previous ones are have been reclaimed", async () => {
     // Move forward in time so auction is active
     await time.increase(time.duration.seconds(120));
 
@@ -371,7 +374,7 @@ describe("Artwork and Traits", function () {
       artworkHash(artwork.address, user1.address, 0, 100),
     ]);
 
-    await artwork.connect(user1).decomposeArtwork(0);
+    await artwork.connect(user1).reclaimTraits(0);
 
     await expect(artwork.ownerOf(0)).to.be.revertedWith(
       "ERC721: invalid token ID"
@@ -407,7 +410,7 @@ describe("Artwork and Traits", function () {
       artworkHash(artwork.address, user1.address, 1, 100),
     ]);
 
-    await artwork.connect(user1).decomposeArtwork(1);
+    await artwork.connect(user1).reclaimTraits(1);
 
     // Create artwork 2
     await artwork
@@ -442,7 +445,7 @@ describe("Artwork and Traits", function () {
 
   it("A user can buy traits and create artwork in separate transactions", async () => {
     // Move forward in time so auction is active
-    await time.increase(time.duration.seconds(120));
+    await time.increase(time.duration.seconds(300));
 
     expect(await ethers.provider.getBalance(artwork.address)).to.eq(0);
     expect(await ethers.provider.getBalance(traits.address)).to.eq(0);
@@ -500,7 +503,7 @@ describe("Artwork and Traits", function () {
     expect(await traits.balanceOf(user1.address, 0)).to.eq(0);
     expect(await traits.balanceOf(user1.address, 3)).to.eq(0);
 
-    await artwork.connect(user1).decomposeArtwork(0);
+    await artwork.connect(user1).reclaimTraits(0);
 
     await expect(artwork.artwork(0)).to.be.revertedWith(
       "ERC721: invalid token ID"
@@ -552,7 +555,7 @@ describe("Artwork and Traits", function () {
 
   it("Users cannot create artwork with traits that are sold out", async () => {
     // Go to start of auction period
-    await time.increaseTo(auctionStartTime);
+    await time.increaseTo(traitsSaleStartTime);
 
     // Buy x10 of trait 0 with 10 ETH, trait is sold out now
     await traits.connect(user1).buyTraits(user1.address, [0], [10], {
@@ -572,7 +575,7 @@ describe("Artwork and Traits", function () {
     ).to.be.revertedWith("MaxSupply()");
   });
 
-  it("Users can't decompose artwork they don't own", async () => {
+  it("Users can't reclaim traits from artwork they don't own", async () => {
     // Move forward in time so auction is active
     await time.increase(time.duration.seconds(120));
 
@@ -585,7 +588,7 @@ describe("Artwork and Traits", function () {
         value: ethAmount,
       });
 
-    await expect(artwork.connect(user2).decomposeArtwork(0)).to.be.revertedWith(
+    await expect(artwork.connect(user2).reclaimTraits(0)).to.be.revertedWith(
       "OnlyArtworkOwner()"
     );
   });
@@ -647,7 +650,7 @@ describe("Artwork and Traits", function () {
 
   it("Users can't buy traits if invalid arrays are passed", async () => {
     // Move forward in time so auction is active
-    await time.increase(time.duration.seconds(120));
+    await time.increase(time.duration.seconds(300));
 
     const traitPrice = await traits.traitPrice();
 
@@ -678,7 +681,7 @@ describe("Artwork and Traits", function () {
 
   it("Users can't buy traits if not enough ETH is sent", async () => {
     // Move forward in time so auction is active
-    await time.increase(time.duration.seconds(120));
+    await time.increase(time.duration.seconds(300));
 
     const traitPrice = await traits.traitPrice();
 
@@ -732,7 +735,7 @@ describe("Artwork and Traits", function () {
       await ethers.provider.getBalance(platformRevenueClaimer.address);
 
     // Move forward in time so auction is active
-    await time.increase(time.duration.seconds(120));
+    await time.increase(time.duration.seconds(300));
 
     expect(await traits.totalShares()).to.eq(100);
 
@@ -942,7 +945,7 @@ describe("Artwork and Traits", function () {
 
   it("Trait total supplys cannot exceed max supplys", async () => {
     // Go to start of auction period
-    await time.increaseTo(auctionStartTime);
+    await time.increaseTo(traitsSaleStartTime);
 
     expect(await traits.maxSupply(0)).to.eq(10);
 
@@ -1020,5 +1023,16 @@ describe("Artwork and Traits", function () {
           [10, 20, 30, 40, 50]
         )
     ).to.be.revertedWith("Locked");
+  });
+
+  it("Individual traits cannot be bought before trait sales start time", async () => {
+    // Go to start of auction period
+    await time.increaseTo(traitsSaleStartTime - 10);
+
+    await expect(
+      traits.connect(user1).buyTraits(user1.address, [0], [1], {
+        value: ethers.utils.parseEther("1"),
+      })
+    ).to.be.revertedWith("TraitsSaleStartTime()");
   });
 });

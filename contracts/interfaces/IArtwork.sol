@@ -22,7 +22,7 @@ interface IArtwork is IERC721 {
         bytes32 hash,
         address indexed creator
     );
-    event ArtworkDecomposed(
+    event TraitsReclaimed(
         uint256 indexed artworkTokenId,
         address indexed caller
     );
@@ -72,13 +72,13 @@ interface IArtwork is IERC721 {
     ) external returns (uint256 _artworkTokenId);
 
     /**
-     * Decomposes the specified artwork token into the traits its composed of
+     * Reclaims the traits the specified artwork token into the traits its composed of
      * The artwork token is burned, and the token ID will never be reused
      * The traits are transferred to the caller's address
      *
-     * @param _artworkTokenId the token ID of the artwork being decomposed
+     * @param _artworkTokenId the token ID of the artwork being reclaimed
      */
-    function decomposeArtwork(uint256 _artworkTokenId) external;
+    function reclaimTraits(uint256 _artworkTokenId) external;
 
     /**
      * Buys traits with specified amounts, and create an artwork in a single transaction

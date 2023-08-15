@@ -115,7 +115,7 @@ contract Artwork is
     }
 
     /** @inheritdoc IArtwork*/
-    function decomposeArtwork(uint256 _artworkTokenId) external {
+    function reclaimTraits(uint256 _artworkTokenId) external {
         if (msg.sender != _ownerOf(_artworkTokenId)) revert OnlyArtworkOwner();
 
         // Clear Artwork state
@@ -141,7 +141,7 @@ contract Artwork is
             ""
         );
 
-        emit ArtworkDecomposed(_artworkTokenId, msg.sender);
+        emit TraitsReclaimed(_artworkTokenId, msg.sender);
     }
 
     /** @inheritdoc IArtwork*/
