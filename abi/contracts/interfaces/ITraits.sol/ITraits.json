@@ -65,6 +65,11 @@
     "type": "error"
   },
   {
+    "inputs": [],
+    "name": "TraitsSaleStartTime",
+    "type": "error"
+  },
+  {
     "anonymous": false,
     "inputs": [
       {
@@ -445,6 +450,11 @@
       {
         "internalType": "uint256",
         "name": "_auctionEndPrice",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_traitsSaleStartTime",
         "type": "uint256"
       }
     ],

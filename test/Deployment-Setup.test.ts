@@ -379,6 +379,7 @@ describe("Deployment and setup", function () {
     const auctionEndTime = currentTime + 210;
     const auctionStartPrice = ethers.utils.parseEther("1");
     const auctionEndPrice = ethers.utils.parseEther("0.1");
+    const traitsSaleStartTime = currentTime + 300;
 
     await expect(
       traits
@@ -387,7 +388,8 @@ describe("Deployment and setup", function () {
           auctionStartTime,
           auctionEndTime,
           auctionStartPrice,
-          auctionEndPrice
+          auctionEndPrice,
+          traitsSaleStartTime
         )
     ).to.be.revertedWith("Ownable: caller is not the owner");
   });
@@ -422,6 +424,7 @@ describe("Deployment and setup", function () {
     const auctionEndTime = currentTime + 210;
     const auctionStartPrice = ethers.utils.parseEther("1");
     const auctionEndPrice = ethers.utils.parseEther("0.1");
+    const traitsSaleStartTime = currentTime + 300;
 
     await expect(
       traits
@@ -430,7 +433,8 @@ describe("Deployment and setup", function () {
           auctionStartTime,
           auctionEndTime,
           auctionStartPrice,
-          auctionEndPrice
+          auctionEndPrice,
+          traitsSaleStartTime
         )
     ).to.be.revertedWith("NotLocked()");
   });
@@ -467,6 +471,7 @@ describe("Deployment and setup", function () {
     const auctionEndTime = currentTime + 210;
     const auctionStartPrice = ethers.utils.parseEther("1");
     const auctionEndPrice = ethers.utils.parseEther("0.1");
+    const traitsSaleStartTime = currentTime + 300;
 
     // Flip the start time and end time to make auction invalid
     await expect(
@@ -476,7 +481,8 @@ describe("Deployment and setup", function () {
           auctionEndTime,
           auctionStartTime,
           auctionStartPrice,
-          auctionEndPrice
+          auctionEndPrice,
+          traitsSaleStartTime
         )
     ).to.be.revertedWith("InvalidAuction()");
 
@@ -488,7 +494,8 @@ describe("Deployment and setup", function () {
           auctionStartTime,
           auctionEndTime,
           auctionEndPrice,
-          auctionStartPrice
+          auctionStartPrice,
+          traitsSaleStartTime
         )
     ).to.be.revertedWith("InvalidAuction()");
   });

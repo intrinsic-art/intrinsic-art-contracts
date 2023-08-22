@@ -33,6 +33,7 @@ interface ProjectConfig {
     auctionEndTime: number;
     auctionStartPrice: ethers.BigNumber;
     auctionEndPrice: ethers.BigNumber;
+    traitsSaleStartTime: number;
   };
   scripts: string[];
 }
@@ -106,12 +107,13 @@ const projectConfigs: ProjectConfig[] = [
       ],
     },
     scheduleAuctionData: {
-      // auctionStartTime: Math.trunc(Date.now() / 1000) + 10,
-      // auctionEndTime: Math.trunc(Date.now() / 1000) + 10,
-      auctionStartTime: 1691082300,
-      auctionEndTime: 1691083200,
+      auctionStartTime: Math.trunc(Date.now() / 1000) + 10,
+      auctionEndTime: Math.trunc(Date.now() / 1000) + 10,
+      // auctionStartTime: 1691082300,
+      // auctionEndTime: 1691083200,
       auctionStartPrice: ethers.utils.parseEther("0.1"),
       auctionEndPrice: ethers.utils.parseEther("0.01"),
+      traitsSaleStartTime: Math.trunc(Date.now() / 1000) + 10,
     },
     scripts: [
       `let seed,imageDimension,referenceRatio,referenceDimension=1e3;function setup(){seed=parseInt(tokenData.hash.slice(0,16),16),referenceRatio=(imageDimension=Math.min(windowWidth,windowHeight))/referenceDimension,createCanvas(imageDimension,imageDimension),getArt()}function getArt(){let e,n,a,r,i,$,_,g,o;switch(complexity){case"minimal":g=range(1,4);break;case"balanced":g=range(16,24);break;case"complex":g=range(40,48)}switch(colorMode(HSB,360,100,100,100),push(),palette){case"warm":o=range(270,450)%360;break;case"cool":o=range(91,269);break;case"mixed":o=range(0,360)}background(o,rangeFloor(60,100),rangeFloor(80,100)),a=range(-1,1),r=range(-.5,.5),i=range(-1,1),$=range(-1,1),n=range(.05,.8)*imageDimension,_=0;for(let t=0;t<g;t++){switch(push(),palette){case"warm":o=range(270,450)%360;break;case"cool":o=range(91,269);break;`,

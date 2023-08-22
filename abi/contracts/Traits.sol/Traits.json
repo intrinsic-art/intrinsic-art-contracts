@@ -111,6 +111,11 @@
     "type": "error"
   },
   {
+    "inputs": [],
+    "name": "TraitsSaleStartTime",
+    "type": "error"
+  },
+  {
     "anonymous": false,
     "inputs": [
       {
@@ -888,6 +893,11 @@
         "internalType": "uint256",
         "name": "_auctionEndPrice",
         "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_traitsSaleStartTime",
+        "type": "uint256"
       }
     ],
     "name": "scheduleAuction",
@@ -1123,6 +1133,19 @@
         "internalType": "uint256[]",
         "name": "_traitMaxSupplys",
         "type": "uint256[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "traitsSaleStartTime",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
       }
     ],
     "stateMutability": "view",

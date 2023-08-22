@@ -91,10 +91,16 @@ contract Artwork is
 
     /** @inheritdoc IArtwork*/
     function createArtwork(
-        uint256[] calldata _traitTokenIds
+        uint256[] calldata _traitTokenIds,
+        uint256 _saltNonce
     ) public returns (uint256 _artworkTokenId) {
         bytes32 _hash = keccak256(
-            abi.encodePacked(address(this), msg.sender, userNonces[msg.sender])
+            abi.encodePacked(
+                address(this),
+                msg.sender,
+                userNonces[msg.sender],
+                _saltNonce
+            )
         );
         _artworkTokenId = nextTokenId;
         nextTokenId++;
@@ -109,7 +115,7 @@ contract Artwork is
     }
 
     /** @inheritdoc IArtwork*/
-    function decomposeArtwork(uint256 _artworkTokenId) external {
+    function reclaimTraits(uint256 _artworkTokenId) external {
         if (msg.sender != _ownerOf(_artworkTokenId)) revert OnlyArtworkOwner();
 
         // Clear Artwork state
@@ -135,14 +141,15 @@ contract Artwork is
             ""
         );
 
-        emit ArtworkDecomposed(_artworkTokenId, msg.sender);
+        emit TraitsReclaimed(_artworkTokenId, msg.sender);
     }
 
     /** @inheritdoc IArtwork*/
     function buyTraitsCreateArtwork(
         uint256[] calldata _traitTokenIdsToBuy,
         uint256[] calldata _traitAmountsToBuy,
-        uint256[] calldata _traitTokenIdsToCreateArtwork
+        uint256[] calldata _traitTokenIdsToCreateArtwork,
+        uint256 _saltNonce
     ) external payable {
         traits.buyTraits{value: msg.value}(
             msg.sender,
@@ -150,7 +157,7 @@ contract Artwork is
             _traitAmountsToBuy
         );
 
-        createArtwork(_traitTokenIdsToCreateArtwork);
+        createArtwork(_traitTokenIdsToCreateArtwork, _saltNonce);
     }
 
     /** @inheritdoc IArtwork*/

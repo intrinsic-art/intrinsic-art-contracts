@@ -35,6 +35,7 @@ interface ITraits is IERC1155 {
     error AuctionNotLive();
     error TraitsAlreadyCreated();
     error InvalidTokenId();
+    error TraitsSaleStartTime();
 
     /**
      * Sets up the traits and trait types
@@ -63,12 +64,14 @@ interface ITraits is IERC1155 {
      * @param _auctionEndTime timestamp the auction ends at
      * @param _auctionStartPrice trait price the auction begins at
      * @param _auctionEndPrice trait price the auction ends at
+     * @param _traitsSaleStartTime timestamp at which traits can be bought individually
      */
     function scheduleAuction(
         uint256 _auctionStartTime,
         uint256 _auctionEndTime,
         uint256 _auctionStartPrice,
-        uint256 _auctionEndPrice
+        uint256 _auctionEndPrice,
+        uint256 _traitsSaleStartTime
     ) external;
 
     /**

@@ -22,7 +22,7 @@ interface IArtwork is IERC721 {
         bytes32 hash,
         address indexed creator
     );
-    event ArtworkDecomposed(
+    event TraitsReclaimed(
         uint256 indexed artworkTokenId,
         address indexed caller
     );
@@ -63,20 +63,22 @@ interface IArtwork is IERC721 {
      * The caller must own the specified traits
      *
      * @param _traitTokenIds the trait token IDs to create the artwork with
+     * @param _saltNonce salt number that is used to generate the artwork hash
      * @return _artworkTokenId the token ID of the newly minted artwork
      */
     function createArtwork(
-        uint256[] calldata _traitTokenIds
+        uint256[] calldata _traitTokenIds,
+        uint256 _saltNonce
     ) external returns (uint256 _artworkTokenId);
 
     /**
-     * Decomposes the specified artwork token into the traits its composed of
+     * Reclaims the traits the specified artwork token into the traits its composed of
      * The artwork token is burned, and the token ID will never be reused
      * The traits are transferred to the caller's address
      *
-     * @param _artworkTokenId the token ID of the artwork being decomposed
+     * @param _artworkTokenId the token ID of the artwork being reclaimed
      */
-    function decomposeArtwork(uint256 _artworkTokenId) external;
+    function reclaimTraits(uint256 _artworkTokenId) external;
 
     /**
      * Buys traits with specified amounts, and create an artwork in a single transaction
@@ -84,11 +86,13 @@ interface IArtwork is IERC721 {
      * @param _traitTokenIdsToBuy token IDs of the traits to buy
      * @param _traitAmountsToBuy amounts of each trait to buy
      * @param _traitTokenIdsToCreateArtwork token IDs of the traits to use to create the artwork
+     * @param _saltNonce salt number that is used to generate the artwork hash
      */
     function buyTraitsCreateArtwork(
         uint256[] calldata _traitTokenIdsToBuy,
         uint256[] calldata _traitAmountsToBuy,
-        uint256[] calldata _traitTokenIdsToCreateArtwork
+        uint256[] calldata _traitTokenIdsToCreateArtwork,
+        uint256 _saltNonce
     ) external payable;
 
     /**

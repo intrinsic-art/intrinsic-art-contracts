@@ -32,6 +32,7 @@ contract Traits is
     uint256 public auctionEndTime;
     uint256 public auctionStartPrice;
     uint256 public auctionEndPrice;
+    uint256 public traitsSaleStartTime;
     TraitType[] private _traitTypes;
     Trait[] private _traits;
 
@@ -109,18 +110,21 @@ contract Traits is
         uint256 _auctionStartTime,
         uint256 _auctionEndTime,
         uint256 _auctionStartPrice,
-        uint256 _auctionEndPrice
+        uint256 _auctionEndPrice,
+        uint256 _traitsSaleStartTime
     ) external onlyOwner {
         if (!artwork.locked()) revert NotLocked();
         if (
             _auctionEndTime < _auctionStartTime ||
-            _auctionEndPrice > _auctionStartPrice
+            _auctionEndPrice > _auctionStartPrice ||
+            _traitsSaleStartTime < _auctionStartTime
         ) revert InvalidAuction();
 
         auctionStartTime = _auctionStartTime;
         auctionEndTime = _auctionEndTime;
         auctionStartPrice = _auctionStartPrice;
         auctionEndPrice = _auctionEndPrice;
+        traitsSaleStartTime = _traitsSaleStartTime;
     }
 
     /** @inheritdoc ITraits*/
@@ -136,6 +140,8 @@ contract Traits is
     ) external payable {
         if (_traitTokenIds.length != _traitAmounts.length)
             revert InvalidArrayLengths();
+        if (msg.sender != address(artwork) && block.timestamp < traitsSaleStartTime)
+            revert TraitsSaleStartTime();
 
         uint256 _traitCount;
         uint256 _traitPrice = traitPrice();

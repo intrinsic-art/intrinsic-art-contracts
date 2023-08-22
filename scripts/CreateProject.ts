@@ -128,7 +128,8 @@ const CreateProject = async (
     projectConfigs[projectIndex].scheduleAuctionData.auctionStartTime,
     projectConfigs[projectIndex].scheduleAuctionData.auctionEndTime,
     projectConfigs[projectIndex].scheduleAuctionData.auctionStartPrice,
-    projectConfigs[projectIndex].scheduleAuctionData.auctionEndPrice
+    projectConfigs[projectIndex].scheduleAuctionData.auctionEndPrice,
+    projectConfigs[projectIndex].scheduleAuctionData.traitsSaleStartTime
   );
 
   await execute(
