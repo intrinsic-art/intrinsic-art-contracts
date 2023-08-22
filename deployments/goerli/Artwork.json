@@ -1,5 +1,5 @@
 {
-  "address": "0x6F5Be53Da5010e21ECf653c03A38D0B4a0FD5b64",
+  "address": "0x3878e298F0f6dfdf9559bD70fc12bB2033505b65",
   "abi": [
     {
       "inputs": [
@@ -921,60 +921,60 @@
       "type": "function"
     }
   ],
-  "transactionHash": "0x55a88d316de77c0ca4bc8f574158163192c74493152d5c2540b6af65a961f2ac",
+  "transactionHash": "0x448b4e4fdb554c701d1ac664700959fb302185c7da8ff77cdbda15ce51b93635",
   "receipt": {
     "to": null,
     "from": "0xAa9D46AE079851116967c6573f961B304095C34a",
-    "contractAddress": "0x6F5Be53Da5010e21ECf653c03A38D0B4a0FD5b64",
-    "transactionIndex": 4,
-    "gasUsed": "4871626",
-    "logsBloom": "0x00000000000080000000000000000000000000000000000000800000000000000000008000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000800002000000000000000000020002000000000000000800000000000000000000000000000000400000000000000000000000000000000000000000000080000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000000000000080000000000000000000000000080000020000001000000000000000002000000000000000000000000000000000000000000",
-    "blockHash": "0xeaa8077c5e7af31110dcb07303ecaca7fd9ac51cef0400cfa85274d38494b63c",
-    "transactionHash": "0x55a88d316de77c0ca4bc8f574158163192c74493152d5c2540b6af65a961f2ac",
+    "contractAddress": "0x3878e298F0f6dfdf9559bD70fc12bB2033505b65",
+    "transactionIndex": 23,
+    "gasUsed": "4916435",
+    "logsBloom": "0x00000000000080000000000000000000000000000000000000800000000000000000008000000000000000000000000000000000000000000000000000000000000000000000084000000000000000000001000000000000800000000000000000000000020000000000000000000800000000000000000000001000000000400000000000000000000000000000000000000000000000000000000000000000000000000000000000040000000000200000000000000000000000000000000000000000000000040000000000080000000000000000000000000080000020000000000000000000000008000000000000000000000000000000000000000000",
+    "blockHash": "0x65a8ad3aef8239b15ad460b88b0d5297b3e5bc49b32301f2fcbdb495509c6a70",
+    "transactionHash": "0x448b4e4fdb554c701d1ac664700959fb302185c7da8ff77cdbda15ce51b93635",
     "logs": [
       {
-        "transactionIndex": 4,
-        "blockNumber": 9524638,
-        "transactionHash": "0x55a88d316de77c0ca4bc8f574158163192c74493152d5c2540b6af65a961f2ac",
-        "address": "0x6F5Be53Da5010e21ECf653c03A38D0B4a0FD5b64",
+        "transactionIndex": 23,
+        "blockNumber": 9563703,
+        "transactionHash": "0x448b4e4fdb554c701d1ac664700959fb302185c7da8ff77cdbda15ce51b93635",
+        "address": "0x3878e298F0f6dfdf9559bD70fc12bB2033505b65",
         "topics": [
           "0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0",
           "0x0000000000000000000000000000000000000000000000000000000000000000",
           "0x000000000000000000000000aa9d46ae079851116967c6573f961b304095c34a"
         ],
         "data": "0x",
-        "logIndex": 8,
-        "blockHash": "0xeaa8077c5e7af31110dcb07303ecaca7fd9ac51cef0400cfa85274d38494b63c"
+        "logIndex": 92,
+        "blockHash": "0x65a8ad3aef8239b15ad460b88b0d5297b3e5bc49b32301f2fcbdb495509c6a70"
       },
       {
-        "transactionIndex": 4,
-        "blockNumber": 9524638,
-        "transactionHash": "0x55a88d316de77c0ca4bc8f574158163192c74493152d5c2540b6af65a961f2ac",
-        "address": "0x6F5Be53Da5010e21ECf653c03A38D0B4a0FD5b64",
+        "transactionIndex": 23,
+        "blockNumber": 9563703,
+        "transactionHash": "0x448b4e4fdb554c701d1ac664700959fb302185c7da8ff77cdbda15ce51b93635",
+        "address": "0x3878e298F0f6dfdf9559bD70fc12bB2033505b65",
         "topics": [
           "0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0",
           "0x000000000000000000000000aa9d46ae079851116967c6573f961b304095c34a",
           "0x000000000000000000000000aa9d46ae079851116967c6573f961b304095c34a"
         ],
         "data": "0x",
-        "logIndex": 9,
-        "blockHash": "0xeaa8077c5e7af31110dcb07303ecaca7fd9ac51cef0400cfa85274d38494b63c"
+        "logIndex": 93,
+        "blockHash": "0x65a8ad3aef8239b15ad460b88b0d5297b3e5bc49b32301f2fcbdb495509c6a70"
       },
       {
-        "transactionIndex": 4,
-        "blockNumber": 9524638,
-        "transactionHash": "0x55a88d316de77c0ca4bc8f574158163192c74493152d5c2540b6af65a961f2ac",
-        "address": "0x5581f4f017D4b4c5224527f3756DD4De68b83016",
+        "transactionIndex": 23,
+        "blockNumber": 9563703,
+        "transactionHash": "0x448b4e4fdb554c701d1ac664700959fb302185c7da8ff77cdbda15ce51b93635",
+        "address": "0xf27eD48a62DC65b80201ffAc79fF28e5b4CE02e5",
         "topics": [
           "0x40c340f65e17194d14ddddb073d3c9f888e3cb52b5aae0c6c7706b4fbc905fac"
         ],
         "data": "0x000000000000000000000000aa9d46ae079851116967c6573f961b304095c34a0000000000000000000000000000000000000000000000000000000000000064",
-        "logIndex": 10,
-        "blockHash": "0xeaa8077c5e7af31110dcb07303ecaca7fd9ac51cef0400cfa85274d38494b63c"
+        "logIndex": 94,
+        "blockHash": "0x65a8ad3aef8239b15ad460b88b0d5297b3e5bc49b32301f2fcbdb495509c6a70"
       }
     ],
-    "blockNumber": 9524638,
-    "cumulativeGasUsed": "5478405",
+    "blockNumber": 9563703,
+    "cumulativeGasUsed": "9360590",
     "status": 1,
     "byzantium": true
   },
@@ -982,7 +982,7 @@
     "1000",
     "intrinsic.art Tack Line Torn",
     "INSC",
-    "https://api.intrinsic.art/",
+    "https://historian.encryptafile.com/artwork/",
     "{\n        \"name\": \"Tack Line Torn\",\n        \"description\": \"Tack Line Torn is a generative art project that takes the viewer on a visual journey through the chaos of a tearing sail tack line. In sailing, a tack line is crucial to the stability and direction of a vessel, and in this project, the once-reliable line is portrayed as it breaks apart in real-time. The piece is a representation of the unpredictable nature of life, as the path of fragmentation is unique with each viewing. The fragmented line symbolizes the loss of control and the fragility of stability, and invites the viewer to contemplate the beauty that can be found in the midst of destruction. Tack Line Torn is an immersive and thought-provoking generative art project that explores the themes of unpredictability, transience, and the beauty of chaos.\",\n        \"artistName\": \"Phil Smith\",\n        \"website\": \"https://tacklinetorn.com\",\n        \"license\": \"MIT\",\n        \"scriptLibrary\": \"p5.js\",\n        \"scriptLibraryVersion\": \"1.0.0\",\n        \"aspectRatio\": \"1\"\n      }",
     "0xAa9D46AE079851116967c6573f961B304095C34a",
     [
