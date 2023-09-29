@@ -102,8 +102,7 @@ contract Artwork is
                 _saltNonce
             )
         );
-        _artworkTokenId = nextTokenId;
-        nextTokenId++;
+        _artworkTokenId = nextTokenId++;
         artworkData[_artworkTokenId].hash = _hash;
         artworkData[_artworkTokenId].traitTokenIds = _traitTokenIds;
         userNonces[msg.sender]++;
