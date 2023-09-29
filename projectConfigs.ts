@@ -107,13 +107,13 @@ const projectConfigs: ProjectConfig[] = [
       ],
     },
     scheduleAuctionData: {
-      auctionStartTime: Math.trunc(Date.now() / 1000) + 10,
-      auctionEndTime: Math.trunc(Date.now() / 1000) + 10,
-      // auctionStartTime: 1692896700,
-      // auctionEndTime: 1692897600,
+      // auctionStartTime: Math.trunc(Date.now() / 1000) + 10,
+      // auctionEndTime: Math.trunc(Date.now() / 1000) + 10,
+      auctionStartTime: 1696003200,
+      auctionEndTime: 1696006800,
       auctionStartPrice: ethers.utils.parseEther("0.1"),
       auctionEndPrice: ethers.utils.parseEther("0.01"),
-      traitsSaleStartTime: Math.trunc(Date.now() / 1000) + 10,
+      traitsSaleStartTime: 1696006800,
       // traitsSaleStartTime: 1692897600,
     },
     scripts: [
