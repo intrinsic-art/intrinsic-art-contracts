@@ -10,6 +10,7 @@ import "hardhat-contract-sizer";
 import "hardhat-abi-exporter";
 import "solidity-coverage";
 import CreateProject from "./scripts/CreateProject";
+import CreateMetta from "./scripts/CreateMetta";
 
 dotenv.config();
 
@@ -18,6 +19,12 @@ task("CreateProject", "Create a project")
   .setAction(async (taskArgs, hre) => {
     await CreateProject(hre, taskArgs.projectIndex);
   });
+
+task("CreateMetta", "Creates the Metta project").setAction(
+  async (taskArgs, hre) => {
+    await CreateMetta(hre);
+  }
+);
 
 const config: HardhatUserConfig = {
   solidity: {
