@@ -54,51 +54,51 @@ function setup() {
 
   // Intrinsic Artwork string handling
   nodes =
-    artwork.traits.nodes == "Minimum"
+    artwork.traits.nodes == "minimum"
       ? 5
-      : artwork.traits.nodes == "Low"
+      : artwork.traits.nodes == "low"
       ? 20
-      : artwork.traits.nodes == "Medium"
+      : artwork.traits.nodes == "medium"
       ? 60
       : 125;
   connections =
-    artwork.traits.connections == "Low"
+    artwork.traits.connections == "low"
       ? 2
-      : artwork.traits.connections == "Medium"
+      : artwork.traits.connections == "medium"
       ? 4
       : 10;
   thickness =
-    artwork.traits.thickness == "Micron 003"
+    artwork.traits.thickness == "micron003"
       ? 0
-      : artwork.traits.thickness == "Micron 01"
+      : artwork.traits.thickness == "micron01"
       ? 1
       : 2;
-  fade = artwork.traits.fade == "Yes" ? true : false;
+  fade = artwork.traits.fade == "yes" ? true : false;
   cellDesign =
-    artwork.traits.cellDesign == "Lines & Walls"
+    artwork.traits.cellDesign == "linesAndWalls"
       ? 0
-      : artwork.traits.cellDesign == "Startrail"
+      : artwork.traits.cellDesign == "startrail"
       ? 1
-      : artwork.traits.cellDesign == "Popcorn"
+      : artwork.traits.cellDesign == "popcorn"
       ? 2
-      : artwork.traits.cellDesign == "Shards"
+      : artwork.traits.cellDesign == "shards"
       ? 3
       : 4;
   cellColorMode =
-    artwork.traits.cellColorMode == "Tri-X"
+    artwork.traits.cellColorMode == "triX"
       ? 0
-      : artwork.traits.cellColorMode == "Synchonized"
+      : artwork.traits.cellColorMode == "synchronized"
       ? 1
-      : artwork.traits.cellColorMode == "Agree to Disaggree"
+      : artwork.traits.cellColorMode == "agreeToDisaggree"
       ? 2
       : 3;
   ringColorMode =
-    artwork.traits.ringColorMode == "Invisible"
+    artwork.traits.ringColorMode == "invisible"
       ? 2
-      : artwork.traits.ringColorMode == "Tri-X"
+      : artwork.traits.ringColorMode == "triX"
       ? 0
       : 1;
-  reach = artwork.traits.reach == "Low" ? 0 : artwork.traits.reach == "Medium" ? 1 : 2;
+  reach = artwork.traits.reach == "low" ? 0 : artwork.traits.reach == "medium" ? 1 : 2;
 
   
   gradientShift = getValue(0, 360);

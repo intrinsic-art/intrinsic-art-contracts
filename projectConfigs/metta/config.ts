@@ -10,12 +10,12 @@ const projectConfig: ProjectConfig = {
     scriptJSON: `{
         "name": "Metta",
         "description": "Metta by Matto",
-        "artistName": "Phil Smith",
+        "artistName": "Matto",
         "website": "https://matto.xyz/",
         "license": "MIT",
         "scriptLibrary": "p5.js",
         "scriptLibraryVersion": "1.0.0",
-        "aspectRatio": "16:9"
+        "aspectRatio": "9:16"
       }`,
     owner: "0xAa9D46AE079851116967c6573f961B304095C34a",
     royaltyPayees: ["0xAa9D46AE079851116967c6573f961B304095C34a"],
