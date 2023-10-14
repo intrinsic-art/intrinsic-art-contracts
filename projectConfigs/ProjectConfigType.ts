@@ -35,7 +35,6 @@ interface ProjectConfig {
     auctionEndPrice: ethers.BigNumber;
     traitsSaleStartTime: number;
   };
-  scripts: string[];
 }
 
 export default ProjectConfig;

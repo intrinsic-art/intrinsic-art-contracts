@@ -1,5 +1,5 @@
 import { BigNumber, ethers } from "ethers";
-import ProjectConfig from "./ProjectConfigType";
+import ProjectConfig from "../ProjectConfigType";
 
 const projectConfig: ProjectConfig = {
   artworkConstructorData: {
@@ -153,7 +153,6 @@ const projectConfig: ProjectConfig = {
     // traitsSaleStartTime: 1696006800,
     traitsSaleStartTime: Math.trunc(Date.now() / 1000) + 10,
   },
-  scripts: [``],
 };
 
 export default projectConfig;

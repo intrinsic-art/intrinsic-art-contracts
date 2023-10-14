@@ -9,20 +9,20 @@ import "hardhat-gas-reporter";
 import "hardhat-contract-sizer";
 import "hardhat-abi-exporter";
 import "solidity-coverage";
-import CreateProject from "./scripts/CreateProject";
 import CreateMetta from "./scripts/CreateMetta";
+import CreateTackLineTorn from "./scripts/CreateTackLineTorn";
 
 dotenv.config();
-
-task("CreateProject", "Create a project")
-  .addParam("projectIndex", "Index of the project in the config file")
-  .setAction(async (taskArgs, hre) => {
-    await CreateProject(hre, taskArgs.projectIndex);
-  });
 
 task("CreateMetta", "Creates the Metta project").setAction(
   async (taskArgs, hre) => {
     await CreateMetta(hre);
+  }
+);
+
+task("CreateTackLineTorn", "Creates the Tack Line Torn project").setAction(
+  async (taskArgs, hre) => {
+    await CreateTackLineTorn(hre);
   }
 );
 
