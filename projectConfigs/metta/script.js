@@ -89,7 +89,7 @@ function setup() {
       ? 0
       : artwork.traits.cellColorMode == "synchronized"
       ? 1
-      : artwork.traits.cellColorMode == "agreeToDisaggree"
+      : artwork.traits.cellColorMode == "agreeToDisagree"
       ? 2
       : 3;
   ringColorMode =
