@@ -4,8 +4,8 @@ pragma solidity =0.8.19;
 import {ITraits} from "./interfaces/ITraits.sol";
 import {IArtwork} from "./interfaces/IArtwork.sol";
 import {IScriptStorage} from "./interfaces/IScriptStorage.sol";
+import {IProjectRegistry} from "./interfaces/IProjectRegistry.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import {ERC2981} from "@openzeppelin/contracts/token/common/ERC2981.sol";
 import {PaymentSplitter} from "@openzeppelin/contracts/finance/PaymentSplitter.sol";
@@ -19,7 +19,6 @@ import {ERC1155Holder, ERC1155Receiver, IERC165} from "@openzeppelin/contracts/t
 contract Artwork is
     IArtwork,
     IERC721Metadata,
-    Ownable,
     ERC721,
     ERC2981,
     ERC1155Holder
@@ -27,10 +26,9 @@ contract Artwork is
     using Strings for uint256;
     using Strings for address;
 
-    bool public locked;
     address public royaltySplitter;
+    IProjectRegistry public projectRegistry;
     ITraits public traits;
-    string public baseURI;
     string public scriptJSON;
     string public constant VERSION = "1.0.0";
     uint256 public nextTokenId;
@@ -42,16 +40,14 @@ contract Artwork is
         uint96 _royaltyFeeNumerator,
         string memory _name,
         string memory _symbol,
-        string memory _baseURI,
         string memory _scriptJSON,
-        address _owner,
+        address _projectRegistry,
         address[] memory _royaltyPayees,
         uint256[] memory _royaltyShares,
         address[] memory _scriptStorageAddresses
     ) ERC721(_name, _symbol) {
-        baseURI = _baseURI;
         scriptJSON = _scriptJSON;
-        _transferOwnership(_owner);
+        projectRegistry = IProjectRegistry(_projectRegistry);
         address _royaltySplitter = address(
             new PaymentSplitter(_royaltyPayees, _royaltyShares)
         );
@@ -62,35 +58,11 @@ contract Artwork is
     }
 
     /** @inheritdoc IArtwork*/
-    function setTraits(address _traits) external onlyOwner {
+    function setTraits(address _traits) external {
+        if (msg.sender != address(projectRegistry)) revert OnlyProjectRegistry();
         if (address(traits) != address(0)) revert TraitsAlreadySet();
 
         traits = ITraits(_traits);
-    }
-
-    // /** @inheritdoc IArtwork*/
-    // function updateScript(
-    //     uint256 _scriptIndex,
-    //     string calldata _script
-    // ) external onlyOwner {
-    //     if (locked) revert Locked();
-
-    //     scripts[_scriptIndex] = (_script);
-    // }
-
-    /** @inheritdoc IArtwork*/
-    function updateBaseURI(string memory _baseURI) external onlyOwner {
-        baseURI = _baseURI;
-
-        emit BaseURIUpdated(_baseURI);
-    }
-
-    /** @inheritdoc IArtwork*/
-    function lockProject() external onlyOwner {
-        if (locked) revert Locked();
-        if (address(traits) == address(0)) revert TraitsNotSet();
-
-        locked = true;
     }
 
     /** @inheritdoc IArtwork*/
@@ -173,6 +145,8 @@ contract Artwork is
         returns (string memory)
     {
         _requireMinted(_tokenId);
+
+        string memory baseURI = projectRegistry.baseURI();
 
         return
             bytes(baseURI).length != 0
