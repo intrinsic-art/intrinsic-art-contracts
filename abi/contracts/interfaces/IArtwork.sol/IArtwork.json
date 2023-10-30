@@ -16,6 +16,11 @@
   },
   {
     "inputs": [],
+    "name": "OnlyProjectRegistry",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "TraitsAlreadySet",
     "type": "error"
   },
@@ -103,19 +108,6 @@
       }
     ],
     "name": "ArtworkCreated",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "string",
-        "name": "baseURI",
-        "type": "string"
-      }
-    ],
-    "name": "BaseURIUpdated",
     "type": "event"
   },
   {
@@ -339,26 +331,6 @@
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "lockProject",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "locked",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
     "inputs": [
       {
         "internalType": "uint256",
@@ -555,19 +527,6 @@
       }
     ],
     "name": "transferFrom",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "string",
-        "name": "_baseURI",
-        "type": "string"
-      }
-    ],
-    "name": "updateBaseURI",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

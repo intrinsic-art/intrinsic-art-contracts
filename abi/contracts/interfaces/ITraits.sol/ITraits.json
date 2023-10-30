@@ -1,6 +1,11 @@
 [
   {
     "inputs": [],
+    "name": "ArtworkAlreadySet",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "AuctionNotLive",
     "type": "error"
   },
@@ -57,6 +62,11 @@
   {
     "inputs": [],
     "name": "OnlyClaimer",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "OnlyProjectRegistry",
     "type": "error"
   },
   {
@@ -446,6 +456,19 @@
   {
     "inputs": [
       {
+        "internalType": "address",
+        "name": "_artwork",
+        "type": "address"
+      }
+    ],
+    "name": "setArtwork",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "bytes4",
         "name": "interfaceId",
         "type": "bytes4"
@@ -589,19 +612,6 @@
       }
     ],
     "name": "transferTraitsToCreateArtwork",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "string",
-        "name": "_uri",
-        "type": "string"
-      }
-    ],
-    "name": "updateURI",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

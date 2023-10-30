@@ -74,13 +74,6 @@ interface ITraits is IERC1155 {
     ) external;
 
     /**
-     * Updates the base URI string used to get full token URIs
-     *
-     * @param _uri the new base URI string
-     */
-    function updateURI(string memory _uri) external;
-
-    /**
      * Allows a user to buy any number of traits and amounts using ether
      *
      * @param _recipient the address to receive the trait tokens

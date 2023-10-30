@@ -18,7 +18,7 @@
       },
       {
         "internalType": "address",
-        "name": "_owner",
+        "name": "_projectRegistry",
         "type": "address"
       },
       {
@@ -84,6 +84,11 @@
   },
   {
     "inputs": [],
+    "name": "ArtworkAlreadySet",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "AuctionNotLive",
     "type": "error"
   },
@@ -144,6 +149,11 @@
   },
   {
     "inputs": [],
+    "name": "OnlyProjectRegistry",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "TraitsAlreadyCreated",
     "type": "error"
   },
@@ -200,25 +210,6 @@
       }
     ],
     "name": "ERC20PaymentReleased",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "previousOwner",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "newOwner",
-        "type": "address"
-      }
-    ],
-    "name": "OwnershipTransferred",
     "type": "event"
   },
   {
@@ -608,19 +599,6 @@
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "owner",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
     "inputs": [
       {
         "internalType": "uint256",
@@ -632,6 +610,19 @@
     "outputs": [
       {
         "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "projectRegistry",
+    "outputs": [
+      {
+        "internalType": "contract IProjectRegistry",
         "name": "",
         "type": "address"
       }
@@ -754,13 +745,6 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "renounceOwnership",
-    "outputs": [],
-    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -918,6 +902,19 @@
       }
     ],
     "name": "setApprovalForAll",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_artwork",
+        "type": "address"
+      }
+    ],
+    "name": "setArtwork",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -1154,19 +1151,6 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "newOwner",
-        "type": "address"
-      }
-    ],
-    "name": "transferOwnership",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
         "name": "_caller",
         "type": "address"
       },
@@ -1177,19 +1161,6 @@
       }
     ],
     "name": "transferTraitsToCreateArtwork",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "string",
-        "name": "_uri",
-        "type": "string"
-      }
-    ],
-    "name": "updateURI",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

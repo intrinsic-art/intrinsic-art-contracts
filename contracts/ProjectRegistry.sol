@@ -44,7 +44,7 @@ contract ProjectRegistry is IProjectRegistry, Ownable {
         projects[projectCount].traits = _traits;
 
         IArtwork(_artwork).setTraits(_traits);
-        ITraits(_traits).setAr
+        ITraits(_traits).setArtwork(_artwork);
 
         emit ProjectRegistered(projectCount, _artwork, _traits);
     }
