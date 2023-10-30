@@ -40,6 +40,11 @@
         "internalType": "uint256[]",
         "name": "_royaltyShares",
         "type": "uint256[]"
+      },
+      {
+        "internalType": "address[]",
+        "name": "_scriptStorageAddresses",
+        "type": "address[]"
       }
     ],
     "stateMutability": "nonpayable",
@@ -700,19 +705,6 @@
   },
   {
     "inputs": [],
-    "name": "scriptCount",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
     "name": "scriptJSON",
     "outputs": [
       {
@@ -730,7 +722,7 @@
     "outputs": [
       {
         "internalType": "address[]",
-        "name": "_scriptContracts",
+        "name": "_scripts",
         "type": "address[]"
       }
     ],

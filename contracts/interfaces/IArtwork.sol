@@ -119,13 +119,6 @@ interface IArtwork is IERC721 {
         );
 
     /**
-     * Returns an array of strings to be concatenated together to form the generative script
-     *
-     * @return _scripts the array of script strings
-     */
-    function scripts() external view returns (string[] memory _scripts);
-
-    /**
      * Returns addresses of the script storage contracts
      *
      * @return _scriptContracts the array of script storage contract addresses
@@ -133,11 +126,11 @@ interface IArtwork is IERC721 {
     function scriptStorageContracts() external view returns (address[] memory _scriptContracts);
 
     /**
-     * Returns the number of strings contained in the script array
+     * Returns an array of strings to be concatenated together to form the generative script
      *
-     * @return uint256 the number of script strings
+     * @return _scripts the array of script strings
      */
-    function scriptCount() external view returns (uint256);
+    function scripts() external view returns (string[] memory _scripts);
 
     /**
      * Returns the specified user's nonce, which is used to generate artwork hashes

@@ -34,7 +34,7 @@ contract Artwork is
     string public scriptJSON;
     string public constant VERSION = "1.0.0";
     uint256 public nextTokenId;
-    mapping(uint256 => address) private _scriptStorageContracts;
+    address[] private _scriptStorageContracts;
     mapping(uint256 => ArtworkData) private artworkData;
     mapping(address => uint256) private userNonces;
 
@@ -46,7 +46,8 @@ contract Artwork is
         string memory _scriptJSON,
         address _owner,
         address[] memory _royaltyPayees,
-        uint256[] memory _royaltyShares
+        uint256[] memory _royaltyShares,
+        address[] memory _scriptStorageAddresses
     ) ERC721(_name, _symbol) {
         baseURI = _baseURI;
         scriptJSON = _scriptJSON;
@@ -56,6 +57,8 @@ contract Artwork is
         );
         _setDefaultRoyalty(_royaltySplitter, _royaltyFeeNumerator);
         royaltySplitter = _royaltySplitter;
+
+        _scriptStorageContracts = _scriptStorageAddresses;
     }
 
     /** @inheritdoc IArtwork*/
@@ -225,8 +228,13 @@ contract Artwork is
     }
 
     /** @inheritdoc IArtwork*/
+    function scriptStorageContracts() external view returns (address[] memory _scripts) {
+      return _scriptStorageContracts;
+    }
+
+    /** @inheritdoc IArtwork*/
     function scripts() external view returns (string[] memory _scripts) {
-        uint256 _scriptCount = scriptCount();
+        uint256 _scriptCount = _scriptStorageContracts.length;
         _scripts = new string[](_scriptCount);
 
         for (uint256 i; i < _scriptCount; ) {
@@ -236,33 +244,6 @@ contract Artwork is
                 ++i;
             }
         }
-    }
-
-    /** @inheritdoc IArtwork*/
-    function scriptStorageContracts() external view returns (address[] memory _scriptContracts) {
-        uint256 _scriptCount = scriptCount();
-        _scriptContracts = new address[](_scriptCount);
-
-        for (uint256 i; i < _scriptCount; ) {
-            _scriptContracts[i] = _scriptStorageContracts[i];
-
-            unchecked {
-                ++i;
-            }
-        }
-    }
-
-    /** @inheritdoc IArtwork*/
-    function scriptCount() public view returns (uint256) {
-        uint256 scriptIndex;
-
-        while (
-            _scriptStorageContracts[scriptIndex] != address(0)
-        ) {
-            scriptIndex++;
-        }
-
-        return scriptIndex;
     }
 
     /** @inheritdoc IArtwork*/
