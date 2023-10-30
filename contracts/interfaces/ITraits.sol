@@ -16,6 +16,15 @@ interface ITraits is IERC1155 {
         uint256 maxSupply;
     }
 
+    struct TraitsSetup {
+        string[] traitTypeNames;
+        string[] traitTypeValues;
+        string[] traitNames;
+        string[] traitValues;
+        uint256[] traitTypeIndexes;
+        uint256[] traitMaxSupplys;
+    }
+
     event TraitsBought(
         address indexed recipient,
         uint256[] traitTokenIds,
@@ -36,25 +45,6 @@ interface ITraits is IERC1155 {
     error TraitsAlreadyCreated();
     error InvalidTokenId();
     error TraitsSaleStartTime();
-
-    /**
-     * Sets up the traits and trait types
-     *
-     * @param _traitTypeNames human readable trait type names
-     * @param _traitTypeValues trait type values used in the generative scripts
-     * @param _traitNames human readable trait names
-     * @param _traitValues trait values used in the generative scripts
-     * @param _traitTypeIndexes trait type indexes each trait belongs to
-     * @param _traitMaxSupplys maximum number of mints for each trait
-     */
-    function createTraitsAndTypes(
-        string[] memory _traitTypeNames,
-        string[] memory _traitTypeValues,
-        string[] calldata _traitNames,
-        string[] calldata _traitValues,
-        uint256[] calldata _traitTypeIndexes,
-        uint256[] calldata _traitMaxSupplys
-    ) external;
 
     /**
      * Schedules the dutch auction start and end time, and the prices

@@ -44,7 +44,8 @@ contract Traits is
         address[] memory _primarySalesPayees,
         uint256[] memory _primarySalesShares,
         address[] memory _royaltyPayees,
-        uint256[] memory _royaltyShares
+        uint256[] memory _royaltyShares,
+        TraitsSetup memory _traitsSetup
     ) ERC1155(_uri) PaymentSplitter(_primarySalesPayees, _primarySalesShares) {
         artwork = IArtwork(_artwork);
         _transferOwnership(_owner);
@@ -53,56 +54,15 @@ contract Traits is
         );
         _setDefaultRoyalty(_royaltySplitter, _royaltyFeeNumerator);
         royaltySplitter = _royaltySplitter;
-    }
 
-    /** @inheritdoc ITraits*/
-    function createTraitsAndTypes(
-        string[] memory _traitTypeNames,
-        string[] memory _traitTypeValues,
-        string[] calldata _traitNames,
-        string[] calldata _traitValues,
-        uint256[] calldata _traitTypeIndexes,
-        uint256[] calldata _traitMaxSupplys
-    ) external onlyOwner {
-        if (artwork.locked()) revert Locked();
-        if (_traits.length != 0 || _traitTypes.length != 0)
-            revert TraitsAlreadyCreated();
-        if (
-            _traitTypeNames.length == 0 ||
-            _traitNames.length == 0 ||
-            _traitTypeNames.length != _traitTypeValues.length ||
-            _traitNames.length != _traitValues.length ||
-            _traitNames.length != _traitTypeIndexes.length ||
-            _traitNames.length != _traitMaxSupplys.length
-        ) revert InvalidArrayLengths();
-
-        // Push trait types to array
-        for (uint256 i; i < _traitTypeNames.length; ) {
-            _traitTypes.push(
-                TraitType({
-                    name: _traitTypeNames[i],
-                    value: _traitTypeValues[i]
-                })
-            );
-            unchecked {
-                ++i;
-            }
-        }
-
-        // Push traits to array
-        for (uint256 i; i < _traitNames.length; ) {
-            _traits.push(
-                Trait({
-                    name: _traitNames[i],
-                    value: _traitValues[i],
-                    typeIndex: _traitTypeIndexes[i],
-                    maxSupply: _traitMaxSupplys[i]
-                })
-            );
-            unchecked {
-                ++i;
-            }
-        }
+        _createTraitsAndTypes(
+            _traitsSetup.traitTypeNames,
+            _traitsSetup.traitTypeValues,
+            _traitsSetup.traitNames,
+            _traitsSetup.traitValues,
+            _traitsSetup.traitTypeIndexes,
+            _traitsSetup.traitMaxSupplys
+        );
     }
 
     /** @inheritdoc ITraits*/
@@ -140,8 +100,10 @@ contract Traits is
     ) external payable {
         if (_traitTokenIds.length != _traitAmounts.length)
             revert InvalidArrayLengths();
-        if (msg.sender != address(artwork) && block.timestamp < traitsSaleStartTime)
-            revert TraitsSaleStartTime();
+        if (
+            msg.sender != address(artwork) &&
+            block.timestamp < traitsSaleStartTime
+        ) revert TraitsSaleStartTime();
 
         uint256 _traitCount;
         uint256 _traitPrice = traitPrice();
@@ -336,5 +298,61 @@ contract Traits is
         return
             interfaceId == type(ITraits).interfaceId ||
             super.supportsInterface(interfaceId);
+    }
+
+    /**
+     * Sets up the traits and trait types
+     *
+     * @param _traitTypeNames human readable trait type names
+     * @param _traitTypeValues trait type values used in the generative scripts
+     * @param _traitNames human readable trait names
+     * @param _traitValues trait values used in the generative scripts
+     * @param _traitTypeIndexes trait type indexes each trait belongs to
+     * @param _traitMaxSupplys maximum number of mints for each trait
+     */
+    function _createTraitsAndTypes(
+        string[] memory _traitTypeNames,
+        string[] memory _traitTypeValues,
+        string[] memory _traitNames,
+        string[] memory _traitValues,
+        uint256[] memory _traitTypeIndexes,
+        uint256[] memory _traitMaxSupplys
+    ) private {
+        if (
+            _traitTypeNames.length == 0 ||
+            _traitNames.length == 0 ||
+            _traitTypeNames.length != _traitTypeValues.length ||
+            _traitNames.length != _traitValues.length ||
+            _traitNames.length != _traitTypeIndexes.length ||
+            _traitNames.length != _traitMaxSupplys.length
+        ) revert InvalidArrayLengths();
+
+        // Push trait types to array
+        for (uint256 i; i < _traitTypeNames.length; ) {
+            _traitTypes.push(
+                TraitType({
+                    name: _traitTypeNames[i],
+                    value: _traitTypeValues[i]
+                })
+            );
+            unchecked {
+                ++i;
+            }
+        }
+
+        // Push traits to array
+        for (uint256 i; i < _traitNames.length; ) {
+            _traits.push(
+                Trait({
+                    name: _traitNames[i],
+                    value: _traitValues[i],
+                    typeIndex: _traitTypeIndexes[i],
+                    maxSupply: _traitMaxSupplys[i]
+                })
+            );
+            unchecked {
+                ++i;
+            }
+        }
     }
 }
