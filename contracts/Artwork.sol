@@ -3,6 +3,7 @@ pragma solidity =0.8.19;
 
 import {ITraits} from "./interfaces/ITraits.sol";
 import {IArtwork} from "./interfaces/IArtwork.sol";
+import {IScriptStorage} from "./interfaces/IScriptStorage.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
@@ -33,7 +34,7 @@ contract Artwork is
     string public scriptJSON;
     string public constant VERSION = "1.0.0";
     uint256 public nextTokenId;
-    mapping(uint256 => string) private scripts;
+    mapping(uint256 => address) private _scriptStorageContracts;
     mapping(uint256 => ArtworkData) private artworkData;
     mapping(address => uint256) private userNonces;
 
@@ -64,15 +65,15 @@ contract Artwork is
         traits = ITraits(_traits);
     }
 
-    /** @inheritdoc IArtwork*/
-    function updateScript(
-        uint256 _scriptIndex,
-        string calldata _script
-    ) external onlyOwner {
-        if (locked) revert Locked();
+    // /** @inheritdoc IArtwork*/
+    // function updateScript(
+    //     uint256 _scriptIndex,
+    //     string calldata _script
+    // ) external onlyOwner {
+    //     if (locked) revert Locked();
 
-        scripts[_scriptIndex] = (_script);
-    }
+    //     scripts[_scriptIndex] = (_script);
+    // }
 
     /** @inheritdoc IArtwork*/
     function updateBaseURI(string memory _baseURI) external onlyOwner {
@@ -224,12 +225,12 @@ contract Artwork is
     }
 
     /** @inheritdoc IArtwork*/
-    function projectScripts() external view returns (string[] memory _scripts) {
-        uint256 scriptCount = projectScriptCount();
-        _scripts = new string[](scriptCount);
+    function scripts() external view returns (string[] memory _scripts) {
+        uint256 _scriptCount = scriptCount();
+        _scripts = new string[](_scriptCount);
 
-        for (uint256 i; i < scriptCount; ) {
-            _scripts[i] = scripts[i];
+        for (uint256 i; i < _scriptCount; ) {
+            _scripts[i] = IScriptStorage(_scriptStorageContracts[i]).getScript();
 
             unchecked {
                 ++i;
@@ -238,12 +239,25 @@ contract Artwork is
     }
 
     /** @inheritdoc IArtwork*/
-    function projectScriptCount() public view returns (uint256) {
+    function scriptStorageContracts() external view returns (address[] memory _scriptContracts) {
+        uint256 _scriptCount = scriptCount();
+        _scriptContracts = new address[](_scriptCount);
+
+        for (uint256 i; i < _scriptCount; ) {
+            _scriptContracts[i] = _scriptStorageContracts[i];
+
+            unchecked {
+                ++i;
+            }
+        }
+    }
+
+    /** @inheritdoc IArtwork*/
+    function scriptCount() public view returns (uint256) {
         uint256 scriptIndex;
 
         while (
-            keccak256(abi.encodePacked(scripts[scriptIndex])) !=
-            keccak256(abi.encodePacked(""))
+            _scriptStorageContracts[scriptIndex] != address(0)
         ) {
             scriptIndex++;
         }

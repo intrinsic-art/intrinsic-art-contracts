@@ -34,16 +34,6 @@ interface IArtwork is IERC721 {
      */
     function setTraits(address _traits) external;
 
-    /**
-     * Updates the script at the specified index in the scripts array
-     *
-     * @param _scriptIndex index of the script to update
-     * @param _script updated generative script
-     */
-    function updateScript(
-        uint256 _scriptIndex,
-        string calldata _script
-    ) external;
 
     /**
      * Updates the URI base string
@@ -133,14 +123,21 @@ interface IArtwork is IERC721 {
      *
      * @return _scripts the array of script strings
      */
-    function projectScripts() external view returns (string[] memory _scripts);
+    function scripts() external view returns (string[] memory _scripts);
+
+    /**
+     * Returns addresses of the script storage contracts
+     *
+     * @return _scriptContracts the array of script storage contract addresses
+     */
+    function scriptStorageContracts() external view returns (address[] memory _scriptContracts);
 
     /**
      * Returns the number of strings contained in the script array
      *
      * @return uint256 the number of script strings
      */
-    function projectScriptCount() external view returns (uint256);
+    function scriptCount() external view returns (uint256);
 
     /**
      * Returns the specified user's nonce, which is used to generate artwork hashes

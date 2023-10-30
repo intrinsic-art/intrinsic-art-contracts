@@ -378,32 +378,6 @@
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "projectScriptCount",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "projectScripts",
-    "outputs": [
-      {
-        "internalType": "string[]",
-        "name": "_scripts",
-        "type": "string[]"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
     "inputs": [
       {
         "internalType": "uint256",
@@ -465,6 +439,45 @@
     "name": "safeTransferFrom",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "scriptCount",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "scriptStorageContracts",
+    "outputs": [
+      {
+        "internalType": "address[]",
+        "name": "_scriptContracts",
+        "type": "address[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "scripts",
+    "outputs": [
+      {
+        "internalType": "string[]",
+        "name": "_scripts",
+        "type": "string[]"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -568,24 +581,6 @@
       }
     ],
     "name": "updateBaseURI",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "_scriptIndex",
-        "type": "uint256"
-      },
-      {
-        "internalType": "string",
-        "name": "_script",
-        "type": "string"
-      }
-    ],
-    "name": "updateScript",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
