@@ -11,11 +11,12 @@ interface IArtwork is IERC721 {
 
     error TraitsAlreadySet();
     error TraitsNotSet();
+    error OnlyProjectRegistry();
     error Locked();
     error OnlyArtist();
     error OnlyArtworkOwner();
 
-    event BaseURIUpdated(string baseURI);
+
     event ArtworkCreated(
         uint256 indexed artworkTokenId,
         uint256[] traitTokenIds,
@@ -33,20 +34,6 @@ interface IArtwork is IERC721 {
      * @param _traits address of the traits contract
      */
     function setTraits(address _traits) external;
-
-
-    /**
-     * Updates the URI base string
-     *
-     * @param _baseURI the updated base URI string
-     */
-    function updateBaseURI(string memory _baseURI) external;
-
-    /**
-     * Locks the project so that project configuration is immutable
-     * before the trait auction begins
-     */
-    function lockProject() external;
 
     /**
      * Creates a new artwork with the specified trait token IDs
@@ -139,13 +126,6 @@ interface IArtwork is IERC721 {
      * @return uint256 the user's nonce
      */
     function userNonce(address _user) external view returns (uint256);
-
-    /**
-     * Returns whether the project has been locked
-     *
-     * @return bool True if the project is locked, otherwise False
-     */
-    function locked() external view returns (bool);
 
     /**
      * Returns whether the specified interface ID is supported by the contract
