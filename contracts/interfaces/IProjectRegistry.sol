@@ -8,7 +8,9 @@ interface IProjectRegistry {
     }
 
     error OnlyAdmin();
+    error InvalidAddress();
 
+    event BaseURIUpdated(string baseURI);
     event ProjectRegistered(
         uint256 indexed projectId,
         address indexed artwork,
@@ -16,6 +18,13 @@ interface IProjectRegistry {
     );
     event AdminAdded(address indexed account);
     event AdminRemoved(address indexed account);
+
+    /**
+     * Updates the URI base string
+     *
+     * @param _baseURI the updated base URI string
+     */
+    function updateBaseURI(string memory _baseURI) external;
 
     /**
      * Registers a project by storing the Artwork and Traits contract addresses
@@ -38,4 +47,11 @@ interface IProjectRegistry {
      * @param _admins the addresses remove from being admins
      */
     function removeAdmins(address[] memory _admins) external;
+
+    /**
+     * Returns the base URI string
+     *
+     * @return the base URI string
+     */
+    function baseURI() external view returns (string memory);
 }

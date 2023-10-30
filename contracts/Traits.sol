@@ -3,8 +3,8 @@ pragma solidity =0.8.19;
 
 import {ITraits} from "./interfaces/ITraits.sol";
 import {IArtwork} from "./interfaces/IArtwork.sol";
+import {IProjectRegistry} from "./interfaces/IProjectRegistry.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ERC2981} from "@openzeppelin/contracts/token/common/ERC2981.sol";
 import {ERC1155, IERC165} from "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import {PaymentSplitter} from "@openzeppelin/contracts/finance/PaymentSplitter.sol";
@@ -19,7 +19,6 @@ contract Traits is
     ERC2981,
     ERC1155,
     ERC1155Supply,
-    Ownable,
     PaymentSplitter
 {
     using Strings for uint256;
@@ -27,6 +26,7 @@ contract Traits is
 
     IArtwork public artwork;
     address public royaltySplitter;
+    IProjectRegistry public projectRegistry;
     string public constant VERSION = "1.0.0";
     uint256 public auctionStartTime;
     uint256 public auctionEndTime;
@@ -40,7 +40,7 @@ contract Traits is
         uint96 _royaltyFeeNumerator,
         string memory _uri,
         address _artwork,
-        address _owner,
+        address _projectRegistry,
         address[] memory _primarySalesPayees,
         uint256[] memory _primarySalesShares,
         address[] memory _royaltyPayees,
@@ -48,7 +48,7 @@ contract Traits is
         TraitsSetup memory _traitsSetup
     ) ERC1155(_uri) PaymentSplitter(_primarySalesPayees, _primarySalesShares) {
         artwork = IArtwork(_artwork);
-        _transferOwnership(_owner);
+        projectRegistry = IProjectRegistry(_projectRegistry);
         address _royaltySplitter = address(
             new PaymentSplitter(_royaltyPayees, _royaltyShares)
         );
@@ -66,14 +66,21 @@ contract Traits is
     }
 
     /** @inheritdoc ITraits*/
+    function setArtwork(address _artwork) external {
+        if (msg.sender != address(projectRegistry)) revert OnlyProjectRegistry();
+        if (address(artwork) != address(0)) revert ArtworkAlreadySet();
+
+        artwork = IArtwork(_artwork);
+    }
+
+    /** @inheritdoc ITraits*/
     function scheduleAuction(
         uint256 _auctionStartTime,
         uint256 _auctionEndTime,
         uint256 _auctionStartPrice,
         uint256 _auctionEndPrice,
         uint256 _traitsSaleStartTime
-    ) external onlyOwner {
-        if (!artwork.locked()) revert NotLocked();
+    ) external {
         if (
             _auctionEndTime < _auctionStartTime ||
             _auctionEndPrice > _auctionStartPrice ||
@@ -85,11 +92,6 @@ contract Traits is
         auctionStartPrice = _auctionStartPrice;
         auctionEndPrice = _auctionEndPrice;
         traitsSaleStartTime = _traitsSaleStartTime;
-    }
-
-    /** @inheritdoc ITraits*/
-    function updateURI(string memory _uri) external onlyOwner {
-        _setURI(_uri);
     }
 
     /** @inheritdoc ITraits*/

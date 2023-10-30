@@ -32,6 +32,8 @@ interface ITraits is IERC1155 {
     );
 
     error OnlyArtwork();
+    error OnlyProjectRegistry();
+    error ArtworkAlreadySet();
     error Locked();
     error InvalidArrayLengths();
     error NotLocked();
@@ -45,6 +47,13 @@ interface ITraits is IERC1155 {
     error TraitsAlreadyCreated();
     error InvalidTokenId();
     error TraitsSaleStartTime();
+
+    /**
+     * Sets the address of the Artwork contract
+     *
+     * @param _artwork address of the Artwork contract
+     */
+    function setArtwork(address _artwork) external;
 
     /**
      * Schedules the dutch auction start and end time, and the prices

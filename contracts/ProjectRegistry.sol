@@ -2,14 +2,17 @@
 pragma solidity =0.8.19;
 
 import {IProjectRegistry} from "./interfaces/IProjectRegistry.sol";
+import {IArtwork} from "./interfaces/IArtwork.sol";
+import {ITraits} from "./interfaces/ITraits.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
  * Provides functionality for registering the Traits and Artwork
- * contract addresses for each intrinsic.art project
+ * contract addresses for each project
  */
 contract ProjectRegistry is IProjectRegistry, Ownable {
     uint256 public projectCount;
+    string public baseURI;
     mapping(address => bool) public admins;
     mapping(uint256 => Project) public projects;
 
@@ -24,14 +27,24 @@ contract ProjectRegistry is IProjectRegistry, Ownable {
     }
 
     /** @inheritdoc IProjectRegistry*/
+    function updateBaseURI(string memory _baseURI) external onlyOwner {
+        baseURI = _baseURI;
+        emit BaseURIUpdated(_baseURI);
+    }
+
+    /** @inheritdoc IProjectRegistry*/
     function registerProject(
         address _artwork,
         address _traits
     ) external onlyAdmin {
+        if (_artwork == address(0) || _traits == address(0)) revert InvalidAddress();
         projectCount++;
 
         projects[projectCount].artwork = _artwork;
         projects[projectCount].traits = _traits;
+
+        IArtwork(_artwork).setTraits(_traits);
+        ITraits(_traits).setAr
 
         emit ProjectRegistered(projectCount, _artwork, _traits);
     }
