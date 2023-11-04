@@ -2,11 +2,6 @@
   {
     "inputs": [
       {
-        "internalType": "uint96",
-        "name": "_royaltyFeeNumerator",
-        "type": "uint96"
-      },
-      {
         "internalType": "string",
         "name": "_name",
         "type": "string"
@@ -18,13 +13,23 @@
       },
       {
         "internalType": "string",
-        "name": "_scriptJSON",
+        "name": "_metadataJSON",
         "type": "string"
       },
       {
         "internalType": "address",
         "name": "_projectRegistry",
         "type": "address"
+      },
+      {
+        "internalType": "address[]",
+        "name": "_scriptStorageAddresses",
+        "type": "address[]"
+      },
+      {
+        "internalType": "uint96",
+        "name": "_royaltyFeeNumerator",
+        "type": "uint96"
       },
       {
         "internalType": "address[]",
@@ -35,11 +40,6 @@
         "internalType": "uint256[]",
         "name": "_royaltyShares",
         "type": "uint256[]"
-      },
-      {
-        "internalType": "address[]",
-        "name": "_scriptStorageAddresses",
-        "type": "address[]"
       }
     ],
     "stateMutability": "nonpayable",
@@ -52,27 +52,12 @@
   },
   {
     "inputs": [],
-    "name": "Locked",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "OnlyArtist",
-    "type": "error"
-  },
-  {
-    "inputs": [],
     "name": "OnlyArtworkOwner",
     "type": "error"
   },
   {
     "inputs": [],
     "name": "OnlyProjectRegistry",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "TraitsNotSet",
     "type": "error"
   },
   {
@@ -396,6 +381,19 @@
   },
   {
     "inputs": [],
+    "name": "metadataJSON",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "name",
     "outputs": [
       {
@@ -634,19 +632,6 @@
     "name": "safeTransferFrom",
     "outputs": [],
     "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "scriptJSON",
-    "outputs": [
-      {
-        "internalType": "string",
-        "name": "",
-        "type": "string"
-      }
-    ],
-    "stateMutability": "view",
     "type": "function"
   },
   {

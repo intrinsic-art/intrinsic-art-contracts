@@ -25,6 +25,8 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
     uint256 public auctionEndTime;
     uint256 public auctionStartPrice;
     uint256 public auctionEndPrice;
+    uint256 public auctionPriceSteps;
+    bool public auctionExponential;
     uint256 public traitsSaleStartTime;
     TraitType[] private _traitTypes;
     Trait[] private _traits;
@@ -66,10 +68,21 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
             uint256 _auctionEndTime,
             uint256 _auctionStartPrice,
             uint256 _auctionEndPrice,
+            uint256 _auctionPriceSteps,
+            bool _auctionExponential,
             uint256 _traitsSaleStartTime
         ) = abi.decode(
                 _data,
-                (address, uint256, uint256, uint256, uint256, uint256)
+                (
+                    address,
+                    uint256,
+                    uint256,
+                    uint256,
+                    uint256,
+                    uint256,
+                    bool,
+                    uint256
+                )
             );
 
         if (_artwork == address(0)) revert ZeroAddress();
@@ -81,6 +94,8 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
             _auctionEndTime,
             _auctionStartPrice,
             _auctionEndPrice,
+            _auctionPriceSteps,
+            _auctionExponential,
             _traitsSaleStartTime
         );
     }
@@ -91,6 +106,8 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
         uint256 _auctionEndTime,
         uint256 _auctionStartPrice,
         uint256 _auctionEndPrice,
+        uint256 _auctionPriceSteps,
+        bool _auctionExponential,
         uint256 _traitsSaleStartTime
     ) external onlyProjectRegistry {
         if (auctionStartTime == 0) revert NotSetup();
@@ -101,6 +118,8 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
             _auctionEndTime,
             _auctionStartPrice,
             _auctionEndPrice,
+            _auctionPriceSteps,
+            _auctionExponential,
             _traitsSaleStartTime
         );
     }
@@ -250,20 +269,37 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
     }
 
     /** @inheritdoc ITraits*/
-    function traitPrice() public view returns (uint256 _price) {
+    function traitPriceStep() public view returns (uint256) {
+        if (block.timestamp < auctionStartTime) revert AuctionNotLive();
+        if (block.timestamp > auctionEndTime) return auctionPriceSteps - 1;
+
+        return
+            (auctionPriceSteps * (block.timestamp - auctionStartTime)) /
+            (auctionEndTime - auctionStartTime);
+    }
+
+    /** @inheritdoc ITraits*/
+    function traitPrice() public view returns (uint256) {
         if (block.timestamp < auctionStartTime) revert AuctionNotLive();
         if (block.timestamp > auctionEndTime) {
             // Auction has ended
-            _price = auctionEndPrice;
+            return auctionEndPrice;
+        }
+
+        // Auction is active
+        if (auctionExponential) {
+            // Exponential curve auction
+            return
+                (((auctionStartPrice - auctionEndPrice) *
+                    (auctionPriceSteps - traitPriceStep()) ** 2) /
+                    auctionPriceSteps ** 2) + auctionEndPrice;
         } else {
-            // Auction is active
-            _price =
+            // Linear curve auction
+            return
                 auctionStartPrice -
-                (
-                    (((block.timestamp - auctionStartTime) *
-                        (auctionStartPrice - auctionEndPrice)) /
-                        (auctionEndTime - auctionStartTime))
-                );
+                (((auctionStartPrice - auctionEndPrice) *
+                    (traitPriceStep() - auctionPriceSteps)) /
+                    auctionPriceSteps);
         }
     }
 
@@ -383,6 +419,8 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
      * @param _auctionEndTime timestamp the auction ends at
      * @param _auctionStartPrice trait price the auction begins at
      * @param _auctionEndPrice trait price the auction ends at
+     * @param _auctionPriceSteps number of different prices auction steps through
+     * @param _auctionExponential true indicates auction curve is exponential, otherwise linear
      * @param _traitsSaleStartTime timestamp at which traits can be bought individually
      */
     function _updateAuction(
@@ -390,6 +428,8 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
         uint256 _auctionEndTime,
         uint256 _auctionStartPrice,
         uint256 _auctionEndPrice,
+        uint256 _auctionPriceSteps,
+        bool _auctionExponential,
         uint256 _traitsSaleStartTime
     ) private {
         if (
@@ -403,6 +443,8 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
         auctionEndTime = _auctionEndTime;
         auctionStartPrice = _auctionStartPrice;
         auctionEndPrice = _auctionEndPrice;
+        auctionPriceSteps = _auctionPriceSteps;
+        auctionExponential = _auctionExponential;
         traitsSaleStartTime = _traitsSaleStartTime;
 
         emit AuctionScheduled(
@@ -410,6 +452,8 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
             _auctionEndTime,
             _auctionStartPrice,
             _auctionEndPrice,
+            _auctionPriceSteps,
+            _auctionExponential,
             _traitsSaleStartTime
         );
     }

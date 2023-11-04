@@ -6,27 +6,12 @@
   },
   {
     "inputs": [],
-    "name": "Locked",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "OnlyArtist",
-    "type": "error"
-  },
-  {
-    "inputs": [],
     "name": "OnlyArtworkOwner",
     "type": "error"
   },
   {
     "inputs": [],
     "name": "OnlyProjectRegistry",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "TraitsNotSet",
     "type": "error"
   },
   {

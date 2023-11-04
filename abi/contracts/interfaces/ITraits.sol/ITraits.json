@@ -36,22 +36,7 @@
   },
   {
     "inputs": [],
-    "name": "Locked",
-    "type": "error"
-  },
-  {
-    "inputs": [],
     "name": "MaxSupply",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "NoRevenue",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "NotLocked",
     "type": "error"
   },
   {
@@ -66,17 +51,7 @@
   },
   {
     "inputs": [],
-    "name": "OnlyClaimer",
-    "type": "error"
-  },
-  {
-    "inputs": [],
     "name": "OnlyProjectRegistry",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "TraitsAlreadyCreated",
     "type": "error"
   },
   {
@@ -140,6 +115,18 @@
         "internalType": "uint256",
         "name": "_auctionEndPrice",
         "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "_auctionPriceSteps",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "bool",
+        "name": "_auctionExponential",
+        "type": "bool"
       },
       {
         "indexed": false,
@@ -548,6 +535,19 @@
   },
   {
     "inputs": [],
+    "name": "traitPriceStep",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "traitTypes",
     "outputs": [
       {
@@ -651,6 +651,16 @@
         "internalType": "uint256",
         "name": "_auctionEndPrice",
         "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_auctionPriceSteps",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bool",
+        "name": "_auctionExponential",
+        "type": "bool"
       },
       {
         "internalType": "uint256",

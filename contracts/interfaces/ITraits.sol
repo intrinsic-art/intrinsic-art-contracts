@@ -36,6 +36,8 @@ interface ITraits is IERC1155 {
         uint256 _auctionEndTime,
         uint256 _auctionStartPrice,
         uint256 _auctionEndPrice,
+        uint256 _auctionPriceSteps,
+        bool _auctionExponential,
         uint256 _traitsSaleStartTime
     );
 
@@ -71,6 +73,8 @@ interface ITraits is IERC1155 {
      * @param _auctionEndTime timestamp the auction ends at
      * @param _auctionStartPrice trait price the auction begins at
      * @param _auctionEndPrice trait price the auction ends at
+     * @param _auctionPriceSteps number of different prices auction steps through
+     * @param _auctionExponential true indicates auction curve is exponential, otherwise linear
      * @param _traitsSaleStartTime timestamp at which traits can be bought individually
      */
     function updateAuction(
@@ -78,6 +82,8 @@ interface ITraits is IERC1155 {
         uint256 _auctionEndTime,
         uint256 _auctionStartPrice,
         uint256 _auctionEndPrice,
+        uint256 _auctionPriceSteps,
+        bool _auctionExponential,
         uint256 _traitsSaleStartTime
     ) external;
 
@@ -166,6 +172,13 @@ interface ITraits is IERC1155 {
             uint256[] memory _traitTotalSupplys,
             uint256[] memory _traitMaxSupplys
         );
+
+    /**
+     * Returns which price step the auction is currently on
+     *
+     * @return the current price step
+     */
+    function traitPriceStep() external view returns (uint256);
 
     /**
      * Returns the current trait price
