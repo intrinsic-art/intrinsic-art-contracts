@@ -30,6 +30,12 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
     TraitType[] private _traitTypes;
     Trait[] private _traits;
 
+    modifier onlyProjectRegistry() {
+        if (msg.sender != address(projectRegistry))
+            revert OnlyProjectRegistry();
+        _;
+    }
+
     constructor(
         uint96 _royaltyFeeNumerator,
         string memory _uri,
@@ -60,9 +66,7 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
     }
 
     /** @inheritdoc ITraits*/
-    function setup(bytes calldata _data) external {
-        if (msg.sender != address(projectRegistry))
-            revert OnlyProjectRegistry();
+    function setup(bytes calldata _data) external onlyProjectRegistry {
         if (address(artwork) != address(0)) revert AlreadySetup();
 
         (
@@ -108,14 +112,14 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
         uint256 _auctionStartPrice,
         uint256 _auctionEndPrice,
         uint256 _traitsSaleStartTime
-    ) external {
+    ) external onlyProjectRegistry {
         if (auctionStartTime == 0) revert NotSetup();
         if (
             _auctionEndTime < _auctionStartTime ||
             _auctionEndPrice > _auctionStartPrice ||
             _traitsSaleStartTime < _auctionStartTime ||
-            _auctionStartTime < auctionStartTime ||
-            _auctionStartTime < block.timestamp
+            _auctionStartTime < block.timestamp ||
+            _auctionStartTime < auctionStartTime
         ) revert InvalidAuction();
 
         auctionStartTime = _auctionStartTime;
@@ -123,6 +127,14 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
         auctionStartPrice = _auctionStartPrice;
         auctionEndPrice = _auctionEndPrice;
         traitsSaleStartTime = _traitsSaleStartTime;
+
+        emit AuctionScheduled(
+            _auctionStartTime,
+            _auctionEndTime,
+            _auctionStartPrice,
+            _auctionEndPrice,
+            _traitsSaleStartTime
+        );
     }
 
     /** @inheritdoc ITraits*/

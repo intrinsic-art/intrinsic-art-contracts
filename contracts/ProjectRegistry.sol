@@ -69,7 +69,9 @@ contract ProjectRegistry is IProjectRegistry, Ownable {
     function _addAdmins(address[] memory _admins) private {
         for (uint256 i; i < _admins.length; ) {
             admins[_admins[i]] = true;
+
             emit AdminAdded(_admins[i]);
+
             unchecked {
                 ++i;
             }
@@ -84,7 +86,9 @@ contract ProjectRegistry is IProjectRegistry, Ownable {
     function _removeAdmins(address[] memory _admins) private {
         for (uint256 i; i < _admins.length; ) {
             admins[_admins[i]] = false;
+
             emit AdminRemoved(_admins[i]);
+            
             unchecked {
                 ++i;
             }

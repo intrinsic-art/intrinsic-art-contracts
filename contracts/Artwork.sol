@@ -30,6 +30,12 @@ contract Artwork is IArtwork, IERC721Metadata, ERC721, ERC2981, ERC1155Holder {
     mapping(uint256 => ArtworkData) private artworkData;
     mapping(address => uint256) private userNonces;
 
+    modifier onlyProjectRegistry() {
+        if (msg.sender != address(projectRegistry))
+            revert OnlyProjectRegistry();
+        _;
+    }
+
     constructor(
         uint96 _royaltyFeeNumerator,
         string memory _name,
@@ -52,9 +58,7 @@ contract Artwork is IArtwork, IERC721Metadata, ERC721, ERC2981, ERC1155Holder {
     }
 
     /** @inheritdoc IArtwork*/
-    function setup(bytes calldata _data) external {
-        if (msg.sender != address(projectRegistry))
-            revert OnlyProjectRegistry();
+    function setup(bytes calldata _data) external onlyProjectRegistry {
         if (address(traits) != address(0)) revert AlreadySetup();
 
         address _traits = abi.decode(_data, (address));
