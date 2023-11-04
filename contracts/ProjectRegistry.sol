@@ -5,6 +5,7 @@ import {IProjectRegistry} from "./interfaces/IProjectRegistry.sol";
 import {IArtwork} from "./interfaces/IArtwork.sol";
 import {ITraits} from "./interfaces/ITraits.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 
 /**
  * Provides functionality for registering the Traits and Artwork
@@ -27,19 +28,14 @@ contract ProjectRegistry is IProjectRegistry, Ownable {
     }
 
     /** @inheritdoc IProjectRegistry*/
-    function updateBaseURI(string memory _baseURI) external onlyOwner {
-        baseURI = _baseURI;
-        emit BaseURIUpdated(_baseURI);
-    }
-
-    /** @inheritdoc IProjectRegistry*/
     function registerProject(
         address _artwork,
         bytes calldata _artworkData,
         address _traits,
         bytes calldata _traitsData
     ) external onlyAdmin {
-        if (_artwork == address(0) || _traits == address(0)) revert InvalidAddress();
+        if (_artwork == address(0) || _traits == address(0))
+            revert InvalidAddress();
         projectCount++;
 
         projects[projectCount].artwork = _artwork;
@@ -52,6 +48,32 @@ contract ProjectRegistry is IProjectRegistry, Ownable {
     }
 
     /** @inheritdoc IProjectRegistry*/
+    function execute(
+        address[] calldata _targets,
+        uint256[] calldata _values,
+        bytes[] calldata _calldatas
+    ) external onlyAdmin {
+        if (
+            _targets.length != _values.length ||
+            _targets.length != _calldatas.length
+        ) revert InvalidArrayLengths();
+
+        string memory errorMessage = "ProjectRegistry: call reverted";
+
+        for (uint256 i; i < _targets.length; ) {
+            (bool success, bytes memory returndata) = _targets[i].call{
+                value: _values[i]
+            }(_calldatas[i]);
+
+            Address.verifyCallResult(success, returndata, errorMessage);
+
+            unchecked {
+                ++i;
+            }
+        }
+    }
+
+    /** @inheritdoc IProjectRegistry*/
     function addAdmins(address[] memory _admins) external onlyOwner {
         _addAdmins(_admins);
     }
@@ -59,6 +81,12 @@ contract ProjectRegistry is IProjectRegistry, Ownable {
     /** @inheritdoc IProjectRegistry*/
     function removeAdmins(address[] memory _admins) external onlyOwner {
         _removeAdmins(_admins);
+    }
+
+    /** @inheritdoc IProjectRegistry*/
+    function updateBaseURI(string memory _baseURI) external onlyAdmin {
+        baseURI = _baseURI;
+        emit BaseURIUpdated(_baseURI);
     }
 
     /**
@@ -88,7 +116,7 @@ contract ProjectRegistry is IProjectRegistry, Ownable {
             admins[_admins[i]] = false;
 
             emit AdminRemoved(_admins[i]);
-            
+
             unchecked {
                 ++i;
             }

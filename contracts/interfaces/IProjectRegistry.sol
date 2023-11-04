@@ -9,6 +9,7 @@ interface IProjectRegistry {
 
     error OnlyAdmin();
     error InvalidAddress();
+    error InvalidArrayLengths();
 
     event BaseURIUpdated(string baseURI);
     event ProjectRegistered(
@@ -27,7 +28,7 @@ interface IProjectRegistry {
     function updateBaseURI(string memory _baseURI) external;
 
     /**
-     * Registers a project by storing the Artwork and Traits contract addresses, 
+     * Registers a project by storing the Artwork and Traits contract addresses,
      * and calls setup on both contracts with the corresponding bytes data
      *
      * @param _artwork the address of the Artwork contract
@@ -35,11 +36,25 @@ interface IProjectRegistry {
      * @param _traits the address of the Traits contract
      * @param _traitsData data to pass to setup function of the Traits contract
      */
-    function registerProject(        
-      address _artwork,
+    function registerProject(
+        address _artwork,
         bytes calldata _artworkData,
         address _traits,
-        bytes calldata _traitsData) external;
+        bytes calldata _traitsData
+    ) external;
+
+    /**
+     * Executes an arbitrary number of external function calls
+     *
+     * @param _targets the array of addresses to call
+     * @param _values array of Ether amounts for each transaction
+     * @param _calldatas array of transaction calldata bytes
+     */
+    function execute(
+        address[] calldata _targets,
+        uint256[] calldata _values,
+        bytes[] calldata _calldatas
+    ) external;
 
     /**
      * Adds multiple addresses to be made admins
