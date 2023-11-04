@@ -1,7 +1,7 @@
 [
   {
     "inputs": [],
-    "name": "ArtworkAlreadySet",
+    "name": "AlreadySetup",
     "type": "error"
   },
   {
@@ -56,6 +56,11 @@
   },
   {
     "inputs": [],
+    "name": "NotSetup",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "OnlyArtwork",
     "type": "error"
   },
@@ -77,6 +82,11 @@
   {
     "inputs": [],
     "name": "TraitsSaleStartTime",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "ZeroAddress",
     "type": "error"
   },
   {
@@ -102,6 +112,43 @@
       }
     ],
     "name": "ApprovalForAll",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "_auctionStartTime",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "_auctionEndTime",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "_auctionStartPrice",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "_auctionEndPrice",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "_traitsSaleStartTime",
+        "type": "uint256"
+      }
+    ],
+    "name": "AuctionScheduled",
     "type": "event"
   },
   {
@@ -405,39 +452,6 @@
   {
     "inputs": [
       {
-        "internalType": "uint256",
-        "name": "_auctionStartTime",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_auctionEndTime",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_auctionStartPrice",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_auctionEndPrice",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_traitsSaleStartTime",
-        "type": "uint256"
-      }
-    ],
-    "name": "scheduleAuction",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
         "internalType": "address",
         "name": "operator",
         "type": "address"
@@ -456,12 +470,12 @@
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "_artwork",
-        "type": "address"
+        "internalType": "bytes",
+        "name": "_data",
+        "type": "bytes"
       }
     ],
-    "name": "setArtwork",
+    "name": "setup",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -612,6 +626,39 @@
       }
     ],
     "name": "transferTraitsToCreateArtwork",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_auctionStartTime",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_auctionEndTime",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_auctionStartPrice",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_auctionEndPrice",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_traitsSaleStartTime",
+        "type": "uint256"
+      }
+    ],
+    "name": "updateAuction",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

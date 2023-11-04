@@ -69,7 +69,8 @@ interface ITraits is IERC1155 {
 
     /**
      * Updates the schedule of the dutch auction, can only
-     * be called if the dutch auction hasn't started yet
+     * be called if the dutch auction hasn't started yet, and
+     * can only update the auction to a later time, not sooner
      *
      * @param _auctionStartTime timestamp the auction begins at
      * @param _auctionEndTime timestamp the auction ends at

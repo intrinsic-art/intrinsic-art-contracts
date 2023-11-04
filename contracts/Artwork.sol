@@ -16,7 +16,7 @@ import {ERC1155Holder, ERC1155Receiver, IERC165} from "@openzeppelin/contracts/t
  * Implements ERC-721 standard for artwork tokens,
  * and provides functions for creating and decomposing artwork
  */
-contract Artwork is IArtwork, IERC721Metadata, ERC721, ERC2981, ERC1155Holder {
+contract Artwork is IArtwork, IERC721Metadata, ERC2981, ERC721, ERC1155Holder {
     using Strings for uint256;
     using Strings for address;
 

@@ -107,9 +107,19 @@
         "type": "address"
       },
       {
+        "internalType": "bytes",
+        "name": "_artworkData",
+        "type": "bytes"
+      },
+      {
         "internalType": "address",
         "name": "_traits",
         "type": "address"
+      },
+      {
+        "internalType": "bytes",
+        "name": "_traitsData",
+        "type": "bytes"
       }
     ],
     "name": "registerProject",

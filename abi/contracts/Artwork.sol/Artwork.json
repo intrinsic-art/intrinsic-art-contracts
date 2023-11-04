@@ -47,6 +47,11 @@
   },
   {
     "inputs": [],
+    "name": "AlreadySetup",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "Locked",
     "type": "error"
   },
@@ -67,12 +72,12 @@
   },
   {
     "inputs": [],
-    "name": "TraitsAlreadySet",
+    "name": "TraitsNotSet",
     "type": "error"
   },
   {
     "inputs": [],
-    "name": "TraitsNotSet",
+    "name": "ZeroAddress",
     "type": "error"
   },
   {
@@ -691,12 +696,12 @@
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "_traits",
-        "type": "address"
+        "internalType": "bytes",
+        "name": "_data",
+        "type": "bytes"
       }
     ],
-    "name": "setTraits",
+    "name": "setup",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

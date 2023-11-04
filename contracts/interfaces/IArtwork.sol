@@ -2,8 +2,9 @@
 pragma solidity =0.8.19;
 
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import {IERC2981} from "@openzeppelin/contracts/interfaces/IERC2981.sol";
 
-interface IArtwork is IERC721 {
+interface IArtwork is IERC2981, IERC721 {
     struct ArtworkData {
         bytes32 hash;
         uint256[] traitTokenIds;

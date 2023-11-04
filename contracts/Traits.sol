@@ -19,7 +19,6 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
     using Strings for address;
 
     IArtwork public artwork;
-    address public royaltySplitter;
     IProjectRegistry public projectRegistry;
     string public constant VERSION = "1.0.0";
     uint256 public auctionStartTime;
@@ -37,23 +36,15 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
     }
 
     constructor(
-        uint96 _royaltyFeeNumerator,
         string memory _uri,
         address _artwork,
         address _projectRegistry,
         address[] memory _primarySalesPayees,
         uint256[] memory _primarySalesShares,
-        address[] memory _royaltyPayees,
-        uint256[] memory _royaltyShares,
         TraitsSetup memory _traitsSetup
     ) ERC1155(_uri) PaymentSplitter(_primarySalesPayees, _primarySalesShares) {
         artwork = IArtwork(_artwork);
         projectRegistry = IProjectRegistry(_projectRegistry);
-        address _royaltySplitter = address(
-            new PaymentSplitter(_royaltyPayees, _royaltyShares)
-        );
-        _setDefaultRoyalty(_royaltySplitter, _royaltyFeeNumerator);
-        royaltySplitter = _royaltySplitter;
 
         _createTraitsAndTypes(
             _traitsSetup.traitTypeNames,
@@ -286,6 +277,14 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
         bytes memory data
     ) internal override(ERC1155, ERC1155Supply) {
         super._beforeTokenTransfer(operator, from, to, ids, amounts, data);
+    }
+
+    /** @inheritdoc ERC2981*/
+    function royaltyInfo(
+        uint256 tokenId,
+        uint256 salePrice
+    ) public view override returns (address receiver, uint256 royaltyAmount) {
+        (receiver, royaltyAmount) = artwork.royaltyInfo(tokenId, salePrice);
     }
 
     /** @inheritdoc ITraits*/
