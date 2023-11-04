@@ -82,21 +82,10 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
             );
 
         if (_artwork == address(0)) revert ZeroAddress();
-        if (
-            _auctionEndTime < _auctionStartTime ||
-            _auctionEndPrice > _auctionStartPrice ||
-            _traitsSaleStartTime < _auctionStartTime ||
-            _auctionStartTime < block.timestamp
-        ) revert InvalidAuction();
 
         artwork = IArtwork(_artwork);
-        auctionStartTime = _auctionStartTime;
-        auctionEndTime = _auctionEndTime;
-        auctionStartPrice = _auctionStartPrice;
-        auctionEndPrice = _auctionEndPrice;
-        traitsSaleStartTime = _traitsSaleStartTime;
 
-        emit AuctionScheduled(
+        _updateAuction(
             _auctionStartTime,
             _auctionEndTime,
             _auctionStartPrice,
@@ -114,21 +103,9 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
         uint256 _traitsSaleStartTime
     ) external onlyProjectRegistry {
         if (auctionStartTime == 0) revert NotSetup();
-        if (
-            _auctionEndTime < _auctionStartTime ||
-            _auctionEndPrice > _auctionStartPrice ||
-            _traitsSaleStartTime < _auctionStartTime ||
-            _auctionStartTime < block.timestamp ||
-            _auctionStartTime < auctionStartTime
-        ) revert InvalidAuction();
+        if (_auctionStartTime < auctionStartTime) revert InvalidAuction();
 
-        auctionStartTime = _auctionStartTime;
-        auctionEndTime = _auctionEndTime;
-        auctionStartPrice = _auctionStartPrice;
-        auctionEndPrice = _auctionEndPrice;
-        traitsSaleStartTime = _traitsSaleStartTime;
-
-        emit AuctionScheduled(
+        _updateAuction(
             _auctionStartTime,
             _auctionEndTime,
             _auctionStartPrice,
@@ -151,7 +128,6 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
         ) revert TraitsSaleStartTime();
 
         uint256 _traitCount;
-        uint256 _traitPrice = traitPrice();
 
         for (uint256 i; i < _traitAmounts.length; ) {
             _traitCount += _traitAmounts[i];
@@ -164,7 +140,7 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
             }
         }
 
-        if (msg.value < _traitCount * _traitPrice) revert InvalidEthAmount();
+        if (msg.value < _traitCount * traitPrice()) revert InvalidEthAmount();
 
         _mintBatch(_recipient, _traitTokenIds, _traitAmounts, "");
 
@@ -399,5 +375,43 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
                 ++i;
             }
         }
+    }
+
+    /**
+     * Updates auction data
+     *
+     * @param _auctionStartTime timestamp the auction begins at
+     * @param _auctionEndTime timestamp the auction ends at
+     * @param _auctionStartPrice trait price the auction begins at
+     * @param _auctionEndPrice trait price the auction ends at
+     * @param _traitsSaleStartTime timestamp at which traits can be bought individually
+     */
+    function _updateAuction(
+        uint256 _auctionStartTime,
+        uint256 _auctionEndTime,
+        uint256 _auctionStartPrice,
+        uint256 _auctionEndPrice,
+        uint256 _traitsSaleStartTime
+    ) private {
+        if (
+            _auctionEndTime < _auctionStartTime ||
+            _auctionEndPrice > _auctionStartPrice ||
+            _traitsSaleStartTime < _auctionStartTime ||
+            _auctionStartTime < block.timestamp
+        ) revert InvalidAuction();
+
+        auctionStartTime = _auctionStartTime;
+        auctionEndTime = _auctionEndTime;
+        auctionStartPrice = _auctionStartPrice;
+        auctionEndPrice = _auctionEndPrice;
+        traitsSaleStartTime = _traitsSaleStartTime;
+
+        emit AuctionScheduled(
+            _auctionStartTime,
+            _auctionEndTime,
+            _auctionStartPrice,
+            _auctionEndPrice,
+            _traitsSaleStartTime
+        );
     }
 }
