@@ -12,10 +12,7 @@ interface IArtwork is IERC2981, IERC721 {
 
     error ZeroAddress();
     error AlreadySetup();
-    error TraitsNotSet();
     error OnlyProjectRegistry();
-    error Locked();
-    error OnlyArtist();
     error OnlyArtworkOwner();
 
 

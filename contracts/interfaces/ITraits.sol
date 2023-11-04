@@ -44,17 +44,12 @@ interface ITraits is IERC1155 {
     error OnlyProjectRegistry();
     error AlreadySetup();
     error NotSetup();
-    error Locked();
     error InvalidArrayLengths();
-    error NotLocked();
     error InvalidAuction();
-    error OnlyClaimer();
     error MaxSupply();
     error InvalidEthAmount();
     error InvalidTraits();
-    error NoRevenue();
     error AuctionNotLive();
-    error TraitsAlreadyCreated();
     error InvalidTokenId();
     error TraitsSaleStartTime();
 

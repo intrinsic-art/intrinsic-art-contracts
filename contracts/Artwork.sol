@@ -23,7 +23,7 @@ contract Artwork is IArtwork, IERC721Metadata, ERC2981, ERC721, ERC1155Holder {
     address public royaltySplitter;
     IProjectRegistry public projectRegistry;
     ITraits public traits;
-    string public scriptJSON;
+    string public metadataJSON;
     string public constant VERSION = "1.0.0";
     uint256 public nextTokenId;
     address[] private _scriptStorageContracts;
@@ -37,16 +37,16 @@ contract Artwork is IArtwork, IERC721Metadata, ERC2981, ERC721, ERC1155Holder {
     }
 
     constructor(
-        uint96 _royaltyFeeNumerator,
         string memory _name,
         string memory _symbol,
-        string memory _scriptJSON,
+        string memory _metadataJSON,
         address _projectRegistry,
+        address[] memory _scriptStorageAddresses,
+        uint96 _royaltyFeeNumerator,
         address[] memory _royaltyPayees,
-        uint256[] memory _royaltyShares,
-        address[] memory _scriptStorageAddresses
+        uint256[] memory _royaltyShares
     ) ERC721(_name, _symbol) {
-        scriptJSON = _scriptJSON;
+        metadataJSON = _metadataJSON;
         projectRegistry = IProjectRegistry(_projectRegistry);
         address _royaltySplitter = address(
             new PaymentSplitter(_royaltyPayees, _royaltyShares)
