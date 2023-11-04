@@ -14,13 +14,7 @@ import {ERC1155Supply} from "@openzeppelin/contracts/token/ERC1155/extensions/ER
  * Implements ERC-1155 standard for trait tokens,
  * and provides Dutch Auction functionality for initial trait sales
  */
-contract Traits is
-    ITraits,
-    ERC2981,
-    ERC1155,
-    ERC1155Supply,
-    PaymentSplitter
-{
+contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
     using Strings for uint256;
     using Strings for address;
 
@@ -66,25 +60,62 @@ contract Traits is
     }
 
     /** @inheritdoc ITraits*/
-    function setArtwork(address _artwork) external {
-        if (msg.sender != address(projectRegistry)) revert OnlyProjectRegistry();
-        if (address(artwork) != address(0)) revert ArtworkAlreadySet();
+    function setup(bytes calldata _data) external {
+        if (msg.sender != address(projectRegistry))
+            revert OnlyProjectRegistry();
+        if (address(artwork) != address(0)) revert AlreadySetup();
+
+        (
+            address _artwork,
+            uint256 _auctionStartTime,
+            uint256 _auctionEndTime,
+            uint256 _auctionStartPrice,
+            uint256 _auctionEndPrice,
+            uint256 _traitsSaleStartTime
+        ) = abi.decode(
+                _data,
+                (address, uint256, uint256, uint256, uint256, uint256)
+            );
+
+        if (_artwork == address(0)) revert ZeroAddress();
+        if (
+            _auctionEndTime < _auctionStartTime ||
+            _auctionEndPrice > _auctionStartPrice ||
+            _traitsSaleStartTime < _auctionStartTime ||
+            _auctionStartTime < block.timestamp
+        ) revert InvalidAuction();
 
         artwork = IArtwork(_artwork);
+        auctionStartTime = _auctionStartTime;
+        auctionEndTime = _auctionEndTime;
+        auctionStartPrice = _auctionStartPrice;
+        auctionEndPrice = _auctionEndPrice;
+        traitsSaleStartTime = _traitsSaleStartTime;
+
+        emit AuctionScheduled(
+            _auctionStartTime,
+            _auctionEndTime,
+            _auctionStartPrice,
+            _auctionEndPrice,
+            _traitsSaleStartTime
+        );
     }
 
     /** @inheritdoc ITraits*/
-    function scheduleAuction(
+    function updateAuction(
         uint256 _auctionStartTime,
         uint256 _auctionEndTime,
         uint256 _auctionStartPrice,
         uint256 _auctionEndPrice,
         uint256 _traitsSaleStartTime
     ) external {
+        if (auctionStartTime == 0) revert NotSetup();
         if (
             _auctionEndTime < _auctionStartTime ||
             _auctionEndPrice > _auctionStartPrice ||
-            _traitsSaleStartTime < _auctionStartTime
+            _traitsSaleStartTime < _auctionStartTime ||
+            _auctionStartTime < auctionStartTime ||
+            _auctionStartTime < block.timestamp
         ) revert InvalidAuction();
 
         auctionStartTime = _auctionStartTime;

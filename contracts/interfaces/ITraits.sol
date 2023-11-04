@@ -31,9 +31,19 @@ interface ITraits is IERC1155 {
         uint256[] traitAmounts
     );
 
+    event AuctionScheduled(
+        uint256 _auctionStartTime,
+        uint256 _auctionEndTime,
+        uint256 _auctionStartPrice,
+        uint256 _auctionEndPrice,
+        uint256 _traitsSaleStartTime
+    );
+
+    error ZeroAddress();
     error OnlyArtwork();
     error OnlyProjectRegistry();
-    error ArtworkAlreadySet();
+    error AlreadySetup();
+    error NotSetup();
     error Locked();
     error InvalidArrayLengths();
     error NotLocked();
@@ -49,15 +59,17 @@ interface ITraits is IERC1155 {
     error TraitsSaleStartTime();
 
     /**
-     * Sets the address of the Artwork contract
+     * Sets the address of the Artwork contract and the auction configuration
      *
-     * @param _artwork address of the Artwork contract
+     * @param _data bytes data containt the artwork contract address and auction data
      */
-    function setArtwork(address _artwork) external;
+    function setup(
+        bytes calldata _data
+    ) external;
 
     /**
-     * Schedules the dutch auction start and end time, and the prices
-     * the traits will start and end the auction at
+     * Updates the schedule of the dutch auction, can only
+     * be called if the dutch auction hasn't started yet
      *
      * @param _auctionStartTime timestamp the auction begins at
      * @param _auctionEndTime timestamp the auction ends at
@@ -65,7 +77,7 @@ interface ITraits is IERC1155 {
      * @param _auctionEndPrice trait price the auction ends at
      * @param _traitsSaleStartTime timestamp at which traits can be bought individually
      */
-    function scheduleAuction(
+    function updateAuction(
         uint256 _auctionStartTime,
         uint256 _auctionEndTime,
         uint256 _auctionStartPrice,

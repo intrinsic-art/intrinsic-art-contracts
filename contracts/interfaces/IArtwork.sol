@@ -9,7 +9,8 @@ interface IArtwork is IERC721 {
         uint256[] traitTokenIds;
     }
 
-    error TraitsAlreadySet();
+    error ZeroAddress();
+    error AlreadySetup();
     error TraitsNotSet();
     error OnlyProjectRegistry();
     error Locked();
@@ -29,11 +30,11 @@ interface IArtwork is IERC721 {
     );
 
     /**
-     * Sets the address of the Traits contract
+     * Sets up the contract
      *
-     * @param _traits address of the traits contract
+     * @param _data bytes containing address of the traits contract
      */
-    function setTraits(address _traits) external;
+    function setup(bytes calldata _data) external;
 
     /**
      * Creates a new artwork with the specified trait token IDs

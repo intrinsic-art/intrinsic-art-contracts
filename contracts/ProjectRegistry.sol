@@ -35,7 +35,9 @@ contract ProjectRegistry is IProjectRegistry, Ownable {
     /** @inheritdoc IProjectRegistry*/
     function registerProject(
         address _artwork,
-        address _traits
+        bytes calldata _artworkData,
+        address _traits,
+        bytes calldata _traitsData
     ) external onlyAdmin {
         if (_artwork == address(0) || _traits == address(0)) revert InvalidAddress();
         projectCount++;
@@ -43,8 +45,8 @@ contract ProjectRegistry is IProjectRegistry, Ownable {
         projects[projectCount].artwork = _artwork;
         projects[projectCount].traits = _traits;
 
-        IArtwork(_artwork).setTraits(_traits);
-        ITraits(_traits).setArtwork(_artwork);
+        IArtwork(_artwork).setup(_artworkData);
+        ITraits(_traits).setup(_traitsData);
 
         emit ProjectRegistered(projectCount, _artwork, _traits);
     }

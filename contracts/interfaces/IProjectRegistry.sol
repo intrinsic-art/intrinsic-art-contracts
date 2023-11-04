@@ -27,12 +27,19 @@ interface IProjectRegistry {
     function updateBaseURI(string memory _baseURI) external;
 
     /**
-     * Registers a project by storing the Artwork and Traits contract addresses
+     * Registers a project by storing the Artwork and Traits contract addresses, 
+     * and calls setup on both contracts with the corresponding bytes data
      *
      * @param _artwork the address of the Artwork contract
+     * @param _artworkData data to pass to setup function of the Artwork contract
      * @param _traits the address of the Traits contract
+     * @param _traitsData data to pass to setup function of the Traits contract
      */
-    function registerProject(address _artwork, address _traits) external;
+    function registerProject(        
+      address _artwork,
+        bytes calldata _artworkData,
+        address _traits,
+        bytes calldata _traitsData) external;
 
     /**
      * Adds multiple addresses to be made admins

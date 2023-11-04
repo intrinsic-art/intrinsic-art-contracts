@@ -16,13 +16,7 @@ import {ERC1155Holder, ERC1155Receiver, IERC165} from "@openzeppelin/contracts/t
  * Implements ERC-721 standard for artwork tokens,
  * and provides functions for creating and decomposing artwork
  */
-contract Artwork is
-    IArtwork,
-    IERC721Metadata,
-    ERC721,
-    ERC2981,
-    ERC1155Holder
-{
+contract Artwork is IArtwork, IERC721Metadata, ERC721, ERC2981, ERC1155Holder {
     using Strings for uint256;
     using Strings for address;
 
@@ -58,9 +52,14 @@ contract Artwork is
     }
 
     /** @inheritdoc IArtwork*/
-    function setTraits(address _traits) external {
-        if (msg.sender != address(projectRegistry)) revert OnlyProjectRegistry();
-        if (address(traits) != address(0)) revert TraitsAlreadySet();
+    function setup(bytes calldata _data) external {
+        if (msg.sender != address(projectRegistry))
+            revert OnlyProjectRegistry();
+        if (address(traits) != address(0)) revert AlreadySetup();
+
+        address _traits = abi.decode(_data, (address));
+  
+        if (_traits == address(0)) revert ZeroAddress();
 
         traits = ITraits(_traits);
     }
@@ -202,8 +201,12 @@ contract Artwork is
     }
 
     /** @inheritdoc IArtwork*/
-    function scriptStorageContracts() external view returns (address[] memory _scripts) {
-      return _scriptStorageContracts;
+    function scriptStorageContracts()
+        external
+        view
+        returns (address[] memory _scripts)
+    {
+        return _scriptStorageContracts;
     }
 
     /** @inheritdoc IArtwork*/
@@ -212,7 +215,8 @@ contract Artwork is
         _scripts = new string[](_scriptCount);
 
         for (uint256 i; i < _scriptCount; ) {
-            _scripts[i] = IScriptStorage(_scriptStorageContracts[i]).getScript();
+            _scripts[i] = IScriptStorage(_scriptStorageContracts[i])
+                .getScript();
 
             unchecked {
                 ++i;
