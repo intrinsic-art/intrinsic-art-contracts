@@ -41,6 +41,11 @@
   },
   {
     "inputs": [],
+    "name": "NoWhitelistMints",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "NotSetup",
     "type": "error"
   },
@@ -57,6 +62,11 @@
   {
     "inputs": [],
     "name": "TraitsSaleStartTime",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "WhitelistStartTime",
     "type": "error"
   },
   {
@@ -368,6 +378,42 @@
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_artistAddress",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "_traitTokenIds",
+        "type": "uint256[]"
+      }
+    ],
+    "name": "mintTraitsArtistProof",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_recipient",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "_traitTokenIds",
+        "type": "uint256[]"
+      }
+    ],
+    "name": "mintTraitsWhitelist",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -687,6 +733,25 @@
         "internalType": "string",
         "name": "",
         "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_user",
+        "type": "address"
+      }
+    ],
+    "name": "whitelistMintsRemaining",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
       }
     ],
     "stateMutability": "view",

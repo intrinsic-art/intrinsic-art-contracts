@@ -54,6 +54,8 @@ interface ITraits is IERC1155 {
     error AuctionNotLive();
     error InvalidTokenId();
     error TraitsSaleStartTime();
+    error WhitelistStartTime();
+    error NoWhitelistMints();
 
     /**
      * Sets the address of the Artwork contract and the auction configuration
@@ -99,6 +101,28 @@ interface ITraits is IERC1155 {
         uint256[] calldata _traitTokenIds,
         uint256[] calldata _traitAmounts
     ) external payable;
+
+    /**
+     * Allows the artist to mint traits for free for the proof artwork1
+     *
+     * @param _artistAddress the artist address to receive the trait tokens
+     * @param _traitTokenIds the trait token IDs to mint the artwork with
+     */
+    function mintTraitsArtistProof(
+        address _artistAddress,
+        uint256[] calldata _traitTokenIds
+    ) external;
+
+    /**
+     * Allows a whitelisted user to mint traits for free
+     *
+     * @param _recipient the address to receive the trait tokens
+     * @param _traitTokenIds the trait token IDs to mint the artwork with
+     */
+    function mintTraitsWhitelist(
+        address _recipient,
+        uint256[] calldata _traitTokenIds
+    ) external;
 
     /**
      * Called by the Artwork contract to transfer traits from the caller to the Artwork
@@ -186,6 +210,13 @@ interface ITraits is IERC1155 {
      * @return _price the current trait price in ether
      */
     function traitPrice() external view returns (uint256 _price);
+
+    /**
+     * Returns how many more whitelist mints the specified address has
+     *
+     * @return uint256 the number of whitelist mints remaining
+     */
+    function whitelistMintsRemaining(address _user) external view returns (uint256);
 
     /**
      * Returns the max supply of the specified token ID

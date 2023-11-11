@@ -6,12 +6,32 @@
   },
   {
     "inputs": [],
+    "name": "OnlyArtist",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "OnlyArtworkOwner",
     "type": "error"
   },
   {
     "inputs": [],
     "name": "OnlyProjectRegistry",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "ProofAlreadyMinted",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "TraitsAlreadySet",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "TraitsNotSet",
     "type": "error"
   },
   {
@@ -158,6 +178,24 @@
       }
     ],
     "name": "approve",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256[]",
+        "name": "_traitTokenIds",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_saltNonce",
+        "type": "uint256"
+      }
+    ],
+    "name": "artistCreateArtworkProof",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -567,6 +605,24 @@
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256[]",
+        "name": "_traitTokenIds",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_saltNonce",
+        "type": "uint256"
+      }
+    ],
+    "name": "whitelistCreateArtwork",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   }
 ]

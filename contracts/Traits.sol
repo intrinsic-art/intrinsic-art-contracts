@@ -28,8 +28,15 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
     uint256 public auctionPriceSteps;
     bool public auctionExponential;
     uint256 public traitsSaleStartTime;
+    uint256 public whitelistStartTime;
     TraitType[] private _traitTypes;
     Trait[] private _traits;
+    mapping(address => uint256) private _whitelistMintsRemaining;
+
+    modifier onlyArtwork() {
+        if (msg.sender != address(artwork)) revert OnlyArtwork();
+        _;
+    }
 
     modifier onlyProjectRegistry() {
         if (msg.sender != address(projectRegistry))
@@ -43,8 +50,13 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
         address _projectRegistry,
         address[] memory _primarySalesPayees,
         uint256[] memory _primarySalesShares,
-        TraitsSetup memory _traitsSetup
+        TraitsSetup memory _traitsSetup,
+        address[] memory _whitelistAddresses,
+        uint256[] memory _whitelistAmounts
     ) ERC1155(_uri) PaymentSplitter(_primarySalesPayees, _primarySalesShares) {
+        if (_whitelistAddresses.length != _whitelistAmounts.length)
+            revert InvalidArrayLengths();
+
         artwork = IArtwork(_artwork);
         projectRegistry = IProjectRegistry(_projectRegistry);
 
@@ -56,6 +68,16 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
             _traitsSetup.traitTypeIndexes,
             _traitsSetup.traitMaxSupplys
         );
+
+        for (uint256 i; i < _whitelistAddresses.length; ) {
+            _whitelistMintsRemaining[
+                _whitelistAddresses[i]
+            ] = _whitelistAmounts[i];
+
+            unchecked {
+                ++i;
+            }
+        }
     }
 
     /** @inheritdoc ITraits*/
@@ -158,11 +180,32 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
     }
 
     /** @inheritdoc ITraits*/
+    function mintTraitsArtistProof(
+        address _artistAddress,
+        uint256[] calldata _traitTokenIds
+    ) external onlyArtwork {
+        _mintTraitsWhitelist(_artistAddress, _traitTokenIds);
+    }
+
+    /** @inheritdoc ITraits*/
+    function mintTraitsWhitelist(
+        address _recipient,
+        uint256[] calldata _traitTokenIds
+    ) external onlyArtwork {
+        if (block.timestamp < whitelistStartTime) revert WhitelistStartTime();
+        if (_whitelistMintsRemaining[_recipient] == 0)
+            revert NoWhitelistMints();
+
+        _whitelistMintsRemaining[_recipient]--;
+
+        _mintTraitsWhitelist(_recipient, _traitTokenIds);
+    }
+
+    /** @inheritdoc ITraits*/
     function transferTraitsToCreateArtwork(
         address _caller,
         uint256[] calldata _traitTokenIds
-    ) external {
-        if (msg.sender != address(artwork)) revert OnlyArtwork();
+    ) external onlyArtwork {
         if (_traitTokenIds.length != _traitTypes.length)
             revert InvalidArrayLengths();
 
@@ -303,24 +346,11 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
         }
     }
 
-    /** @inheritdoc ERC1155*/
-    function _beforeTokenTransfer(
-        address operator,
-        address from,
-        address to,
-        uint256[] memory ids,
-        uint256[] memory amounts,
-        bytes memory data
-    ) internal override(ERC1155, ERC1155Supply) {
-        super._beforeTokenTransfer(operator, from, to, ids, amounts, data);
-    }
-
-    /** @inheritdoc ERC2981*/
-    function royaltyInfo(
-        uint256 tokenId,
-        uint256 salePrice
-    ) public view override returns (address receiver, uint256 royaltyAmount) {
-        (receiver, royaltyAmount) = artwork.royaltyInfo(tokenId, salePrice);
+    /** @inheritdoc ITraits*/
+    function whitelistMintsRemaining(
+        address _user
+    ) external view returns (uint256) {
+        return _whitelistMintsRemaining[_user];
     }
 
     /** @inheritdoc ITraits*/
@@ -354,6 +384,49 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
         return
             interfaceId == type(ITraits).interfaceId ||
             super.supportsInterface(interfaceId);
+    }
+
+    /** @inheritdoc ERC1155*/
+    function _beforeTokenTransfer(
+        address operator,
+        address from,
+        address to,
+        uint256[] memory ids,
+        uint256[] memory amounts,
+        bytes memory data
+    ) internal override(ERC1155, ERC1155Supply) {
+        super._beforeTokenTransfer(operator, from, to, ids, amounts, data);
+    }
+
+    /**
+     * Mints traits for artist proof and for whitelisted mints
+     *
+     * @param _recipient address to receive the minted traits
+     * @param _traitTokenIds trait token IDs to mint
+     */
+    function _mintTraitsWhitelist(
+        address _recipient,
+        uint256[] calldata _traitTokenIds
+    ) private {
+        if (_traitTokenIds.length != _traitTypes.length)
+            revert InvalidArrayLengths();
+
+        uint256[] memory traitAmounts = new uint256[](_traitTokenIds.length);
+
+        for (uint256 i; i < _traitTokenIds.length; ) {
+            if (_traits[_traitTokenIds[i]].typeIndex != i)
+                revert InvalidTraits();
+            if (
+                totalSupply(_traitTokenIds[i]) + 1 >
+                _traits[_traitTokenIds[i]].maxSupply
+            ) revert MaxSupply();
+            traitAmounts[i] = 1;
+            unchecked {
+                ++i;
+            }
+        }
+
+        _mintBatch(_recipient, _traitTokenIds, traitAmounts, "");
     }
 
     /**

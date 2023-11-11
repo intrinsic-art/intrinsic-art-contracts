@@ -10,11 +10,14 @@ interface IArtwork is IERC2981, IERC721 {
         uint256[] traitTokenIds;
     }
 
-    error ZeroAddress();
-    error AlreadySetup();
     error OnlyProjectRegistry();
+    error ProofAlreadyMinted();
+    error TraitsAlreadySet();
+    error TraitsNotSet();
+    error OnlyArtist();
     error OnlyArtworkOwner();
-
+    error AlreadySetup();
+    error ZeroAddress();
 
     event ArtworkCreated(
         uint256 indexed artworkTokenId,
@@ -55,6 +58,28 @@ interface IArtwork is IERC2981, IERC721 {
      * @param _artworkTokenId the token ID of the artwork being reclaimed
      */
     function reclaimTraits(uint256 _artworkTokenId) external;
+
+    /**
+     * Allows the artist to mint the proof mint
+     *
+     * @param _traitTokenIds token IDs of the traits to use to create the artwork
+     * @param _saltNonce salt number that is used to generate the artwork hash
+     */
+    function artistCreateArtworkProof(
+        uint256[] calldata _traitTokenIds,
+        uint256 _saltNonce
+    ) external;
+
+    /**
+     * Allows an address on the whitelist to mint an artwork for free
+     *
+     * @param _traitTokenIds token IDs of the traits to use to create the artwork
+     * @param _saltNonce salt number that is used to generate the artwork hash
+     */
+    function whitelistCreateArtwork(
+        uint256[] calldata _traitTokenIds,
+        uint256 _saltNonce
+    ) external;
 
     /**
      * Buys traits with specified amounts, and create an artwork in a single transaction
@@ -109,7 +134,10 @@ interface IArtwork is IERC2981, IERC721 {
      *
      * @return _scriptContracts the array of script storage contract addresses
      */
-    function scriptStorageContracts() external view returns (address[] memory _scriptContracts);
+    function scriptStorageContracts()
+        external
+        view
+        returns (address[] memory _scriptContracts);
 
     /**
      * Returns an array of strings to be concatenated together to form the generative script

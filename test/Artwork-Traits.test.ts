@@ -4,6 +4,7 @@ import {
   Traits,
   Traits__factory,
   PaymentSplitter,
+  ProjectRegistry,
 } from "../typechain-types";
 import { expect } from "chai";
 import { ethers } from "hardhat";
@@ -13,13 +14,13 @@ import time from "./helpers/time";
 import { artworkHash } from "./helpers/utilities";
 
 describe("Artwork and Traits", function () {
+  let projectRegistry: ProjectRegistry
   let traits: Traits;
   let artwork: Artwork;
-  let traitsRoyaltySplitter: PaymentSplitter;
-  let artworkRoyaltySplitter: PaymentSplitter;
+  let royaltySplitter: PaymentSplitter;
 
   let deployer: SignerWithAddress;
-  let owner: SignerWithAddress;
+  let artist: SignerWithAddress;
   let user1: SignerWithAddress;
   let user2: SignerWithAddress;
   let artistRevenueClaimer: SignerWithAddress;
@@ -35,7 +36,7 @@ describe("Artwork and Traits", function () {
   beforeEach(async function () {
     [
       deployer,
-      owner,
+      artist,
       user1,
       user2,
       artistRevenueClaimer,

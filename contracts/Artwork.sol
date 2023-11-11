@@ -20,7 +20,9 @@ contract Artwork is IArtwork, IERC721Metadata, ERC2981, ERC721, ERC1155Holder {
     using Strings for uint256;
     using Strings for address;
 
+    bool public proofMinted;
     address public royaltySplitter;
+    address public artistAddress;
     IProjectRegistry public projectRegistry;
     ITraits public traits;
     string public metadataJSON;
@@ -62,7 +64,7 @@ contract Artwork is IArtwork, IERC721Metadata, ERC2981, ERC721, ERC1155Holder {
         if (address(traits) != address(0)) revert AlreadySetup();
 
         address _traits = abi.decode(_data, (address));
-  
+
         if (_traits == address(0)) revert ZeroAddress();
 
         traits = ITraits(_traits);
@@ -120,6 +122,31 @@ contract Artwork is IArtwork, IERC721Metadata, ERC2981, ERC721, ERC1155Holder {
         );
 
         emit TraitsReclaimed(_artworkTokenId, msg.sender);
+    }
+
+    /** @inheritdoc IArtwork*/
+    function artistCreateArtworkProof(
+        uint256[] calldata _traitTokenIds,
+        uint256 _saltNonce
+    ) external {
+        if (proofMinted) revert ProofAlreadyMinted();
+        if (msg.sender != artistAddress) revert OnlyArtist();
+
+        proofMinted = true;
+
+        traits.mintTraitsArtistProof(msg.sender, _traitTokenIds);
+
+        createArtwork(_traitTokenIds, _saltNonce);
+    }
+
+    /** @inheritdoc IArtwork*/
+    function whitelistCreateArtwork(
+        uint256[] calldata _traitTokenIds,
+        uint256 _saltNonce
+    ) external {
+        traits.mintTraitsWhitelist(msg.sender, _traitTokenIds);
+
+        createArtwork(_traitTokenIds, _saltNonce);
     }
 
     /** @inheritdoc IArtwork*/
