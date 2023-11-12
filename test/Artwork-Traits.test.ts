@@ -701,7 +701,7 @@ describe("Artwork and Traits", function () {
 
     const updateAuctionData = (
       await ethers.getContractFactory("Traits", deployer)
-    ).interface.encodeFunctionData("setup", [
+    ).interface.encodeFunctionData("updateAuction", [
       auctionStartTime,
       auctionEndTime,
       auctionStartPrice,
