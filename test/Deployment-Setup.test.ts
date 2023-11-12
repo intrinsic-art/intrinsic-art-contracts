@@ -523,4 +523,24 @@ describe("Deployment and setup", function () {
     );
     expect(await projectRegistry.admins(user1.address)).to.eq(false);
   });
+
+  it("Project Registry ownership transfer is two steps", async () => {
+    expect(await projectRegistry.owner()).to.eq(projectRegistryOwner.address);
+
+    await expect(
+      projectRegistry.connect(user1).transferOwnership(user1.address)
+    ).to.be.revertedWith("Ownable: caller is not the owner");
+
+    await projectRegistry
+      .connect(projectRegistryOwner)
+      .transferOwnership(user1.address);
+
+    expect(await projectRegistry.owner()).to.eq(projectRegistryOwner.address);
+
+    expect(await projectRegistry.pendingOwner()).to.eq(user1.address);
+
+    await projectRegistry.connect(user1).acceptOwnership();
+
+    expect(await projectRegistry.owner()).to.eq(user1.address);
+  });
 });

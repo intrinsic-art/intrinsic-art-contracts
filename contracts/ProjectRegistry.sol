@@ -4,14 +4,14 @@ pragma solidity =0.8.19;
 import {IProjectRegistry} from "./interfaces/IProjectRegistry.sol";
 import {IArtwork} from "./interfaces/IArtwork.sol";
 import {ITraits} from "./interfaces/ITraits.sol";
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 
 /**
  * Provides functionality for registering the Traits and Artwork
  * contract addresses for each project
  */
-contract ProjectRegistry is IProjectRegistry, Ownable {
+contract ProjectRegistry is IProjectRegistry, Ownable2Step {
     uint256 public projectCount;
     string public baseURI;
     mapping(address => bool) public admins;
