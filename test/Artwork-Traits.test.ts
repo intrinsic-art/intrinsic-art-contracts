@@ -291,7 +291,7 @@ describe("Artwork and Traits", function () {
       "ERC721: invalid token ID"
     );
 
-    await artwork.connect(artist).artistCreateArtworkProof([0, 3], 100);
+    await artwork.connect(artist).mintArtworkProof([0, 3], 100);
 
     expect(await artwork.ownerOf(0)).to.eq(artist.address);
 
@@ -318,8 +318,8 @@ describe("Artwork and Traits", function () {
     expect(await traits.balanceOf(artist.address, 0)).to.eq(1);
     expect(await traits.balanceOf(artist.address, 3)).to.eq(1);
 
-    await artwork.connect(whitelistedUser1).whitelistCreateArtwork([1, 4], 200);
-    await artwork.connect(whitelistedUser2).whitelistCreateArtwork([2, 4], 300);
+    await artwork.connect(whitelistedUser1).mintArtworkWhitelist([1, 4], 200);
+    await artwork.connect(whitelistedUser2).mintArtworkWhitelist([2, 4], 300);
 
     expect(await artwork.ownerOf(1)).to.eq(whitelistedUser1.address);
     expect(await artwork.ownerOf(2)).to.eq(whitelistedUser2.address);
@@ -362,7 +362,7 @@ describe("Artwork and Traits", function () {
 
     await artwork
       .connect(user1)
-      .buyTraitsCreateArtwork([0, 3], [1, 1], [0, 3], 100, {
+      .mintTraitsAndArtwork([0, 3], [1, 1], [0, 3], 100, {
         value: ethAmount,
       });
 
@@ -433,7 +433,7 @@ describe("Artwork and Traits", function () {
     // Create artwork 0
     await artwork
       .connect(user1)
-      .buyTraitsCreateArtwork([0, 3], [1, 1], [0, 3], 100, {
+      .mintTraitsAndArtwork([0, 3], [1, 1], [0, 3], 100, {
         value: ethAmount,
       });
 
@@ -464,8 +464,8 @@ describe("Artwork and Traits", function () {
       "ERC721: invalid token ID"
     );
 
-    // Create artwork 1
-    await artwork.connect(user1).createArtwork([0, 3], 100);
+    // Mint artwork 1
+    await artwork.connect(user1).mintArtwork([0, 3], 100);
 
     expect(await artwork.nextTokenId()).to.eq(2);
     await expect(artwork.ownerOf(0)).to.be.revertedWith(
@@ -489,7 +489,7 @@ describe("Artwork and Traits", function () {
     // Create artwork 2
     await artwork
       .connect(user1)
-      .buyTraitsCreateArtwork([1, 4], [1, 1], [1, 4], 100, {
+      .mintTraitsAndArtwork([1, 4], [1, 1], [1, 4], 100, {
         value: ethAmount,
       });
 
@@ -550,7 +550,7 @@ describe("Artwork and Traits", function () {
     expect(await traits.balanceOf(user1.address, 3)).to.eq(0);
     expect(await traits.balanceOf(user1.address, 4)).to.eq(2);
 
-    await artwork.connect(user1).createArtwork([1, 4], 100);
+    await artwork.connect(user1).mintArtwork([1, 4], 100);
 
     expect(await traits.balanceOf(user1.address, 0)).to.eq(0);
     expect(await traits.balanceOf(user1.address, 1)).to.eq(1);
@@ -814,7 +814,7 @@ describe("Artwork and Traits", function () {
     await time.increaseTo(auctionStartTime);
 
     await expect(
-      artwork.connect(user1).createArtwork([0, 3], 100)
+      artwork.connect(user1).mintArtwork([0, 3], 100)
     ).to.be.revertedWith("ERC1155: insufficient balance for transfer");
   });
 
@@ -834,7 +834,7 @@ describe("Artwork and Traits", function () {
     const ethAmount = await traits.traitPrice();
 
     await expect(
-      artwork.connect(user2).buyTraitsCreateArtwork([0], [1], [0, 3], 100, {
+      artwork.connect(user2).mintTraitsAndArtwork([0], [1], [0, 3], 100, {
         value: ethAmount,
       })
     ).to.be.revertedWith("MaxSupply()");
@@ -849,7 +849,7 @@ describe("Artwork and Traits", function () {
     // User 1 creates artwork 0
     await artwork
       .connect(user1)
-      .buyTraitsCreateArtwork([0, 3], [1, 1], [0, 3], 100, {
+      .mintTraitsAndArtwork([0, 3], [1, 1], [0, 3], 100, {
         value: ethAmount,
       });
 
@@ -865,51 +865,39 @@ describe("Artwork and Traits", function () {
     const ethAmount = (await traits.traitPrice()).mul(2);
 
     await expect(
-      artwork
-        .connect(user1)
-        .buyTraitsCreateArtwork([0, 2], [1, 1], [0, 2], 100, {
-          value: ethAmount,
-        })
+      artwork.connect(user1).mintTraitsAndArtwork([0, 2], [1, 1], [0, 2], 100, {
+        value: ethAmount,
+      })
     ).to.be.revertedWith("InvalidTraits()");
 
     await expect(
-      artwork
-        .connect(user1)
-        .buyTraitsCreateArtwork([0, 0], [1, 1], [0, 0], 100, {
-          value: ethAmount,
-        })
+      artwork.connect(user1).mintTraitsAndArtwork([0, 0], [1, 1], [0, 0], 100, {
+        value: ethAmount,
+      })
     ).to.be.revertedWith("InvalidTraits()");
 
     await expect(
-      artwork
-        .connect(user1)
-        .buyTraitsCreateArtwork([2, 2], [1, 1], [2, 2], 100, {
-          value: ethAmount,
-        })
+      artwork.connect(user1).mintTraitsAndArtwork([2, 2], [1, 1], [2, 2], 100, {
+        value: ethAmount,
+      })
     ).to.be.revertedWith("InvalidTraits()");
 
     await expect(
-      artwork
-        .connect(user1)
-        .buyTraitsCreateArtwork([3, 4], [1, 1], [3, 4], 100, {
-          value: ethAmount,
-        })
+      artwork.connect(user1).mintTraitsAndArtwork([3, 4], [1, 1], [3, 4], 100, {
+        value: ethAmount,
+      })
     ).to.be.revertedWith("InvalidTraits()");
 
     await expect(
-      artwork
-        .connect(user1)
-        .buyTraitsCreateArtwork([4, 4], [1, 1], [4, 4], 100, {
-          value: ethAmount,
-        })
+      artwork.connect(user1).mintTraitsAndArtwork([4, 4], [1, 1], [4, 4], 100, {
+        value: ethAmount,
+      })
     ).to.be.revertedWith("InvalidTraits()");
 
     await expect(
-      artwork
-        .connect(user1)
-        .buyTraitsCreateArtwork([3, 0], [1, 1], [3, 0], 100, {
-          value: ethAmount,
-        })
+      artwork.connect(user1).mintTraitsAndArtwork([3, 0], [1, 1], [3, 0], 100, {
+        value: ethAmount,
+      })
     ).to.be.revertedWith("InvalidTraits()");
   });
 
@@ -972,13 +960,13 @@ describe("Artwork and Traits", function () {
     await expect(
       artwork
         .connect(user1)
-        .buyTraitsCreateArtwork([0, 3, 4], [1, 1, 1], [0, 3, 4], 100, {
+        .mintTraitsAndArtwork([0, 3, 4], [1, 1, 1], [0, 3, 4], 100, {
           value: traitPrice.mul(3),
         })
     ).to.be.revertedWith("InvalidArrayLengths()");
 
     await expect(
-      artwork.connect(user1).buyTraitsCreateArtwork([0], [1], [0], 100, {
+      artwork.connect(user1).mintTraitsAndArtwork([0], [1], [0], 100, {
         value: traitPrice.mul(1),
       })
     ).to.be.revertedWith("InvalidArrayLengths()");
@@ -986,7 +974,7 @@ describe("Artwork and Traits", function () {
     await expect(
       artwork
         .connect(user1)
-        .buyTraitsCreateArtwork([0, 2, 3, 4], [1, 1, 1, 1], [0, 2, 3, 4], 100, {
+        .mintTraitsAndArtwork([0, 2, 3, 4], [1, 1, 1, 1], [0, 2, 3, 4], 100, {
           value: traitPrice.mul(4),
         })
     ).to.be.revertedWith("InvalidArrayLengths()");
@@ -1274,5 +1262,32 @@ describe("Artwork and Traits", function () {
         value: ethers.utils.parseEther("1"),
       })
     ).to.be.revertedWith("TraitsSaleStartTime()");
+  });
+
+  it.only("Whitelisted users can't mint more than they're allocated", async () => {
+    // Move forward in time so auction is active
+    await time.increase(time.duration.seconds(120));
+
+    expect(
+      await traits.whitelistMintsRemaining(whitelistedUser1.address)
+    ).to.eq(1);
+
+    await artwork.connect(whitelistedUser1).mintArtworkWhitelist([0, 3], 100);
+
+    expect(await artwork.ownerOf(0)).to.eq(whitelistedUser1.address);
+
+    expect(
+      await traits.whitelistMintsRemaining(whitelistedUser1.address)
+    ).to.eq(0);
+
+    await expect(
+      artwork.connect(whitelistedUser1).mintArtworkWhitelist([0, 3], 100)
+    ).to.be.revertedWith("NoWhitelistMints()");
+
+    expect(await traits.whitelistMintsRemaining(user1.address)).to.eq(0);
+
+    await expect(
+      artwork.connect(user1).mintArtworkWhitelist([0, 3], 100)
+    ).to.be.revertedWith("NoWhitelistMints()");
   });
 });

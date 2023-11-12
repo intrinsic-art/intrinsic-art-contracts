@@ -15,11 +15,12 @@ interface IArtwork is IERC2981, IERC721 {
     error TraitsAlreadySet();
     error TraitsNotSet();
     error OnlyArtist();
+    error OnlyArtistOrProjectRegistry();
     error OnlyArtworkOwner();
     error AlreadySetup();
     error ZeroAddress();
 
-    event ArtworkCreated(
+    event ArtworkMinted(
         uint256 indexed artworkTokenId,
         uint256[] traitTokenIds,
         bytes32 hash,
@@ -38,14 +39,14 @@ interface IArtwork is IERC2981, IERC721 {
     function setup(bytes calldata _data) external;
 
     /**
-     * Creates a new artwork with the specified trait token IDs
+     * Mints a new artwork with the specified trait token IDs
      * The caller must own the specified traits
      *
      * @param _traitTokenIds the trait token IDs to create the artwork with
      * @param _saltNonce salt number that is used to generate the artwork hash
      * @return _artworkTokenId the token ID of the newly minted artwork
      */
-    function createArtwork(
+    function mintArtwork(
         uint256[] calldata _traitTokenIds,
         uint256 _saltNonce
     ) external returns (uint256 _artworkTokenId);
@@ -60,12 +61,12 @@ interface IArtwork is IERC2981, IERC721 {
     function reclaimTraits(uint256 _artworkTokenId) external;
 
     /**
-     * Allows the artist to mint the proof mint
+     * Allows the artist or project registry to mint the proof mint
      *
      * @param _traitTokenIds token IDs of the traits to use to create the artwork
      * @param _saltNonce salt number that is used to generate the artwork hash
      */
-    function artistCreateArtworkProof(
+    function mintArtworkProof(
         uint256[] calldata _traitTokenIds,
         uint256 _saltNonce
     ) external;
@@ -76,20 +77,21 @@ interface IArtwork is IERC2981, IERC721 {
      * @param _traitTokenIds token IDs of the traits to use to create the artwork
      * @param _saltNonce salt number that is used to generate the artwork hash
      */
-    function whitelistCreateArtwork(
+    function mintArtworkWhitelist(
         uint256[] calldata _traitTokenIds,
         uint256 _saltNonce
     ) external;
 
     /**
-     * Buys traits with specified amounts, and create an artwork in a single transaction
+     * Mints traits with specified amounts, and mints an artwork in a single transaction
+     * ETH amount needed for trait mints must be sent
      *
      * @param _traitTokenIdsToBuy token IDs of the traits to buy
      * @param _traitAmountsToBuy amounts of each trait to buy
      * @param _traitTokenIdsToCreateArtwork token IDs of the traits to use to create the artwork
      * @param _saltNonce salt number that is used to generate the artwork hash
      */
-    function buyTraitsCreateArtwork(
+    function mintTraitsAndArtwork(
         uint256[] calldata _traitTokenIdsToBuy,
         uint256[] calldata _traitAmountsToBuy,
         uint256[] calldata _traitTokenIdsToCreateArtwork,

@@ -73,7 +73,7 @@ contract Artwork is IArtwork, IERC721Metadata, ERC2981, ERC721, ERC1155Holder {
     }
 
     /** @inheritdoc IArtwork*/
-    function createArtwork(
+    function mintArtwork(
         uint256[] calldata _traitTokenIds,
         uint256 _saltNonce
     ) public returns (uint256 _artworkTokenId) {
@@ -93,7 +93,7 @@ contract Artwork is IArtwork, IERC721Metadata, ERC2981, ERC721, ERC1155Holder {
         traits.transferTraitsToCreateArtwork(msg.sender, _traitTokenIds);
         _safeMint(msg.sender, _artworkTokenId);
 
-        emit ArtworkCreated(_artworkTokenId, _traitTokenIds, _hash, msg.sender);
+        emit ArtworkMinted(_artworkTokenId, _traitTokenIds, _hash, msg.sender);
     }
 
     /** @inheritdoc IArtwork*/
@@ -127,32 +127,35 @@ contract Artwork is IArtwork, IERC721Metadata, ERC2981, ERC721, ERC1155Holder {
     }
 
     /** @inheritdoc IArtwork*/
-    function artistCreateArtworkProof(
+    function mintArtworkProof(
         uint256[] calldata _traitTokenIds,
         uint256 _saltNonce
     ) external {
         if (proofMinted) revert ProofAlreadyMinted();
-        if (msg.sender != artistAddress) revert OnlyArtist();
+        if (
+            msg.sender != artistAddress &&
+            msg.sender != address(projectRegistry)
+        ) revert OnlyArtistOrProjectRegistry();
 
         proofMinted = true;
 
         traits.mintTraitsArtistProof(msg.sender, _traitTokenIds);
 
-        createArtwork(_traitTokenIds, _saltNonce);
+        mintArtwork(_traitTokenIds, _saltNonce);
     }
 
     /** @inheritdoc IArtwork*/
-    function whitelistCreateArtwork(
+    function mintArtworkWhitelist(
         uint256[] calldata _traitTokenIds,
         uint256 _saltNonce
     ) external {
         traits.mintTraitsWhitelist(msg.sender, _traitTokenIds);
 
-        createArtwork(_traitTokenIds, _saltNonce);
+        mintArtwork(_traitTokenIds, _saltNonce);
     }
 
     /** @inheritdoc IArtwork*/
-    function buyTraitsCreateArtwork(
+    function mintTraitsAndArtwork(
         uint256[] calldata _traitTokenIdsToBuy,
         uint256[] calldata _traitAmountsToBuy,
         uint256[] calldata _traitTokenIdsToCreateArtwork,
@@ -164,7 +167,7 @@ contract Artwork is IArtwork, IERC721Metadata, ERC2981, ERC721, ERC1155Holder {
             _traitAmountsToBuy
         );
 
-        createArtwork(_traitTokenIdsToCreateArtwork, _saltNonce);
+        mintArtwork(_traitTokenIdsToCreateArtwork, _saltNonce);
     }
 
     /** @inheritdoc IArtwork*/
@@ -176,7 +179,7 @@ contract Artwork is IArtwork, IERC721Metadata, ERC2981, ERC721, ERC1155Holder {
         override(ERC721, IERC721Metadata, IArtwork)
         returns (string memory)
     {
-         string memory baseURI = projectRegistry.baseURI();
+        string memory baseURI = projectRegistry.baseURI();
 
         return
             bytes(baseURI).length != 0
