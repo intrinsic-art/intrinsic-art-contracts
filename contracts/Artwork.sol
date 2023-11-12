@@ -13,8 +13,8 @@ import {IERC721Metadata} from "@openzeppelin/contracts/token/ERC721/extensions/I
 import {ERC1155Holder, ERC1155Receiver, IERC165} from "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
 
 /**
- * Implements ERC-721 standard for artwork tokens,
- * and provides functions for creating and decomposing artwork
+ * Implements ERC-721 standard for artwork tokens, and
+ * functionality for minting artwork and reclaiming traits
  */
 contract Artwork is IArtwork, IERC721Metadata, ERC2981, ERC721, ERC1155Holder {
     using Strings for uint256;
@@ -90,7 +90,7 @@ contract Artwork is IArtwork, IERC721Metadata, ERC2981, ERC721, ERC1155Holder {
         artworkData[_artworkTokenId].traitTokenIds = _traitTokenIds;
         userNonces[msg.sender]++;
 
-        traits.transferTraitsToCreateArtwork(msg.sender, _traitTokenIds);
+        traits.transferTraitsToMintArtwork(msg.sender, _traitTokenIds);
         _safeMint(msg.sender, _artworkTokenId);
 
         emit ArtworkMinted(_artworkTokenId, _traitTokenIds, _hash, msg.sender);

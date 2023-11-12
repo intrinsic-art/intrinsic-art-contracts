@@ -1243,13 +1243,11 @@ describe("Artwork and Traits", function () {
 
   it("transferTraitsToCreateArtwork() can only be called by the Artwork contract", async () => {
     await expect(
-      traits.connect(user1).transferTraitsToCreateArtwork(user1.address, [0, 3])
+      traits.connect(user1).transferTraitsToMintArtwork(user1.address, [0, 3])
     ).to.be.revertedWith("OnlyArtwork()");
 
     await expect(
-      traits
-        .connect(user1)
-        .transferTraitsToCreateArtwork(artwork.address, [0, 3])
+      traits.connect(user1).transferTraitsToMintArtwork(artwork.address, [0, 3])
     ).to.be.revertedWith("OnlyArtwork()");
   });
 
@@ -1264,7 +1262,7 @@ describe("Artwork and Traits", function () {
     ).to.be.revertedWith("TraitsSaleStartTime()");
   });
 
-  it.only("Whitelisted users can't mint more than they're allocated", async () => {
+  it("Whitelisted users can't mint more than they're allocated", async () => {
     // Move forward in time so auction is active
     await time.increase(time.duration.seconds(120));
 

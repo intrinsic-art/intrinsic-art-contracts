@@ -9,7 +9,6 @@ import {ERC2981} from "@openzeppelin/contracts/token/common/ERC2981.sol";
 import {ERC1155, IERC165} from "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import {PaymentSplitter} from "@openzeppelin/contracts/finance/PaymentSplitter.sol";
 import {ERC1155Supply} from "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
-import "hardhat/console.sol";
 
 /**
  * Implements ERC-1155 standard for trait tokens,
@@ -21,9 +20,9 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
 
     bool public auctionExponential;
     IArtwork public artwork;
+    IProjectRegistry public projectRegistry;
     string public name;
     string public symbol;
-    IProjectRegistry public projectRegistry;
     string public constant VERSION = "1.0.0";
     uint256 public auctionStartTime;
     uint256 public auctionEndTime;
@@ -141,7 +140,6 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
         uint256 _traitsSaleStartTime,
         uint256 _whitelistStartTime
     ) external onlyProjectRegistry {
-        console.log("updating auction");
         if (auctionStartTime == 0) revert NotSetup();
 
         _updateAuction(
@@ -212,7 +210,7 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
     }
 
     /** @inheritdoc ITraits*/
-    function transferTraitsToCreateArtwork(
+    function transferTraitsToMintArtwork(
         address _caller,
         uint256[] calldata _traitTokenIds
     ) external onlyArtwork {

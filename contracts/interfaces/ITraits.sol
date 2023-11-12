@@ -134,7 +134,7 @@ interface ITraits is IERC1155 {
      * @param _caller the address creating the artwork
      * @param _traitTokenIds the trait token IDs used to create the artwork
      */
-    function transferTraitsToCreateArtwork(
+    function transferTraitsToMintArtwork(
         address _caller,
         uint256[] calldata _traitTokenIds
     ) external;
