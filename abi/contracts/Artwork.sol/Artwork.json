@@ -18,6 +18,11 @@
       },
       {
         "internalType": "address",
+        "name": "_artistAddress",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
         "name": "_projectRegistry",
         "type": "address"
       },

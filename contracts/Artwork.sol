@@ -42,6 +42,7 @@ contract Artwork is IArtwork, IERC721Metadata, ERC2981, ERC721, ERC1155Holder {
         string memory _name,
         string memory _symbol,
         string memory _metadataJSON,
+        address _artistAddress,
         address _projectRegistry,
         address[] memory _scriptStorageAddresses,
         uint96 _royaltyFeeNumerator,
@@ -49,6 +50,7 @@ contract Artwork is IArtwork, IERC721Metadata, ERC2981, ERC721, ERC1155Holder {
         uint256[] memory _royaltyShares
     ) ERC721(_name, _symbol) {
         metadataJSON = _metadataJSON;
+        artistAddress = _artistAddress;
         projectRegistry = IProjectRegistry(_projectRegistry);
         address _royaltySplitter = address(
             new PaymentSplitter(_royaltyPayees, _royaltyShares)
@@ -174,9 +176,7 @@ contract Artwork is IArtwork, IERC721Metadata, ERC2981, ERC721, ERC1155Holder {
         override(ERC721, IERC721Metadata, IArtwork)
         returns (string memory)
     {
-        _requireMinted(_tokenId);
-
-        string memory baseURI = projectRegistry.baseURI();
+         string memory baseURI = projectRegistry.baseURI();
 
         return
             bytes(baseURI).length != 0

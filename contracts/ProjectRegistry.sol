@@ -22,9 +22,10 @@ contract ProjectRegistry is IProjectRegistry, Ownable {
         _;
     }
 
-    constructor(address _owner, address[] memory _admins) {
+    constructor(address _owner, address[] memory _admins, string memory _baseURI) {
         _transferOwnership(_owner);
         _addAdmins(_admins);
+        baseURI = _baseURI;
     }
 
     /** @inheritdoc IProjectRegistry*/

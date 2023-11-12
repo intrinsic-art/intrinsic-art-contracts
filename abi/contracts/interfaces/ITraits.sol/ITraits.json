@@ -143,6 +143,12 @@
         "internalType": "uint256",
         "name": "_traitsSaleStartTime",
         "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "_whitelistStartTime",
+        "type": "uint256"
       }
     ],
     "name": "AuctionScheduled",
@@ -711,6 +717,11 @@
       {
         "internalType": "uint256",
         "name": "_traitsSaleStartTime",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_whitelistStartTime",
         "type": "uint256"
       }
     ],

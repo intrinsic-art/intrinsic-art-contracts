@@ -3,28 +3,18 @@
     "inputs": [
       {
         "internalType": "string",
-        "name": "_uri",
+        "name": "_name",
         "type": "string"
       },
       {
-        "internalType": "address",
-        "name": "_artwork",
-        "type": "address"
+        "internalType": "string",
+        "name": "_symbol",
+        "type": "string"
       },
       {
         "internalType": "address",
         "name": "_projectRegistry",
         "type": "address"
-      },
-      {
-        "internalType": "address[]",
-        "name": "_primarySalesPayees",
-        "type": "address[]"
-      },
-      {
-        "internalType": "uint256[]",
-        "name": "_primarySalesShares",
-        "type": "uint256[]"
       },
       {
         "components": [
@@ -62,6 +52,16 @@
         "internalType": "struct ITraits.TraitsSetup",
         "name": "_traitsSetup",
         "type": "tuple"
+      },
+      {
+        "internalType": "address[]",
+        "name": "_primarySalesPayees",
+        "type": "address[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "_primarySalesShares",
+        "type": "uint256[]"
       },
       {
         "internalType": "address[]",
@@ -220,6 +220,12 @@
         "indexed": false,
         "internalType": "uint256",
         "name": "_traitsSaleStartTime",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "_whitelistStartTime",
         "type": "uint256"
       }
     ],
@@ -700,6 +706,19 @@
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "name",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "uint256",
@@ -852,12 +871,12 @@
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "_tokenId",
+        "name": "tokenId",
         "type": "uint256"
       },
       {
         "internalType": "uint256",
-        "name": "_salePrice",
+        "name": "salePrice",
         "type": "uint256"
       }
     ],
@@ -1007,6 +1026,19 @@
         "internalType": "bool",
         "name": "",
         "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "symbol",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
       }
     ],
     "stateMutability": "view",
@@ -1268,6 +1300,11 @@
       {
         "internalType": "uint256",
         "name": "_traitsSaleStartTime",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_whitelistStartTime",
         "type": "uint256"
       }
     ],

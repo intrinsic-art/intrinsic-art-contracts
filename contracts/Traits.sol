@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: GNU GPLv3
 pragma solidity =0.8.19;
 
-import {ITraits} from "./interfaces/ITraits.sol";
-import {IArtwork} from "./interfaces/IArtwork.sol";
-import {IProjectRegistry} from "./interfaces/IProjectRegistry.sol";
-import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
-import {ERC2981} from "@openzeppelin/contracts/token/common/ERC2981.sol";
-import {ERC1155, IERC165} from "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
-import {PaymentSplitter} from "@openzeppelin/contracts/finance/PaymentSplitter.sol";
-import {ERC1155Supply} from "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
+import { ITraits } from "./interfaces/ITraits.sol";
+import { IArtwork } from "./interfaces/IArtwork.sol";
+import { IProjectRegistry } from "./interfaces/IProjectRegistry.sol";
+import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
+import { ERC2981 } from "@openzeppelin/contracts/token/common/ERC2981.sol";
+import { ERC1155, IERC165 } from "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
+import { PaymentSplitter } from "@openzeppelin/contracts/finance/PaymentSplitter.sol";
+import { ERC1155Supply } from "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
 
 /**
  * Implements ERC-1155 standard for trait tokens,
@@ -18,7 +18,10 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
     using Strings for uint256;
     using Strings for address;
 
+    bool public auctionExponential;
     IArtwork public artwork;
+    string public name;
+    string public symbol;
     IProjectRegistry public projectRegistry;
     string public constant VERSION = "1.0.0";
     uint256 public auctionStartTime;
@@ -26,7 +29,6 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
     uint256 public auctionStartPrice;
     uint256 public auctionEndPrice;
     uint256 public auctionPriceSteps;
-    bool public auctionExponential;
     uint256 public traitsSaleStartTime;
     uint256 public whitelistStartTime;
     TraitType[] private _traitTypes;
@@ -45,19 +47,21 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
     }
 
     constructor(
-        string memory _uri,
-        address _artwork,
+        string memory _name,
+        string memory _symbol,
         address _projectRegistry,
+        TraitsSetup memory _traitsSetup,
         address[] memory _primarySalesPayees,
         uint256[] memory _primarySalesShares,
-        TraitsSetup memory _traitsSetup,
         address[] memory _whitelistAddresses,
         uint256[] memory _whitelistAmounts
-    ) ERC1155(_uri) PaymentSplitter(_primarySalesPayees, _primarySalesShares) {
+    ) ERC1155("") PaymentSplitter(_primarySalesPayees, _primarySalesShares) {
         if (_whitelistAddresses.length != _whitelistAmounts.length)
             revert InvalidArrayLengths();
 
-        artwork = IArtwork(_artwork);
+        name = _name;
+        symbol = _symbol;
+
         projectRegistry = IProjectRegistry(_projectRegistry);
 
         _createTraitsAndTypes(
@@ -86,23 +90,25 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
 
         (
             address _artwork,
+            bool _auctionExponential,
             uint256 _auctionStartTime,
             uint256 _auctionEndTime,
             uint256 _auctionStartPrice,
             uint256 _auctionEndPrice,
             uint256 _auctionPriceSteps,
-            bool _auctionExponential,
-            uint256 _traitsSaleStartTime
+            uint256 _traitsSaleStartTime,
+            uint256 _whitelistStartTime
         ) = abi.decode(
                 _data,
                 (
                     address,
-                    uint256,
-                    uint256,
-                    uint256,
-                    uint256,
-                    uint256,
                     bool,
+                    uint256,
+                    uint256,
+                    uint256,
+                    uint256,
+                    uint256,
+                    uint256,
                     uint256
                 )
             );
@@ -118,7 +124,8 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
             _auctionEndPrice,
             _auctionPriceSteps,
             _auctionExponential,
-            _traitsSaleStartTime
+            _traitsSaleStartTime,
+            _whitelistStartTime
         );
     }
 
@@ -130,10 +137,10 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
         uint256 _auctionEndPrice,
         uint256 _auctionPriceSteps,
         bool _auctionExponential,
-        uint256 _traitsSaleStartTime
+        uint256 _traitsSaleStartTime,
+        uint256 _whitelistStartTime
     ) external onlyProjectRegistry {
         if (auctionStartTime == 0) revert NotSetup();
-        if (_auctionStartTime < auctionStartTime) revert InvalidAuction();
 
         _updateAuction(
             _auctionStartTime,
@@ -142,7 +149,8 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
             _auctionEndPrice,
             _auctionPriceSteps,
             _auctionExponential,
-            _traitsSaleStartTime
+            _traitsSaleStartTime,
+            _whitelistStartTime
         );
     }
 
@@ -252,9 +260,7 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
     }
 
     /** @inheritdoc ITraits*/
-    function trait(
-        uint256 _tokenId
-    )
+    function trait(uint256 _tokenId)
         external
         view
         returns (
@@ -334,8 +340,8 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
             // Exponential curve auction
             return
                 (((auctionStartPrice - auctionEndPrice) *
-                    (auctionPriceSteps - traitPriceStep()) ** 2) /
-                    auctionPriceSteps ** 2) + auctionEndPrice;
+                    (auctionPriceSteps - traitPriceStep())**2) /
+                    auctionPriceSteps**2) + auctionEndPrice;
         } else {
             // Linear curve auction
             return
@@ -347,43 +353,61 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
     }
 
     /** @inheritdoc ITraits*/
-    function whitelistMintsRemaining(
-        address _user
-    ) external view returns (uint256) {
+    function whitelistMintsRemaining(address _user)
+        external
+        view
+        returns (uint256)
+    {
         return _whitelistMintsRemaining[_user];
     }
 
     /** @inheritdoc ITraits*/
-    function maxSupply(
-        uint256 _tokenId
-    ) external view returns (uint256 _maxSupply) {
+    function maxSupply(uint256 _tokenId)
+        external
+        view
+        returns (uint256 _maxSupply)
+    {
         _maxSupply = _traits[_tokenId].maxSupply;
     }
 
     /** @inheritdoc ITraits*/
-    function uri(
-        uint256 _tokenId
-    ) public view override(ERC1155, ITraits) returns (string memory) {
+    function uri(uint256 _tokenId)
+        public
+        view
+        override(ERC1155, ITraits)
+        returns (string memory)
+    {
         if (_tokenId >= _traits.length) revert InvalidTokenId();
 
+        string memory baseURI = projectRegistry.baseURI();
+
         return
-            string(
-                abi.encodePacked(
-                    super.uri(_tokenId),
-                    address(this).toHexString(),
-                    "/",
-                    _tokenId.toString()
+            bytes(baseURI).length != 0
+                ? string(
+                    abi.encodePacked(
+                        baseURI,
+                        address(this).toHexString(),
+                        "/",
+                        _tokenId.toString()
+                    )
                 )
-            );
+                : "";
     }
 
     /** @inheritdoc ITraits*/
-    function supportsInterface(
-        bytes4 interfaceId
-    ) public view override(ITraits, ERC1155, ERC2981) returns (bool) {
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        override(ITraits, ERC1155, ERC2981)
+        returns (bool)
+    {
         return
             interfaceId == type(ITraits).interfaceId ||
             super.supportsInterface(interfaceId);
+    }
+
+    function royaltyInfo(uint256 tokenId, uint256 salePrice) public view override returns (address, uint256) {
+      return artwork.royaltyInfo(tokenId, salePrice);
     }
 
     /** @inheritdoc ERC1155*/
@@ -495,6 +519,7 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
      * @param _auctionPriceSteps number of different prices auction steps through
      * @param _auctionExponential true indicates auction curve is exponential, otherwise linear
      * @param _traitsSaleStartTime timestamp at which traits can be bought individually
+     * @param _whitelistStartTime timestamp at which whitelisted users can start minting
      */
     function _updateAuction(
         uint256 _auctionStartTime,
@@ -503,7 +528,8 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
         uint256 _auctionEndPrice,
         uint256 _auctionPriceSteps,
         bool _auctionExponential,
-        uint256 _traitsSaleStartTime
+        uint256 _traitsSaleStartTime,
+        uint256 _whitelistStartTime
     ) private {
         if (
             _auctionEndTime < _auctionStartTime ||
@@ -519,6 +545,7 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
         auctionPriceSteps = _auctionPriceSteps;
         auctionExponential = _auctionExponential;
         traitsSaleStartTime = _traitsSaleStartTime;
+        whitelistStartTime = _whitelistStartTime;
 
         emit AuctionScheduled(
             _auctionStartTime,
@@ -527,7 +554,8 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
             _auctionEndPrice,
             _auctionPriceSteps,
             _auctionExponential,
-            _traitsSaleStartTime
+            _traitsSaleStartTime,
+            _whitelistStartTime
         );
     }
 }

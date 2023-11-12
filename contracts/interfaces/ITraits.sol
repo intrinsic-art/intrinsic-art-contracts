@@ -38,7 +38,8 @@ interface ITraits is IERC1155 {
         uint256 _auctionEndPrice,
         uint256 _auctionPriceSteps,
         bool _auctionExponential,
-        uint256 _traitsSaleStartTime
+        uint256 _traitsSaleStartTime,
+        uint256 _whitelistStartTime
     );
 
     error ZeroAddress();
@@ -78,6 +79,7 @@ interface ITraits is IERC1155 {
      * @param _auctionPriceSteps number of different prices auction steps through
      * @param _auctionExponential true indicates auction curve is exponential, otherwise linear
      * @param _traitsSaleStartTime timestamp at which traits can be bought individually
+     * @param _whitelistStartTime timestamp at which whitelisted users can start minting
      */
     function updateAuction(
         uint256 _auctionStartTime,
@@ -86,7 +88,8 @@ interface ITraits is IERC1155 {
         uint256 _auctionEndPrice,
         uint256 _auctionPriceSteps,
         bool _auctionExponential,
-        uint256 _traitsSaleStartTime
+        uint256 _traitsSaleStartTime,
+        uint256 _whitelistStartTime
     ) external;
 
     /**
