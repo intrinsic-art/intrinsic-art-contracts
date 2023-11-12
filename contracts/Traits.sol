@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: GNU GPLv3
 pragma solidity =0.8.19;
 
-import { ITraits } from "./interfaces/ITraits.sol";
-import { IArtwork } from "./interfaces/IArtwork.sol";
-import { IProjectRegistry } from "./interfaces/IProjectRegistry.sol";
-import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
-import { ERC2981 } from "@openzeppelin/contracts/token/common/ERC2981.sol";
-import { ERC1155, IERC165 } from "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
-import { PaymentSplitter } from "@openzeppelin/contracts/finance/PaymentSplitter.sol";
-import { ERC1155Supply } from "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
+import {ITraits} from "./interfaces/ITraits.sol";
+import {IArtwork} from "./interfaces/IArtwork.sol";
+import {IProjectRegistry} from "./interfaces/IProjectRegistry.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import {ERC2981} from "@openzeppelin/contracts/token/common/ERC2981.sol";
+import {ERC1155, IERC165} from "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
+import {PaymentSplitter} from "@openzeppelin/contracts/finance/PaymentSplitter.sol";
+import {ERC1155Supply} from "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
 
 /**
  * Implements ERC-1155 standard for trait tokens,
@@ -260,7 +260,9 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
     }
 
     /** @inheritdoc ITraits*/
-    function trait(uint256 _tokenId)
+    function trait(
+        uint256 _tokenId
+    )
         external
         view
         returns (
@@ -320,7 +322,7 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
     /** @inheritdoc ITraits*/
     function traitPriceStep() public view returns (uint256) {
         if (block.timestamp < auctionStartTime) revert AuctionNotLive();
-        if (block.timestamp > auctionEndTime) return auctionPriceSteps - 1;
+        if (block.timestamp >= auctionEndTime) return auctionPriceSteps - 1;
 
         return
             (auctionPriceSteps * (block.timestamp - auctionStartTime)) /
@@ -330,7 +332,7 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
     /** @inheritdoc ITraits*/
     function traitPrice() public view returns (uint256) {
         if (block.timestamp < auctionStartTime) revert AuctionNotLive();
-        if (block.timestamp > auctionEndTime) {
+        if (block.timestamp >= auctionEndTime) {
             // Auction has ended
             return auctionEndPrice;
         }
@@ -340,43 +342,35 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
             // Exponential curve auction
             return
                 (((auctionStartPrice - auctionEndPrice) *
-                    (auctionPriceSteps - traitPriceStep())**2) /
-                    auctionPriceSteps**2) + auctionEndPrice;
+                    (auctionPriceSteps - traitPriceStep() - 1) ** 2) /
+                    (auctionPriceSteps - 1) ** 2) + auctionEndPrice;
         } else {
             // Linear curve auction
             return
                 auctionStartPrice -
-                (((auctionStartPrice - auctionEndPrice) *
-                    (traitPriceStep() - auctionPriceSteps)) /
-                    auctionPriceSteps);
+                ((traitPriceStep() * (auctionStartPrice - auctionEndPrice)) /
+                    (auctionPriceSteps - 1));
         }
     }
 
     /** @inheritdoc ITraits*/
-    function whitelistMintsRemaining(address _user)
-        external
-        view
-        returns (uint256)
-    {
+    function whitelistMintsRemaining(
+        address _user
+    ) external view returns (uint256) {
         return _whitelistMintsRemaining[_user];
     }
 
     /** @inheritdoc ITraits*/
-    function maxSupply(uint256 _tokenId)
-        external
-        view
-        returns (uint256 _maxSupply)
-    {
+    function maxSupply(
+        uint256 _tokenId
+    ) external view returns (uint256 _maxSupply) {
         _maxSupply = _traits[_tokenId].maxSupply;
     }
 
     /** @inheritdoc ITraits*/
-    function uri(uint256 _tokenId)
-        public
-        view
-        override(ERC1155, ITraits)
-        returns (string memory)
-    {
+    function uri(
+        uint256 _tokenId
+    ) public view override(ERC1155, ITraits) returns (string memory) {
         if (_tokenId >= _traits.length) revert InvalidTokenId();
 
         string memory baseURI = projectRegistry.baseURI();
@@ -395,19 +389,19 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
     }
 
     /** @inheritdoc ITraits*/
-    function supportsInterface(bytes4 interfaceId)
-        public
-        view
-        override(ITraits, ERC1155, ERC2981)
-        returns (bool)
-    {
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view override(ITraits, ERC1155, ERC2981) returns (bool) {
         return
             interfaceId == type(ITraits).interfaceId ||
             super.supportsInterface(interfaceId);
     }
 
-    function royaltyInfo(uint256 tokenId, uint256 salePrice) public view override returns (address, uint256) {
-      return artwork.royaltyInfo(tokenId, salePrice);
+    function royaltyInfo(
+        uint256 tokenId,
+        uint256 salePrice
+    ) public view override returns (address, uint256) {
+        return artwork.royaltyInfo(tokenId, salePrice);
     }
 
     /** @inheritdoc ERC1155*/
@@ -535,7 +529,8 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
             _auctionEndTime < _auctionStartTime ||
             _auctionEndPrice > _auctionStartPrice ||
             _traitsSaleStartTime < _auctionStartTime ||
-            _auctionStartTime < block.timestamp
+            _auctionStartTime < block.timestamp ||
+            _auctionPriceSteps < 2
         ) revert InvalidAuction();
 
         auctionStartTime = _auctionStartTime;

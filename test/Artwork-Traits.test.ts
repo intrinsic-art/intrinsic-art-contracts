@@ -44,6 +44,8 @@ describe("Artwork and Traits", function () {
   let auctionEndPrice: BigNumber;
   let auctionPriceSteps: number;
   let traitsSaleStartTime: number;
+  let whitelistStartTime: number;
+  let auctionDuration: number;
 
   const abiCoder = ethers.utils.defaultAbiCoder;
 
@@ -107,19 +109,22 @@ describe("Artwork and Traits", function () {
       await artwork.royaltySplitter()
     );
 
+    auctionDuration = 100;
     currentTime = (await ethers.provider.getBlock("latest")).timestamp;
     auctionStartTime = currentTime + 110;
-    auctionEndTime = currentTime + 210;
+    auctionEndTime = auctionStartTime + auctionDuration;
     auctionStartPrice = ethers.utils.parseEther("1");
     auctionEndPrice = ethers.utils.parseEther("0.1");
     auctionPriceSteps = 4;
     traitsSaleStartTime = currentTime + 300;
+    whitelistStartTime = currentTime + 110;
 
     const encodedArtworkData = abiCoder.encode(["address"], [traits.address]);
     const encodedTraitsData = abiCoder.encode(
       [
         "address",
         "bool",
+        "uint256",
         "uint256",
         "uint256",
         "uint256",
@@ -136,6 +141,7 @@ describe("Artwork and Traits", function () {
         auctionEndPrice,
         auctionPriceSteps,
         traitsSaleStartTime,
+        whitelistStartTime,
       ]
     );
 
@@ -337,7 +343,7 @@ describe("Artwork and Traits", function () {
     ]);
   });
 
-  it.only("A user can create artwork and reclaim traits from it", async () => {
+  it("A user can create artwork and reclaim traits from it", async () => {
     // Move forward in time so auction is active
     await time.increase(time.duration.seconds(120));
 
@@ -392,254 +398,416 @@ describe("Artwork and Traits", function () {
     expect(await traits.balanceOf(user1.address, 3)).to.eq(1);
   });
 
-  // it("Correctly handles token URIs", async () => {
-  //   // Move forward in time so auction is active
-  //   await time.increase(time.duration.seconds(120));
+  it("Correctly handles token URIs", async () => {
+    expect(await artwork.tokenURI(0)).to.eq(
+      `https://intrinsic.art/${artwork.address.toLowerCase()}/0`
+    );
 
-  //   const ethAmount = (await traits.traitPrice()).mul(2);
+    expect(await artwork.tokenURI(1)).to.eq(
+      `https://intrinsic.art/${artwork.address.toLowerCase()}/1`
+    );
 
-  //   await artwork
-  //     .connect(user1)
-  //     .buyTraitsCreateArtwork([0, 3], [1, 1], [0, 3], 100, {
-  //       value: ethAmount,
-  //     });
+    expect(await traits.uri(0)).to.eq(
+      `https://intrinsic.art/${traits.address.toLowerCase()}/0`
+    );
 
-  //   await artwork
-  //     .connect(user1)
-  //     .buyTraitsCreateArtwork([0, 3], [1, 1], [0, 3], 100, {
-  //       value: ethAmount,
-  //     });
+    expect(await traits.uri(4)).to.eq(
+      `https://intrinsic.art/${traits.address.toLowerCase()}/4`
+    );
+  });
 
-  //   expect(await artwork.tokenURI(0)).to.eq(
-  //     `https://artwork.intrinsic.art/${artwork.address.toLowerCase()}/0`
-  //   );
+  it("Artwork token IDs increment even if previous ones are have been reclaimed", async () => {
+    // Move forward in time so auction is active
+    await time.increase(time.duration.seconds(120));
 
-  //   expect(await artwork.tokenURI(1)).to.eq(
-  //     `https://artwork.intrinsic.art/${artwork.address.toLowerCase()}/1`
-  //   );
+    const ethAmount = (await traits.traitPrice()).mul(2);
 
-  //   await expect(artwork.tokenURI(2)).to.be.revertedWith(
-  //     "ERC721: invalid token ID"
-  //   );
+    expect(await artwork.nextTokenId()).to.eq(0);
+    await expect(artwork.ownerOf(0)).to.be.revertedWith(
+      "ERC721: invalid token ID"
+    );
+    await expect(artwork.artwork(0)).to.be.revertedWith(
+      "ERC721: invalid token ID"
+    );
 
-  //   await expect(artwork.tokenURI(3)).to.be.revertedWith(
-  //     "ERC721: invalid token ID"
-  //   );
+    // Create artwork 0
+    await artwork
+      .connect(user1)
+      .buyTraitsCreateArtwork([0, 3], [1, 1], [0, 3], 100, {
+        value: ethAmount,
+      });
 
-  //   expect(await traits.uri(0)).to.eq(
-  //     `https://trait.intrinsic.art/${traits.address.toLowerCase()}/0`
-  //   );
+    expect(await artwork.nextTokenId()).to.eq(1);
+    expect(await artwork.ownerOf(0)).to.eq(user1.address);
+    expect(await artwork.artwork(0)).to.deep.eq([
+      [BigNumber.from("0"), BigNumber.from("3")],
+      ["Blonde", "Green"],
+      ["blonde", "green"],
+      ["Hair Color", "Eye Color"],
+      ["hairColor", "eyeColor"],
+      artworkHash(artwork.address, user1.address, 0, 100),
+    ]);
 
-  //   expect(await traits.uri(4)).to.eq(
-  //     `https://trait.intrinsic.art/${traits.address.toLowerCase()}/4`
-  //   );
+    await artwork.connect(user1).reclaimTraits(0);
 
-  //   await expect(traits.uri(5)).to.be.revertedWith("InvalidTokenId()");
+    await expect(artwork.ownerOf(0)).to.be.revertedWith(
+      "ERC721: invalid token ID"
+    );
+    await expect(artwork.artwork(0)).to.be.revertedWith(
+      "ERC721: invalid token ID"
+    );
 
-  //   await expect(traits.uri(6)).to.be.revertedWith("InvalidTokenId()");
-  // });
+    await expect(artwork.ownerOf(1)).to.be.revertedWith(
+      "ERC721: invalid token ID"
+    );
+    await expect(artwork.artwork(1)).to.be.revertedWith(
+      "ERC721: invalid token ID"
+    );
 
-  // it("Artwork token IDs increment even if previous ones are have been reclaimed", async () => {
-  //   // Move forward in time so auction is active
-  //   await time.increase(time.duration.seconds(120));
+    // Create artwork 1
+    await artwork.connect(user1).createArtwork([0, 3], 100);
 
-  //   const ethAmount = (await traits.traitPrice()).mul(2);
+    expect(await artwork.nextTokenId()).to.eq(2);
+    await expect(artwork.ownerOf(0)).to.be.revertedWith(
+      "ERC721: invalid token ID"
+    );
+    await expect(artwork.artwork(0)).to.be.revertedWith(
+      "ERC721: invalid token ID"
+    );
+    expect(await artwork.ownerOf(1)).to.eq(user1.address);
+    expect(await artwork.artwork(1)).to.deep.eq([
+      [BigNumber.from("0"), BigNumber.from("3")],
+      ["Blonde", "Green"],
+      ["blonde", "green"],
+      ["Hair Color", "Eye Color"],
+      ["hairColor", "eyeColor"],
+      artworkHash(artwork.address, user1.address, 1, 100),
+    ]);
 
-  //   expect(await artwork.nextTokenId()).to.eq(0);
-  //   await expect(artwork.ownerOf(0)).to.be.revertedWith(
-  //     "ERC721: invalid token ID"
-  //   );
-  //   await expect(artwork.artwork(0)).to.be.revertedWith(
-  //     "ERC721: invalid token ID"
-  //   );
+    await artwork.connect(user1).reclaimTraits(1);
 
-  //   // Create artwork 0
-  //   await artwork
-  //     .connect(user1)
-  //     .buyTraitsCreateArtwork([0, 3], [1, 1], [0, 3], 100, {
-  //       value: ethAmount,
-  //     });
+    // Create artwork 2
+    await artwork
+      .connect(user1)
+      .buyTraitsCreateArtwork([1, 4], [1, 1], [1, 4], 100, {
+        value: ethAmount,
+      });
 
-  //   expect(await artwork.nextTokenId()).to.eq(1);
-  //   expect(await artwork.ownerOf(0)).to.eq(user1.address);
-  //   expect(await artwork.artwork(0)).to.deep.eq([
-  //     [BigNumber.from("0"), BigNumber.from("3")],
-  //     ["Blonde", "Green"],
-  //     ["blonde", "green"],
-  //     ["Hair Color", "Eye Color"],
-  //     ["hairColor", "eyeColor"],
-  //     artworkHash(artwork.address, user1.address, 0, 100),
-  //   ]);
+    expect(await artwork.nextTokenId()).to.eq(3);
+    await expect(artwork.ownerOf(0)).to.be.revertedWith(
+      "ERC721: invalid token ID"
+    );
+    await expect(artwork.artwork(0)).to.be.revertedWith(
+      "ERC721: invalid token ID"
+    );
+    await expect(artwork.ownerOf(1)).to.be.revertedWith(
+      "ERC721: invalid token ID"
+    );
+    await expect(artwork.artwork(1)).to.be.revertedWith(
+      "ERC721: invalid token ID"
+    );
+    expect(await artwork.ownerOf(2)).to.eq(user1.address);
+    expect(await artwork.artwork(2)).to.deep.eq([
+      [BigNumber.from("1"), BigNumber.from("4")],
+      ["Brown", "Blue"],
+      ["brown", "blue"],
+      ["Hair Color", "Eye Color"],
+      ["hairColor", "eyeColor"],
+      artworkHash(artwork.address, user1.address, 2, 100),
+    ]);
+  });
 
-  //   await artwork.connect(user1).reclaimTraits(0);
+  it("A user can buy traits and create artwork in separate transactions", async () => {
+    // Move forward in time so auction is active
+    await time.increase(time.duration.seconds(300));
 
-  //   await expect(artwork.ownerOf(0)).to.be.revertedWith(
-  //     "ERC721: invalid token ID"
-  //   );
-  //   await expect(artwork.artwork(0)).to.be.revertedWith(
-  //     "ERC721: invalid token ID"
-  //   );
+    expect(await ethers.provider.getBalance(artwork.address)).to.eq(0);
+    expect(await ethers.provider.getBalance(traits.address)).to.eq(0);
 
-  //   await expect(artwork.ownerOf(1)).to.be.revertedWith(
-  //     "ERC721: invalid token ID"
-  //   );
-  //   await expect(artwork.artwork(1)).to.be.revertedWith(
-  //     "ERC721: invalid token ID"
-  //   );
+    const ethAmount = (await traits.traitPrice()).mul(4);
 
-  //   // Create artwork 1
-  //   await artwork.connect(user1).createArtwork([0, 3], 100);
+    await expect(artwork.ownerOf(1)).to.be.revertedWith(
+      "ERC721: invalid token ID"
+    );
+    expect(await artwork.userNonce(user1.address)).to.eq(0);
+    await expect(artwork.artwork(0)).to.be.revertedWith(
+      "ERC721: invalid token ID"
+    );
 
-  //   expect(await artwork.nextTokenId()).to.eq(2);
-  //   await expect(artwork.ownerOf(0)).to.be.revertedWith(
-  //     "ERC721: invalid token ID"
-  //   );
-  //   await expect(artwork.artwork(0)).to.be.revertedWith(
-  //     "ERC721: invalid token ID"
-  //   );
-  //   expect(await artwork.ownerOf(1)).to.eq(user1.address);
-  //   expect(await artwork.artwork(1)).to.deep.eq([
-  //     [BigNumber.from("0"), BigNumber.from("3")],
-  //     ["Blonde", "Green"],
-  //     ["blonde", "green"],
-  //     ["Hair Color", "Eye Color"],
-  //     ["hairColor", "eyeColor"],
-  //     artworkHash(artwork.address, user1.address, 1, 100),
-  //   ]);
+    expect(await traits.balanceOf(user1.address, 0)).to.eq(0);
+    expect(await traits.balanceOf(user1.address, 1)).to.eq(0);
+    expect(await traits.balanceOf(user1.address, 2)).to.eq(0);
+    expect(await traits.balanceOf(user1.address, 3)).to.eq(0);
+    expect(await traits.balanceOf(user1.address, 4)).to.eq(0);
 
-  //   await artwork.connect(user1).reclaimTraits(1);
+    await traits.connect(user1).buyTraits(user1.address, [1, 4], [2, 2], {
+      value: ethAmount,
+    });
 
-  //   // Create artwork 2
-  //   await artwork
-  //     .connect(user1)
-  //     .buyTraitsCreateArtwork([1, 4], [1, 1], [1, 4], 100, {
-  //       value: ethAmount,
-  //     });
+    expect(await traits.balanceOf(user1.address, 0)).to.eq(0);
+    expect(await traits.balanceOf(user1.address, 1)).to.eq(2);
+    expect(await traits.balanceOf(user1.address, 2)).to.eq(0);
+    expect(await traits.balanceOf(user1.address, 3)).to.eq(0);
+    expect(await traits.balanceOf(user1.address, 4)).to.eq(2);
 
-  //   expect(await artwork.nextTokenId()).to.eq(3);
-  //   await expect(artwork.ownerOf(0)).to.be.revertedWith(
-  //     "ERC721: invalid token ID"
-  //   );
-  //   await expect(artwork.artwork(0)).to.be.revertedWith(
-  //     "ERC721: invalid token ID"
-  //   );
-  //   await expect(artwork.ownerOf(1)).to.be.revertedWith(
-  //     "ERC721: invalid token ID"
-  //   );
-  //   await expect(artwork.artwork(1)).to.be.revertedWith(
-  //     "ERC721: invalid token ID"
-  //   );
-  //   expect(await artwork.ownerOf(2)).to.eq(user1.address);
-  //   expect(await artwork.artwork(2)).to.deep.eq([
-  //     [BigNumber.from("1"), BigNumber.from("4")],
-  //     ["Brown", "Blue"],
-  //     ["brown", "blue"],
-  //     ["Hair Color", "Eye Color"],
-  //     ["hairColor", "eyeColor"],
-  //     artworkHash(artwork.address, user1.address, 2, 100),
-  //   ]);
-  // });
+    await artwork.connect(user1).createArtwork([1, 4], 100);
 
-  // it("A user can buy traits and create artwork in separate transactions", async () => {
-  //   // Move forward in time so auction is active
-  //   await time.increase(time.duration.seconds(300));
+    expect(await traits.balanceOf(user1.address, 0)).to.eq(0);
+    expect(await traits.balanceOf(user1.address, 1)).to.eq(1);
+    expect(await traits.balanceOf(user1.address, 2)).to.eq(0);
+    expect(await traits.balanceOf(user1.address, 3)).to.eq(0);
+    expect(await traits.balanceOf(user1.address, 4)).to.eq(1);
 
-  //   expect(await ethers.provider.getBalance(artwork.address)).to.eq(0);
-  //   expect(await ethers.provider.getBalance(traits.address)).to.eq(0);
+    expect(await ethers.provider.getBalance(artwork.address)).to.eq(0);
+    expect(await ethers.provider.getBalance(traits.address)).to.eq(ethAmount);
 
-  //   const ethAmount = (await traits.traitPrice()).mul(4);
+    expect(await artwork.ownerOf(0)).to.eq(user1.address);
 
-  //   await expect(artwork.ownerOf(1)).to.be.revertedWith(
-  //     "ERC721: invalid token ID"
-  //   );
-  //   expect(await artwork.userNonce(user1.address)).to.eq(0);
-  //   await expect(artwork.artwork(0)).to.be.revertedWith(
-  //     "ERC721: invalid token ID"
-  //   );
+    expect(await artwork.artwork(0)).to.deep.eq([
+      [BigNumber.from("1"), BigNumber.from("4")],
+      ["Brown", "Blue"],
+      ["brown", "blue"],
+      ["Hair Color", "Eye Color"],
+      ["hairColor", "eyeColor"],
+      artworkHash(artwork.address, user1.address, 0, 100),
+    ]);
 
-  //   expect(await traits.balanceOf(user1.address, 0)).to.eq(0);
-  //   expect(await traits.balanceOf(user1.address, 1)).to.eq(0);
-  //   expect(await traits.balanceOf(user1.address, 2)).to.eq(0);
-  //   expect(await traits.balanceOf(user1.address, 3)).to.eq(0);
-  //   expect(await traits.balanceOf(user1.address, 4)).to.eq(0);
+    expect(await artwork.userNonce(user1.address)).to.eq(1);
 
-  //   await traits.connect(user1).buyTraits(user1.address, [1, 4], [2, 2], {
-  //     value: ethAmount,
-  //   });
+    expect(await traits.balanceOf(user1.address, 0)).to.eq(0);
+    expect(await traits.balanceOf(user1.address, 3)).to.eq(0);
 
-  //   expect(await traits.balanceOf(user1.address, 0)).to.eq(0);
-  //   expect(await traits.balanceOf(user1.address, 1)).to.eq(2);
-  //   expect(await traits.balanceOf(user1.address, 2)).to.eq(0);
-  //   expect(await traits.balanceOf(user1.address, 3)).to.eq(0);
-  //   expect(await traits.balanceOf(user1.address, 4)).to.eq(2);
+    await artwork.connect(user1).reclaimTraits(0);
 
-  //   await artwork.connect(user1).createArtwork([1, 4], 100);
+    await expect(artwork.artwork(0)).to.be.revertedWith(
+      "ERC721: invalid token ID"
+    );
+    expect(await traits.balanceOf(user1.address, 0)).to.eq(0);
+    expect(await traits.balanceOf(user1.address, 1)).to.eq(2);
+    expect(await traits.balanceOf(user1.address, 2)).to.eq(0);
+    expect(await traits.balanceOf(user1.address, 3)).to.eq(0);
+    expect(await traits.balanceOf(user1.address, 4)).to.eq(2);
+  });
 
-  //   expect(await traits.balanceOf(user1.address, 0)).to.eq(0);
-  //   expect(await traits.balanceOf(user1.address, 1)).to.eq(1);
-  //   expect(await traits.balanceOf(user1.address, 2)).to.eq(0);
-  //   expect(await traits.balanceOf(user1.address, 3)).to.eq(0);
-  //   expect(await traits.balanceOf(user1.address, 4)).to.eq(1);
+  it("Trait prices update correctly during a linear auction", async () => {
+    // Auction duration is 100 seconds
+    // Four price steps, each step lasts 25 seconds
+    // Auction start price = 1 ETH
+    // Auction end price = 0.1 ETH
+    // Price steps should be: 1 ETH, 0.7 ETH, 0.4 ETH, 0.1 ETH
+    const priceStepDuration = auctionDuration / auctionPriceSteps;
 
-  //   expect(await ethers.provider.getBalance(artwork.address)).to.eq(0);
-  //   expect(await ethers.provider.getBalance(traits.address)).to.eq(ethAmount);
+    await time.increaseTo(auctionStartTime - 1);
 
-  //   expect(await artwork.ownerOf(0)).to.eq(user1.address);
+    await expect(traits.traitPriceStep()).to.be.revertedWith(
+      "AuctionNotLive()"
+    );
+    await expect(traits.traitPrice()).to.be.revertedWith("AuctionNotLive()");
 
-  //   expect(await artwork.artwork(0)).to.deep.eq([
-  //     [BigNumber.from("1"), BigNumber.from("4")],
-  //     ["Brown", "Blue"],
-  //     ["brown", "blue"],
-  //     ["Hair Color", "Eye Color"],
-  //     ["hairColor", "eyeColor"],
-  //     artworkHash(artwork.address, user1.address, 0, 100),
-  //   ]);
+    await time.increaseTo(auctionStartTime);
 
-  //   expect(await artwork.userNonce(user1.address)).to.eq(1);
+    expect(await traits.traitPriceStep()).to.eq(0);
+    expect(await traits.traitPrice()).to.eq(auctionStartPrice);
 
-  //   expect(await traits.balanceOf(user1.address, 0)).to.eq(0);
-  //   expect(await traits.balanceOf(user1.address, 3)).to.eq(0);
+    // Increase time to second after first price step
+    await time.increaseTo(auctionStartTime + 1);
 
-  //   await artwork.connect(user1).reclaimTraits(0);
+    expect(await traits.traitPriceStep()).to.eq(0);
+    expect(await traits.traitPrice()).to.eq(auctionStartPrice);
 
-  //   await expect(artwork.artwork(0)).to.be.revertedWith(
-  //     "ERC721: invalid token ID"
-  //   );
-  //   expect(await traits.balanceOf(user1.address, 0)).to.eq(0);
-  //   expect(await traits.balanceOf(user1.address, 1)).to.eq(2);
-  //   expect(await traits.balanceOf(user1.address, 2)).to.eq(0);
-  //   expect(await traits.balanceOf(user1.address, 3)).to.eq(0);
-  //   expect(await traits.balanceOf(user1.address, 4)).to.eq(2);
-  // });
+    // Increase time to right before next price step
+    await time.increaseTo(auctionStartTime + priceStepDuration - 1);
 
-  // it("Trait prices during the auction update correctly", async () => {
-  //   // Auction time is 100 seconds
+    expect(await traits.traitPriceStep()).to.eq(0);
+    expect(await traits.traitPrice()).to.eq(auctionStartPrice);
 
-  //   await time.increaseTo(auctionStartTime - 1);
+    // Increase time to next price step
+    await time.increaseTo(auctionStartTime + priceStepDuration);
 
-  //   await expect(traits.traitPrice()).to.be.revertedWith("AuctionNotLive()");
+    expect(await traits.traitPriceStep()).to.eq(1);
+    expect(await traits.traitPrice()).to.eq(ethers.utils.parseEther("0.7"));
 
-  //   await time.increaseTo(auctionStartTime);
+    // Increase time to second after this price step
+    await time.increaseTo(auctionStartTime + priceStepDuration + 1);
 
-  //   expect(await traits.traitPrice()).to.eq(auctionStartPrice);
+    expect(await traits.traitPriceStep()).to.eq(1);
+    expect(await traits.traitPrice()).to.eq(ethers.utils.parseEther("0.7"));
 
-  //   // Increase time to halfway through auction
-  //   await time.increase(time.duration.seconds(50));
+    // Increase time to second before next price step
+    await time.increaseTo(auctionStartTime + 2 * priceStepDuration - 1);
 
-  //   expect(await traits.traitPrice()).to.eq(
-  //     auctionStartPrice.add(auctionEndPrice).div(2)
-  //   );
+    expect(await traits.traitPriceStep()).to.eq(1);
+    expect(await traits.traitPrice()).to.eq(ethers.utils.parseEther("0.7"));
 
-  //   // Increase time to end of auction
-  //   await time.increase(time.duration.seconds(50));
+    // Increase time to next price step
+    await time.increaseTo(auctionStartTime + 2 * priceStepDuration);
 
-  //   expect(await traits.traitPrice()).to.eq(auctionEndPrice);
+    expect(await traits.traitPriceStep()).to.eq(2);
+    expect(await traits.traitPrice()).to.eq(ethers.utils.parseEther("0.4"));
 
-  //   // Ensure price stays at the end price
-  //   await time.increase(time.duration.seconds(1000));
+    // Increase time to second after this price step
+    await time.increaseTo(auctionStartTime + 2 * priceStepDuration + 1);
 
-  //   expect(await traits.traitPrice()).to.eq(auctionEndPrice);
-  // });
+    expect(await traits.traitPriceStep()).to.eq(2);
+    expect(await traits.traitPrice()).to.eq(ethers.utils.parseEther("0.4"));
+
+    // Increase time to second before next price step
+    await time.increaseTo(auctionStartTime + 3 * priceStepDuration - 1);
+
+    expect(await traits.traitPriceStep()).to.eq(2);
+    expect(await traits.traitPrice()).to.eq(ethers.utils.parseEther("0.4"));
+
+    // Increase time to next price step
+    await time.increaseTo(auctionStartTime + 3 * priceStepDuration);
+
+    expect(await traits.traitPriceStep()).to.eq(3);
+    expect(await traits.traitPrice()).to.eq(ethers.utils.parseEther("0.1"));
+
+    // Increase time to next second after this price step
+    await time.increaseTo(auctionStartTime + 3 * priceStepDuration + 1);
+
+    expect(await traits.traitPriceStep()).to.eq(3);
+    expect(await traits.traitPrice()).to.eq(ethers.utils.parseEther("0.1"));
+
+    // Increase time to end of auction
+    await time.increaseTo(auctionEndTime - 1);
+
+    expect(await traits.traitPriceStep()).to.eq(3);
+    expect(await traits.traitPrice()).to.eq(ethers.utils.parseEther("0.1"));
+
+    await time.increaseTo(auctionEndTime);
+
+    expect(await traits.traitPriceStep()).to.eq(3);
+    expect(await traits.traitPrice()).to.eq(ethers.utils.parseEther("0.1"));
+
+    await time.increaseTo(auctionEndTime + 1);
+
+    expect(await traits.traitPriceStep()).to.eq(3);
+    expect(await traits.traitPrice()).to.eq(ethers.utils.parseEther("0.1"));
+
+    await time.increaseTo(auctionEndTime + 100);
+
+    expect(await traits.traitPriceStep()).to.eq(3);
+    expect(await traits.traitPrice()).to.eq(ethers.utils.parseEther("0.1"));
+  });
+
+  it.only("Trait prices update correctly during an exponential auction", async () => {
+    // Auction duration is 100 seconds
+    // Four price steps, each step lasts 25 seconds
+    // Auction start price = 1 ETH
+    // Auction end price = 0.1 ETH
+    // Price steps should be: 1 ETH, 0.7 ETH, 0.4 ETH, 0.1 ETH
+    const priceStepDuration = auctionDuration / auctionPriceSteps;
+
+    const updateAuctionData = (
+      await ethers.getContractFactory("Traits", deployer)
+    ).interface.encodeFunctionData("updateAuction", [
+      auctionStartTime,
+      auctionEndTime,
+      auctionStartPrice,
+      auctionEndPrice,
+      auctionPriceSteps,
+      true,
+      traitsSaleStartTime,
+      whitelistStartTime,
+    ]);
+
+    // Update the auction through the registry to make it exponential
+    await projectRegistry
+      .connect(projectRegistryAdmin)
+      .execute([traits.address], [0], [updateAuctionData]);
+
+    await expect(traits.traitPriceStep()).to.be.revertedWith(
+      "AuctionNotLive()"
+    );
+    await expect(traits.traitPrice()).to.be.revertedWith("AuctionNotLive()");
+
+    await time.increaseTo(auctionStartTime);
+
+    expect(await traits.traitPriceStep()).to.eq(0);
+    expect(await traits.traitPrice()).to.eq(auctionStartPrice);
+
+    // Increase time to second after first price step
+    await time.increaseTo(auctionStartTime + 1);
+
+    expect(await traits.traitPriceStep()).to.eq(0);
+    expect(await traits.traitPrice()).to.eq(auctionStartPrice);
+
+    // Increase time to right before next price step
+    await time.increaseTo(auctionStartTime + priceStepDuration - 1);
+
+    expect(await traits.traitPriceStep()).to.eq(0);
+    expect(await traits.traitPrice()).to.eq(auctionStartPrice);
+
+    // Increase time to next price step
+    await time.increaseTo(auctionStartTime + priceStepDuration);
+
+    expect(await traits.traitPriceStep()).to.eq(1);
+    expect(await traits.traitPrice()).to.eq(ethers.utils.parseEther("0.5"));
+
+    // Increase time to second after this price step
+    await time.increaseTo(auctionStartTime + priceStepDuration + 1);
+
+    expect(await traits.traitPriceStep()).to.eq(1);
+    expect(await traits.traitPrice()).to.eq(ethers.utils.parseEther("0.5"));
+
+    // Increase time to second before next price step
+    await time.increaseTo(auctionStartTime + 2 * priceStepDuration - 1);
+
+    expect(await traits.traitPriceStep()).to.eq(1);
+    expect(await traits.traitPrice()).to.eq(ethers.utils.parseEther("0.5"));
+
+    // Increase time to next price step
+    await time.increaseTo(auctionStartTime + 2 * priceStepDuration);
+
+    expect(await traits.traitPriceStep()).to.eq(2);
+    expect(await traits.traitPrice()).to.eq(ethers.utils.parseEther("0.2"));
+
+    // Increase time to second after this price step
+    await time.increaseTo(auctionStartTime + 2 * priceStepDuration + 1);
+
+    expect(await traits.traitPriceStep()).to.eq(2);
+    expect(await traits.traitPrice()).to.eq(ethers.utils.parseEther("0.2"));
+
+    // Increase time to second before next price step
+    await time.increaseTo(auctionStartTime + 3 * priceStepDuration - 1);
+
+    expect(await traits.traitPriceStep()).to.eq(2);
+    expect(await traits.traitPrice()).to.eq(ethers.utils.parseEther("0.2"));
+
+    // Increase time to next price step
+    await time.increaseTo(auctionStartTime + 3 * priceStepDuration);
+
+    expect(await traits.traitPriceStep()).to.eq(3);
+    expect(await traits.traitPrice()).to.eq(ethers.utils.parseEther("0.1"));
+
+    // Increase time to next second after this price step
+    await time.increaseTo(auctionStartTime + 3 * priceStepDuration + 1);
+
+    expect(await traits.traitPriceStep()).to.eq(3);
+    expect(await traits.traitPrice()).to.eq(ethers.utils.parseEther("0.1"));
+
+    // Increase time to end of auction
+    await time.increaseTo(auctionEndTime - 1);
+
+    expect(await traits.traitPriceStep()).to.eq(3);
+    expect(await traits.traitPrice()).to.eq(ethers.utils.parseEther("0.1"));
+
+    await time.increaseTo(auctionEndTime);
+
+    expect(await traits.traitPriceStep()).to.eq(3);
+    expect(await traits.traitPrice()).to.eq(ethers.utils.parseEther("0.1"));
+
+    await time.increaseTo(auctionEndTime + 1);
+
+    expect(await traits.traitPriceStep()).to.eq(3);
+    expect(await traits.traitPrice()).to.eq(ethers.utils.parseEther("0.1"));
+
+    await time.increaseTo(auctionEndTime + 100);
+
+    expect(await traits.traitPriceStep()).to.eq(3);
+    expect(await traits.traitPrice()).to.eq(ethers.utils.parseEther("0.1"));
+  });
 
   // it("Users cannot create artwork with traits they don't own", async () => {
   //   // Go to start of auction period
