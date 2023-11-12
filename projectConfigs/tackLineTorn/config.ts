@@ -13,8 +13,7 @@ const projectConfig: ProjectConfig = {
         "artistName": "Phil Smith",
         "website": "https://tacklinetorn.com",
         "license": "MIT",
-        "scriptLibrary": "p5.js",
-        "scriptLibraryVersion": "1.0.0",
+        "scriptLibrary": "p5@1.0.0",
         "aspectRatio": "1:1"
       }`,
     owner: "0xAa9D46AE079851116967c6573f961B304095C34a",
