@@ -9,6 +9,7 @@ import {ERC2981} from "@openzeppelin/contracts/token/common/ERC2981.sol";
 import {ERC1155, IERC165} from "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import {PaymentSplitter} from "@openzeppelin/contracts/finance/PaymentSplitter.sol";
 import {ERC1155Supply} from "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
+import "hardhat/console.sol";
 
 /**
  * Implements ERC-1155 standard for trait tokens,
@@ -140,6 +141,7 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
         uint256 _traitsSaleStartTime,
         uint256 _whitelistStartTime
     ) external onlyProjectRegistry {
+        console.log("updating auction");
         if (auctionStartTime == 0) revert NotSetup();
 
         _updateAuction(
