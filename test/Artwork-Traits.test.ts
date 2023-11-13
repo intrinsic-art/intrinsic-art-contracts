@@ -540,7 +540,7 @@ describe("Artwork and Traits", function () {
     expect(await traits.balanceOf(user1.address, 3)).to.eq(0);
     expect(await traits.balanceOf(user1.address, 4)).to.eq(0);
 
-    await traits.connect(user1).buyTraits(user1.address, [1, 4], [2, 2], {
+    await traits.connect(user1).mintTraits(user1.address, [1, 4], [2, 2], {
       value: ethAmount,
     });
 
@@ -823,11 +823,11 @@ describe("Artwork and Traits", function () {
     await time.increaseTo(traitsSaleStartTime);
 
     // Buy x10 of trait 0 with 10 ETH, trait is sold out now
-    await traits.connect(user1).buyTraits(user1.address, [0], [10], {
+    await traits.connect(user1).mintTraits(user1.address, [0], [10], {
       value: ethers.utils.parseEther("10"),
     });
 
-    await traits.connect(user2).buyTraits(user1.address, [3], [1], {
+    await traits.connect(user2).mintTraits(user1.address, [3], [1], {
       value: ethers.utils.parseEther("10"),
     });
 
@@ -908,25 +908,25 @@ describe("Artwork and Traits", function () {
     const traitPrice = await traits.traitPrice();
 
     await expect(
-      traits.connect(user1).buyTraits(user1.address, [0, 3, 4], [1, 1], {
+      traits.connect(user1).mintTraits(user1.address, [0, 3, 4], [1, 1], {
         value: traitPrice.mul(3),
       })
     ).to.be.revertedWith("InvalidArrayLengths()");
 
     await expect(
-      traits.connect(user1).buyTraits(user1.address, [0, 3, 4], [], {
+      traits.connect(user1).mintTraits(user1.address, [0, 3, 4], [], {
         value: traitPrice.mul(3),
       })
     ).to.be.revertedWith("InvalidArrayLengths()");
 
     await expect(
-      traits.connect(user1).buyTraits(user1.address, [0], [1, 2], {
+      traits.connect(user1).mintTraits(user1.address, [0], [1, 2], {
         value: traitPrice.mul(3),
       })
     ).to.be.revertedWith("InvalidArrayLengths()");
 
     await expect(
-      traits.connect(user1).buyTraits(user1.address, [], [1, 2, 2], {
+      traits.connect(user1).mintTraits(user1.address, [], [1, 2, 2], {
         value: traitPrice.mul(3),
       })
     ).to.be.revertedWith("InvalidArrayLengths()");
@@ -939,13 +939,13 @@ describe("Artwork and Traits", function () {
     const traitPrice = await traits.traitPrice();
 
     await expect(
-      traits.connect(user1).buyTraits(user1.address, [0, 3, 4], [1, 1, 1], {
+      traits.connect(user1).mintTraits(user1.address, [0, 3, 4], [1, 1, 1], {
         value: traitPrice.mul(29).div(10),
       })
     ).to.be.revertedWith("InvalidEthAmount()");
 
     await expect(
-      traits.connect(user1).buyTraits(user1.address, [0], [5], {
+      traits.connect(user1).mintTraits(user1.address, [0], [5], {
         value: traitPrice.mul(49).div(10),
       })
     ).to.be.revertedWith("InvalidEthAmount()");
@@ -1009,7 +1009,7 @@ describe("Artwork and Traits", function () {
 
     const ethRevenue1 = (await traits.traitPrice()).mul(10);
 
-    await traits.connect(user1).buyTraits(user1.address, [0], [10], {
+    await traits.connect(user1).mintTraits(user1.address, [0], [10], {
       value: ethRevenue1,
     });
 
@@ -1076,7 +1076,7 @@ describe("Artwork and Traits", function () {
 
     const ethRevenue2 = (await traits.traitPrice()).mul(20);
 
-    await traits.connect(user1).buyTraits(user1.address, [1, 2], [10, 10], {
+    await traits.connect(user1).mintTraits(user1.address, [1, 2], [10, 10], {
       value: ethRevenue2,
     });
 
@@ -1208,7 +1208,7 @@ describe("Artwork and Traits", function () {
     expect(await traits.totalSupply(0)).to.eq(0);
 
     // Buy x1 of trait 0 with 1 ETH
-    await traits.connect(user1).buyTraits(user1.address, [0], [1], {
+    await traits.connect(user1).mintTraits(user1.address, [0], [1], {
       value: ethers.utils.parseEther("1"),
     });
 
@@ -1218,12 +1218,12 @@ describe("Artwork and Traits", function () {
     expect(await traits.balanceOf(user1.address, 0)).to.eq(1);
 
     await expect(
-      traits.connect(user1).buyTraits(user1.address, [0], [10], {
+      traits.connect(user1).mintTraits(user1.address, [0], [10], {
         value: ethers.utils.parseEther("10"),
       })
     ).to.be.revertedWith("MaxSupply()");
 
-    await traits.connect(user1).buyTraits(user1.address, [0], [9], {
+    await traits.connect(user1).mintTraits(user1.address, [0], [9], {
       value: ethers.utils.parseEther("10"),
     });
 
@@ -1235,7 +1235,7 @@ describe("Artwork and Traits", function () {
     expect(await traits.balanceOf(user1.address, 0)).to.eq(10);
 
     await expect(
-      traits.connect(user1).buyTraits(user1.address, [0], [1], {
+      traits.connect(user1).mintTraits(user1.address, [0], [1], {
         value: ethers.utils.parseEther("1"),
       })
     ).to.be.revertedWith("MaxSupply()");
@@ -1256,7 +1256,7 @@ describe("Artwork and Traits", function () {
     await time.increaseTo(traitsSaleStartTime - 10);
 
     await expect(
-      traits.connect(user1).buyTraits(user1.address, [0], [1], {
+      traits.connect(user1).mintTraits(user1.address, [0], [1], {
         value: ethers.utils.parseEther("1"),
       })
     ).to.be.revertedWith("TraitsSaleStartTime()");
@@ -1287,5 +1287,84 @@ describe("Artwork and Traits", function () {
     await expect(
       artwork.connect(user1).mintArtworkWhitelist([0, 3], 100)
     ).to.be.revertedWith("NoWhitelistMints()");
+  });
+
+  it("Artwork proof can only be minted once", async () => {
+    // Move forward in time so auction is active
+    await time.increase(time.duration.seconds(120));
+
+    await artwork.connect(artist).mintArtworkProof([0, 3], 100);
+
+    expect(await artwork.ownerOf(0)).to.eq(artist.address);
+
+    await expect(
+      artwork.connect(artist).mintArtworkProof([0, 3], 100)
+    ).to.be.revertedWith("ProofAlreadyMinted()");
+  });
+
+  it("Addresses other than artist and project registry can't mint proof", async () => {
+    await expect(
+      artwork.connect(user1).mintArtworkProof([0, 3], 100)
+    ).to.be.revertedWith("OnlyArtistOrProjectRegistry()");
+  });
+
+  it("Execute function reverts if invalid array lengths are given", async () => {
+    const updateAuctionData = (
+      await ethers.getContractFactory("Traits", deployer)
+    ).interface.encodeFunctionData("updateAuction", [
+      auctionStartTime,
+      auctionEndTime,
+      auctionStartPrice,
+      auctionEndPrice,
+      auctionPriceSteps,
+      true,
+      traitsSaleStartTime,
+      whitelistStartTime,
+    ]);
+
+    await expect(
+      projectRegistry
+        .connect(projectRegistryAdmin)
+        .execute([traits.address], [0, 0], [updateAuctionData])
+    ).to.be.revertedWith("InvalidArrayLengths()");
+
+    await expect(
+      projectRegistry
+        .connect(projectRegistryAdmin)
+        .execute([traits.address], [0], [updateAuctionData, updateAuctionData])
+    ).to.be.revertedWith("InvalidArrayLengths()");
+  });
+
+  it("Whitelist mints revert before the whitelist mint timestamp", async () => {
+    await expect(
+      artwork.connect(whitelistedUser1).mintArtworkWhitelist([1, 4], 200)
+    ).to.be.revertedWith("WhitelistStartTime()");
+  });
+
+  it("Whitelisted mints must have correct array length and valid token IDs", async () => {
+    // Move forward in time so whitelist mints are active
+    await time.increase(time.duration.seconds(120));
+
+    await expect(
+      artwork.connect(whitelistedUser1).mintArtworkWhitelist([1, 4, 5], 200)
+    ).to.be.revertedWith("InvalidArrayLengths()");
+    await expect(
+      artwork.connect(whitelistedUser1).mintArtworkWhitelist([1, 2], 200)
+    ).to.be.revertedWith("InvalidTraits()");
+  });
+
+  it("Whitelisted mints revert if trait max supply is reached", async () => {
+    // Move forward in time so individual trait mints are active
+    await time.increase(time.duration.seconds(300));
+
+    const ethAmount = (await traits.traitPrice()).mul(10);
+
+    await traits.connect(user1).mintTraits(user1.address, [0], [10], {
+      value: ethAmount,
+    });
+
+    await expect(
+      artwork.connect(whitelistedUser1).mintArtworkWhitelist([0, 4], 200)
+    ).to.be.revertedWith("MaxSupply()");
   });
 });

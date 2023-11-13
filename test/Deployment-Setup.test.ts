@@ -543,4 +543,170 @@ describe("Deployment and setup", function () {
 
     expect(await projectRegistry.owner()).to.eq(user1.address);
   });
+
+  it("Address that isn't project registry can't setup artwork contract", async () => {
+    artwork = await new Artwork__factory(deployer).deploy(
+      "Intrinsic.art Disentanglement",
+      "INSC",
+      "testJSON",
+      artist.address,
+      projectRegistry.address,
+      [scriptStorage1.address, scriptStorage2.address],
+      1000,
+      [artistRevenueClaimer.address, platformRevenueClaimer.address],
+      [90, 10]
+    );
+
+    const encodedArtworkData = abiCoder.encode(["address"], [user1.address]);
+    await expect(
+      artwork.connect(user1).setup(encodedArtworkData)
+    ).to.be.revertedWith("OnlyProjectRegistry()");
+  });
+
+  it("Address that isn't project registry can't setup traits contract", async () => {
+    currentTime = (await ethers.provider.getBlock("latest")).timestamp;
+    auctionStartTime = currentTime + 110;
+    auctionEndTime = auctionStartTime - 1;
+    auctionStartPrice = ethers.utils.parseEther("1");
+    auctionEndPrice = ethers.utils.parseEther("0.1");
+    auctionPriceSteps = 4;
+    traitsSaleStartTime = currentTime + 300;
+    whitelistStartTime = currentTime + 110;
+
+    const encodedTraitsData = abiCoder.encode(
+      [
+        "address",
+        "bool",
+        "uint256",
+        "uint256",
+        "uint256",
+        "uint256",
+        "uint256",
+        "uint256",
+        "uint256",
+      ],
+      [
+        user1.address,
+        false,
+        auctionStartTime,
+        auctionEndTime,
+        auctionStartPrice,
+        auctionEndPrice,
+        auctionPriceSteps,
+        traitsSaleStartTime,
+        whitelistStartTime,
+      ]
+    );
+
+    traits = await new Traits__factory(deployer).deploy(
+      "Intrinsic.art Traits",
+      "INSC",
+      projectRegistry.address,
+      {
+        traitTypeNames: ["Hair Color", "Eye Color"],
+        traitTypeValues: ["hairColor", "eyeColor"],
+        traitNames: ["Blonde", "Brown", "Black", "Green", "Blue"],
+        traitValues: ["blonde", "brown", "black", "green", "blue"],
+        traitTypeIndexes: [0, 0, 0, 1, 1],
+        traitMaxSupplys: [10, 20, 30, 40, 50],
+      },
+      [artistRevenueClaimer.address, platformRevenueClaimer.address],
+      [90, 10],
+      [whitelistedUser1.address, whitelistedUser2.address],
+      [1, 1]
+    );
+
+    await expect(
+      traits.connect(user1).setup(encodedTraitsData)
+    ).to.be.revertedWith("OnlyProjectRegistry()");
+  });
+
+  it("Project can't be registered if either contract address is address zero", async () => {
+    artwork = await new Artwork__factory(deployer).deploy(
+      "Intrinsic.art Disentanglement",
+      "INSC",
+      "testJSON",
+      artist.address,
+      projectRegistry.address,
+      [scriptStorage1.address, scriptStorage2.address],
+      1000,
+      [artistRevenueClaimer.address, platformRevenueClaimer.address],
+      [90, 10]
+    );
+
+    traits = await new Traits__factory(deployer).deploy(
+      "Intrinsic.art Traits",
+      "INSC",
+      projectRegistry.address,
+      {
+        traitTypeNames: ["Hair Color", "Eye Color"],
+        traitTypeValues: ["hairColor", "eyeColor"],
+        traitNames: ["Blonde", "Brown", "Black", "Green", "Blue"],
+        traitValues: ["blonde", "brown", "black", "green", "blue"],
+        traitTypeIndexes: [0, 0, 0, 1, 1],
+        traitMaxSupplys: [10, 20, 30, 40, 50],
+      },
+      [artistRevenueClaimer.address, platformRevenueClaimer.address],
+      [90, 10],
+      [whitelistedUser1.address, whitelistedUser2.address],
+      [1, 1]
+    );
+
+    currentTime = (await ethers.provider.getBlock("latest")).timestamp;
+    auctionStartTime = currentTime + 110;
+    auctionEndTime = currentTime + 210;
+    auctionStartPrice = ethers.utils.parseEther("1");
+    auctionEndPrice = ethers.utils.parseEther("0.1");
+    auctionPriceSteps = 4;
+    traitsSaleStartTime = currentTime + 300;
+    whitelistStartTime = currentTime + 110;
+
+    const encodedArtworkData = abiCoder.encode(["address"], [traits.address]);
+    const encodedTraitsData = abiCoder.encode(
+      [
+        "address",
+        "bool",
+        "uint256",
+        "uint256",
+        "uint256",
+        "uint256",
+        "uint256",
+        "uint256",
+        "uint256",
+      ],
+      [
+        artwork.address,
+        false,
+        auctionStartTime,
+        auctionEndTime,
+        auctionStartPrice,
+        auctionEndPrice,
+        auctionPriceSteps,
+        traitsSaleStartTime,
+        whitelistStartTime,
+      ]
+    );
+
+    await expect(
+      projectRegistry
+        .connect(projectRegistryAdmin1)
+        .registerProject(
+          artwork.address,
+          encodedArtworkData,
+          ethers.constants.AddressZero,
+          encodedTraitsData
+        )
+    ).to.be.revertedWith("InvalidAddress()");
+
+    await expect(
+      projectRegistry
+        .connect(projectRegistryAdmin1)
+        .registerProject(
+          ethers.constants.AddressZero,
+          encodedArtworkData,
+          traits.address,
+          encodedTraitsData
+        )
+    ).to.be.revertedWith("InvalidAddress()");
+  });
 });

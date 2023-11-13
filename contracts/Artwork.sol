@@ -32,12 +32,6 @@ contract Artwork is IArtwork, IERC721Metadata, ERC2981, ERC721, ERC1155Holder {
     mapping(uint256 => ArtworkData) private artworkData;
     mapping(address => uint256) private userNonces;
 
-    modifier onlyProjectRegistry() {
-        if (msg.sender != address(projectRegistry))
-            revert OnlyProjectRegistry();
-        _;
-    }
-
     constructor(
         string memory _name,
         string memory _symbol,
@@ -62,12 +56,12 @@ contract Artwork is IArtwork, IERC721Metadata, ERC2981, ERC721, ERC1155Holder {
     }
 
     /** @inheritdoc IArtwork*/
-    function setup(bytes calldata _data) external onlyProjectRegistry {
+    function setup(bytes calldata _data) external {
+        if (msg.sender != address(projectRegistry))
+            revert OnlyProjectRegistry();
         if (address(traits) != address(0)) revert AlreadySetup();
 
         address _traits = abi.decode(_data, (address));
-
-        if (_traits == address(0)) revert ZeroAddress();
 
         traits = ITraits(_traits);
     }
@@ -161,7 +155,7 @@ contract Artwork is IArtwork, IERC721Metadata, ERC2981, ERC721, ERC1155Holder {
         uint256[] calldata _traitTokenIdsToCreateArtwork,
         uint256 _saltNonce
     ) external payable {
-        traits.buyTraits{value: msg.value}(
+        traits.mintTraits{value: msg.value}(
             msg.sender,
             _traitTokenIdsToBuy,
             _traitAmountsToBuy

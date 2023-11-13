@@ -18,7 +18,6 @@ interface IArtwork is IERC2981, IERC721 {
     error OnlyArtistOrProjectRegistry();
     error OnlyArtworkOwner();
     error AlreadySetup();
-    error ZeroAddress();
 
     event ArtworkMinted(
         uint256 indexed artworkTokenId,

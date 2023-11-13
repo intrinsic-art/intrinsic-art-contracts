@@ -113,8 +113,6 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
                 )
             );
 
-        if (_artwork == address(0)) revert ZeroAddress();
-
         artwork = IArtwork(_artwork);
 
         _updateAuction(
@@ -155,7 +153,7 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
     }
 
     /** @inheritdoc ITraits*/
-    function buyTraits(
+    function mintTraits(
         address _recipient,
         uint256[] calldata _traitTokenIds,
         uint256[] calldata _traitAmounts
@@ -184,7 +182,7 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
 
         _mintBatch(_recipient, _traitTokenIds, _traitAmounts, "");
 
-        emit TraitsBought(_recipient, _traitTokenIds, _traitAmounts);
+        emit TraitsMinted(_recipient, _traitTokenIds, _traitAmounts);
     }
 
     /** @inheritdoc ITraits*/

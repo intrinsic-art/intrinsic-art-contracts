@@ -25,7 +25,7 @@ interface ITraits is IERC1155 {
         uint256[] traitMaxSupplys;
     }
 
-    event TraitsBought(
+    event TraitsMinted(
         address indexed recipient,
         uint256[] traitTokenIds,
         uint256[] traitAmounts
@@ -42,7 +42,6 @@ interface ITraits is IERC1155 {
         uint256 _whitelistStartTime
     );
 
-    error ZeroAddress();
     error OnlyArtwork();
     error OnlyProjectRegistry();
     error AlreadySetup();
@@ -93,13 +92,13 @@ interface ITraits is IERC1155 {
     ) external;
 
     /**
-     * Allows a user to buy any number of traits and amounts using ether
+     * Allows a user to mint any number of traits and amounts using ether
      *
      * @param _recipient the address to receive the trait tokens
      * @param _traitTokenIds the trait token IDs to buy
      * @param _traitAmounts the amounts of each token ID to buy
      */
-    function buyTraits(
+    function mintTraits(
         address _recipient,
         uint256[] calldata _traitTokenIds,
         uint256[] calldata _traitAmounts
