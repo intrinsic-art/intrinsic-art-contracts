@@ -106,7 +106,9 @@ describe("Artwork and Traits", function () {
 
     royaltySplitter = await ethers.getContractAt(
       "PaymentSplitter",
-      await artwork.royaltySplitter()
+      (
+        await artwork.royaltyInfo(0, 1000)
+      )[0]
     );
 
     auctionDuration = 100;
@@ -179,7 +181,6 @@ describe("Artwork and Traits", function () {
     ]);
     expect(await artwork.nextTokenId()).to.eq(0);
     expect(await artwork.VERSION()).to.eq("1.0.0");
-    expect(await artwork.royaltySplitter()).to.eq(royaltySplitter.address);
     expect(await artwork.supportsInterface("0x80ac58cd")).to.eq(true);
     expect(await artwork.tokenURI(0)).to.eq(
       `https://intrinsic.art/${artwork.address.toLowerCase()}/0`

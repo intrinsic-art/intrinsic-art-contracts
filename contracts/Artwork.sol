@@ -21,7 +21,6 @@ contract Artwork is IArtwork, IERC721Metadata, ERC2981, ERC721, ERC1155Holder {
     using Strings for address;
 
     bool public proofMinted;
-    address public royaltySplitter;
     address public artistAddress;
     IProjectRegistry public projectRegistry;
     ITraits public traits;
@@ -46,11 +45,10 @@ contract Artwork is IArtwork, IERC721Metadata, ERC2981, ERC721, ERC1155Holder {
         metadataJSON = _metadataJSON;
         artistAddress = _artistAddress;
         projectRegistry = IProjectRegistry(_projectRegistry);
-        address _royaltySplitter = address(
+        address royaltySplitter = address(
             new PaymentSplitter(_royaltyPayees, _royaltyShares)
         );
-        _setDefaultRoyalty(_royaltySplitter, _royaltyFeeNumerator);
-        royaltySplitter = _royaltySplitter;
+        _setDefaultRoyalty(royaltySplitter, _royaltyFeeNumerator);
 
         _scriptStorageContracts = _scriptStorageAddresses;
     }
