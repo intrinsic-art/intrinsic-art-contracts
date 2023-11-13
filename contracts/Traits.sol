@@ -190,7 +190,7 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
         address _artistAddress,
         uint256[] calldata _traitTokenIds
     ) external onlyArtwork {
-        _mintTraitsWhitelist(_artistAddress, _traitTokenIds);
+        _mintTraitsWhitelistOrProof(_artistAddress, _traitTokenIds);
     }
 
     /** @inheritdoc ITraits*/
@@ -204,7 +204,7 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
 
         _whitelistMintsRemaining[_recipient]--;
 
-        _mintTraitsWhitelist(_recipient, _traitTokenIds);
+        _mintTraitsWhitelistOrProof(_recipient, _traitTokenIds);
     }
 
     /** @inheritdoc ITraits*/
@@ -420,7 +420,7 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
      * @param _recipient address to receive the minted traits
      * @param _traitTokenIds trait token IDs to mint
      */
-    function _mintTraitsWhitelist(
+    function _mintTraitsWhitelistOrProof(
         address _recipient,
         uint256[] calldata _traitTokenIds
     ) private {
