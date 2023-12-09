@@ -178,7 +178,7 @@ describe("Artwork and Traits", function () {
 
   it("Initializes the Traits contract", async () => {
     expect(await traits.artwork()).to.eq(artwork.address);
-    expect(await traits.VERSION()).to.eq("1.0.0");
+    expect(await traits.VERSION()).to.eq("1.0");
     expect(await traits.auctionStartTime()).to.eq(auctionStartTime);
     expect(await traits.auctionEndTime()).to.eq(auctionEndTime);
     expect(await traits.auctionStartPrice()).to.eq(auctionStartPrice);

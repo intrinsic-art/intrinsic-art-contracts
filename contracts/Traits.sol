@@ -19,11 +19,11 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
     using Strings for address;
 
     bool public auctionExponential;
+    string public constant VERSION = "1.0";
     IArtwork public artwork;
     IProjectRegistry public projectRegistry;
     string public name;
     string public symbol;
-    string public constant VERSION = "1.0.0";
     uint256 public auctionStartTime;
     uint256 public auctionEndTime;
     uint256 public auctionStartPrice;

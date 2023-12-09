@@ -21,10 +21,10 @@ contract Artwork is IArtwork, IERC721Metadata, ERC2981, ERC721, ERC1155Holder {
     using Strings for address;
 
     bool public proofMinted;
+    string public constant VERSION = "1.0";
     address public artistAddress;
     IProjectRegistry public projectRegistry;
     ITraits public traits;
-    string public constant VERSION = "1.0";
     uint256 public nextTokenId;
     StringStorageData public metadataJSONStringStorage;
     StringStorageData public scriptStringStorage;
