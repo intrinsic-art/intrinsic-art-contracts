@@ -6,10 +6,8 @@ import {
   PaymentSplitter,
   ProjectRegistry,
   ProjectRegistry__factory,
-  MockScriptStorage1,
-  MockScriptStorage2,
-  MockScriptStorage1__factory,
-  MockScriptStorage2__factory,
+  MockStringStorage,
+  MockStringStorage__factory,
 } from "../typechain-types";
 import { expect } from "chai";
 import { ethers } from "hardhat";
@@ -20,8 +18,7 @@ import { artworkHash } from "./helpers/utilities";
 
 describe("Artwork and Traits", function () {
   let projectRegistry: ProjectRegistry;
-  let scriptStorage1: MockScriptStorage1;
-  let scriptStorage2: MockScriptStorage2;
+  let stringStorage: MockStringStorage;
   let artwork: Artwork;
   let traits: Traits;
   let royaltySplitter: PaymentSplitter;
@@ -69,21 +66,20 @@ describe("Artwork and Traits", function () {
       "https://intrinsic.art/"
     );
 
-    scriptStorage1 = await new MockScriptStorage1__factory(deployer).deploy();
-    scriptStorage2 = await new MockScriptStorage2__factory(deployer).deploy();
+    stringStorage = await new MockStringStorage__factory(deployer).deploy();
 
     // "https://artwork.intrinsic.art/",
 
     artwork = await new Artwork__factory(deployer).deploy(
       "Intrinsic.art Disentanglement",
       "INSC",
-      "testJSON",
       artist.address,
       projectRegistry.address,
-      [scriptStorage1.address, scriptStorage2.address],
       1000,
       [artistRevenueClaimer.address, platformRevenueClaimer.address],
-      [90, 10]
+      [90, 10],
+      { stringStorageSlot: 0, stringStorageAddress: stringStorage.address },
+      { stringStorageSlot: 1, stringStorageAddress: stringStorage.address }
     );
 
     traits = await new Traits__factory(deployer).deploy(
@@ -161,15 +157,8 @@ describe("Artwork and Traits", function () {
     expect(await artwork.traits()).to.eq(traits.address);
     expect(await artwork.name()).to.eq("Intrinsic.art Disentanglement");
     expect(await artwork.symbol()).to.eq("INSC");
-    expect(await artwork.scriptStorageContracts()).to.deep.eq([
-      scriptStorage1.address,
-      scriptStorage2.address,
-    ]);
-    expect(await artwork.scripts()).to.deep.eq([
-      "Test Script 1",
-      "Test Script 2",
-    ]);
-    expect(await artwork.metadataJSON()).to.eq("testJSON");
+    expect(await artwork.script()).to.deep.eq("Test Script");
+    expect(await artwork.metadataJSON()).to.eq("Test JSON");
     expect(await artwork.projectRegistry()).to.eq(projectRegistry.address);
     expect(await artwork.royaltyInfo(0, 1000)).to.deep.eq([
       royaltySplitter.address,
@@ -180,7 +169,7 @@ describe("Artwork and Traits", function () {
       BigNumber.from(300),
     ]);
     expect(await artwork.nextTokenId()).to.eq(0);
-    expect(await artwork.VERSION()).to.eq("1.0.0");
+    expect(await artwork.VERSION()).to.eq("1.0");
     expect(await artwork.supportsInterface("0x80ac58cd")).to.eq(true);
     expect(await artwork.tokenURI(0)).to.eq(
       `https://intrinsic.art/${artwork.address.toLowerCase()}/0`
@@ -1367,5 +1356,71 @@ describe("Artwork and Traits", function () {
     await expect(
       artwork.connect(whitelistedUser1).mintArtworkWhitelist([0, 4], 200)
     ).to.be.revertedWith("MaxSupply()");
+  });
+
+  it("Royalty splitter allows for royalties to be claimed correctly", async () => {
+    // Send 10 ETH to royalty splitter
+    await user1.sendTransaction({
+      to: royaltySplitter.address,
+      value: ethers.utils.parseEther("10"),
+    });
+
+    // Platform claimer should have 1 ETH releasable
+    expect(
+      await royaltySplitter["releasable(address)"](
+        platformRevenueClaimer.address
+      )
+    ).to.eq(ethers.utils.parseEther("1"));
+
+    // Artist should have 9 ETH releasable
+    expect(
+      await royaltySplitter["releasable(address)"](artistRevenueClaimer.address)
+    ).to.eq(ethers.utils.parseEther("9"));
+
+    const platformETHBalanceBeforeRelease = await ethers.provider.getBalance(
+      platformRevenueClaimer.address
+    );
+
+    // Platform releases its payment
+    await royaltySplitter
+      .connect(user1)
+      ["release(address)"](platformRevenueClaimer.address);
+
+    // Platform claimer balance should have increased by 1 ETH
+    expect(
+      (await ethers.provider.getBalance(platformRevenueClaimer.address)).sub(
+        platformETHBalanceBeforeRelease
+      )
+    ).to.eq(ethers.utils.parseEther("1"));
+
+    // Platform claimer should have 0 ETH releasable
+    expect(
+      await royaltySplitter["releasable(address)"](
+        platformRevenueClaimer.address
+      )
+    ).to.eq(ethers.utils.parseEther("0"));
+
+    // Reverts if attempting to release when releaseable is zero
+    await expect(
+      royaltySplitter
+        .connect(user1)
+        ["release(address)"](platformRevenueClaimer.address)
+    ).to.be.revertedWith("");
+
+    const artistETHBalanceBeforeRelease = await ethers.provider.getBalance(
+      artistRevenueClaimer.address
+    );
+
+    // Artist releases its payment
+    await royaltySplitter
+      .connect(user1)
+      ["release(address)"](artistRevenueClaimer.address);
+
+    // Artist claimer balance should have increased by 9 ETH
+    expect(
+      (await ethers.provider.getBalance(artistRevenueClaimer.address)).sub(
+        artistETHBalanceBeforeRelease
+      )
+    ).to.eq(ethers.utils.parseEther("9"));
   });
 });

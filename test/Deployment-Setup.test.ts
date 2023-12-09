@@ -1,10 +1,8 @@
 import {
   Artwork,
   Artwork__factory,
-  MockScriptStorage1,
-  MockScriptStorage1__factory,
-  MockScriptStorage2,
-  MockScriptStorage2__factory,
+  MockStringStorage,
+  MockStringStorage__factory,
   ProjectRegistry,
   ProjectRegistry__factory,
   Traits,
@@ -17,8 +15,7 @@ import { BigNumber } from "ethers";
 
 describe("Deployment and setup", function () {
   let projectRegistry: ProjectRegistry;
-  let scriptStorage1: MockScriptStorage1;
-  let scriptStorage2: MockScriptStorage2;
+  let stringStorage: MockStringStorage;
   let artwork: Artwork;
   let traits: Traits;
 
@@ -64,8 +61,7 @@ describe("Deployment and setup", function () {
       "https://intrinsic.art/"
     );
 
-    scriptStorage1 = await new MockScriptStorage1__factory(deployer).deploy();
-    scriptStorage2 = await new MockScriptStorage2__factory(deployer).deploy();
+    stringStorage = await new MockStringStorage__factory(deployer).deploy();
   });
 
   it("Artwork contract can't be deployed with invalid array lengths", async () => {
@@ -73,13 +69,13 @@ describe("Deployment and setup", function () {
       new Artwork__factory(deployer).deploy(
         "Intrinsic.art Disentanglement",
         "INSC",
-        "testJSON",
         artist.address,
         projectRegistry.address,
-        [scriptStorage1.address, scriptStorage2.address],
         1000,
         [artistRevenueClaimer.address],
-        [90, 10]
+        [90, 10],
+        { stringStorageSlot: 0, stringStorageAddress: stringStorage.address },
+        { stringStorageSlot: 1, stringStorageAddress: stringStorage.address }
       )
     ).to.be.revertedWith("PaymentSplitter: payees and shares length mismatch");
 
@@ -87,13 +83,13 @@ describe("Deployment and setup", function () {
       new Artwork__factory(deployer).deploy(
         "Intrinsic.art Disentanglement",
         "INSC",
-        "testJSON",
         artist.address,
         projectRegistry.address,
-        [scriptStorage1.address, scriptStorage2.address],
         1000,
         [artistRevenueClaimer.address, platformRevenueClaimer.address],
-        [90]
+        [90],
+        { stringStorageSlot: 0, stringStorageAddress: stringStorage.address },
+        { stringStorageSlot: 1, stringStorageAddress: stringStorage.address }
       )
     ).to.be.revertedWith("PaymentSplitter: payees and shares length mismatch");
 
@@ -101,13 +97,13 @@ describe("Deployment and setup", function () {
       new Artwork__factory(deployer).deploy(
         "Intrinsic.art Disentanglement",
         "INSC",
-        "testJSON",
         artist.address,
         projectRegistry.address,
-        [scriptStorage1.address, scriptStorage2.address],
         1000,
         [],
-        []
+        [],
+        { stringStorageSlot: 0, stringStorageAddress: stringStorage.address },
+        { stringStorageSlot: 1, stringStorageAddress: stringStorage.address }
       )
     ).to.be.revertedWith("PaymentSplitter: no payees");
   });
@@ -292,13 +288,13 @@ describe("Deployment and setup", function () {
     artwork = await new Artwork__factory(deployer).deploy(
       "Intrinsic.art Disentanglement",
       "INSC",
-      "testJSON",
       artist.address,
       projectRegistry.address,
-      [scriptStorage1.address, scriptStorage2.address],
       1000,
       [artistRevenueClaimer.address, platformRevenueClaimer.address],
-      [90, 10]
+      [90, 10],
+      { stringStorageSlot: 0, stringStorageAddress: stringStorage.address },
+      { stringStorageSlot: 1, stringStorageAddress: stringStorage.address }
     );
 
     traits = await new Traits__factory(deployer).deploy(
@@ -389,13 +385,13 @@ describe("Deployment and setup", function () {
     artwork = await new Artwork__factory(deployer).deploy(
       "Intrinsic.art Disentanglement",
       "INSC",
-      "testJSON",
       artist.address,
       projectRegistry.address,
-      [scriptStorage1.address, scriptStorage2.address],
       1000,
       [artistRevenueClaimer.address, platformRevenueClaimer.address],
-      [90, 10]
+      [90, 10],
+      { stringStorageSlot: 0, stringStorageAddress: stringStorage.address },
+      { stringStorageSlot: 1, stringStorageAddress: stringStorage.address }
     );
 
     traits = await new Traits__factory(deployer).deploy(
@@ -548,13 +544,13 @@ describe("Deployment and setup", function () {
     artwork = await new Artwork__factory(deployer).deploy(
       "Intrinsic.art Disentanglement",
       "INSC",
-      "testJSON",
       artist.address,
       projectRegistry.address,
-      [scriptStorage1.address, scriptStorage2.address],
       1000,
       [artistRevenueClaimer.address, platformRevenueClaimer.address],
-      [90, 10]
+      [90, 10],
+      { stringStorageSlot: 0, stringStorageAddress: stringStorage.address },
+      { stringStorageSlot: 1, stringStorageAddress: stringStorage.address }
     );
 
     const encodedArtworkData = abiCoder.encode(["address"], [user1.address]);
@@ -625,13 +621,13 @@ describe("Deployment and setup", function () {
     artwork = await new Artwork__factory(deployer).deploy(
       "Intrinsic.art Disentanglement",
       "INSC",
-      "testJSON",
       artist.address,
       projectRegistry.address,
-      [scriptStorage1.address, scriptStorage2.address],
       1000,
       [artistRevenueClaimer.address, platformRevenueClaimer.address],
-      [90, 10]
+      [90, 10],
+      { stringStorageSlot: 0, stringStorageAddress: stringStorage.address },
+      { stringStorageSlot: 1, stringStorageAddress: stringStorage.address }
     );
 
     traits = await new Traits__factory(deployer).deploy(
