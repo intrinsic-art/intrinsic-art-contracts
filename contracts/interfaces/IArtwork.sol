@@ -10,6 +10,11 @@ interface IArtwork is IERC2981, IERC721 {
         uint256[] traitTokenIds;
     }
 
+    struct StringStorageData {
+      uint8 stringStorageSlot;
+      address stringStorageAddress;
+    }
+
     error OnlyProjectRegistry();
     error ProofAlreadyMinted();
     error TraitsAlreadySet();
@@ -131,21 +136,18 @@ interface IArtwork is IERC2981, IERC721 {
         );
 
     /**
-     * Returns addresses of the script storage contracts
+     * Returns a string containing the project metadata in JSON format
      *
-     * @return _scriptContracts the array of script storage contract addresses
+     * @return string the project metadata in JSON format
      */
-    function scriptStorageContracts()
-        external
-        view
-        returns (address[] memory _scriptContracts);
+    function metadataJSON() external view returns (string memory);
 
     /**
      * Returns an array of strings to be concatenated together to form the generative script
      *
-     * @return _scripts the array of script strings
+     * @return string[] the array of script strings
      */
-    function scripts() external view returns (string[] memory _scripts);
+    function scripts() external view returns (string[] memory);
 
     /**
      * Returns the specified user's nonce, which is used to generate artwork hashes

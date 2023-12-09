@@ -3,7 +3,7 @@ pragma solidity =0.8.19;
 
 import {ITraits} from "./interfaces/ITraits.sol";
 import {IArtwork} from "./interfaces/IArtwork.sol";
-import {IScriptStorage} from "./interfaces/IScriptStorage.sol";
+import {IStringStorage} from "./interfaces/IStringStorage.sol";
 import {IProjectRegistry} from "./interfaces/IProjectRegistry.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
@@ -24,25 +24,29 @@ contract Artwork is IArtwork, IERC721Metadata, ERC2981, ERC721, ERC1155Holder {
     address public artistAddress;
     IProjectRegistry public projectRegistry;
     ITraits public traits;
-    string public metadataJSON;
+    // string public metadataJSON;
     string public constant VERSION = "1.0.0";
     uint256 public nextTokenId;
-    address[] private _scriptStorageContracts;
+    // address[] private _scriptStorageContracts;
+    StringStorageData public metadataJSONStringStorage;
+    StringStorageData[] public scriptStringStorage;
+
     mapping(uint256 => ArtworkData) private artworkData;
     mapping(address => uint256) private userNonces;
 
     constructor(
         string memory _name,
         string memory _symbol,
-        string memory _metadataJSON,
+        // string memory _metadataJSON,
         address _artistAddress,
         address _projectRegistry,
-        address[] memory _scriptStorageAddresses,
+        // address[] memory _scriptStorageAddresses,
         uint96 _royaltyFeeNumerator,
         address[] memory _royaltyPayees,
-        uint256[] memory _royaltyShares
+        uint256[] memory _royaltyShares,
+        StringStorageData memory _metadataJSONStringStorage,
+        StringStorageData[] memory _scriptStringStorage
     ) ERC721(_name, _symbol) {
-        metadataJSON = _metadataJSON;
         artistAddress = _artistAddress;
         projectRegistry = IProjectRegistry(_projectRegistry);
         address royaltySplitter = address(
@@ -50,7 +54,8 @@ contract Artwork is IArtwork, IERC721Metadata, ERC2981, ERC721, ERC1155Holder {
         );
         _setDefaultRoyalty(royaltySplitter, _royaltyFeeNumerator);
 
-        _scriptStorageContracts = _scriptStorageAddresses;
+        metadataJSONStringStorage = _metadataJSONStringStorage;
+        scriptStringStorage = _scriptStringStorage;
     }
 
     /** @inheritdoc IArtwork*/
@@ -227,22 +232,21 @@ contract Artwork is IArtwork, IERC721Metadata, ERC2981, ERC721, ERC1155Holder {
     }
 
     /** @inheritdoc IArtwork*/
-    function scriptStorageContracts()
-        external
-        view
-        returns (address[] memory _scripts)
-    {
-        return _scriptStorageContracts;
+    function metadataJSON() external view returns (string memory) {
+        return
+            IStringStorage(metadataJSONStringStorage.stringStorageAddress)
+                .stringAtSlot(metadataJSONStringStorage.stringStorageSlot);
     }
 
     /** @inheritdoc IArtwork*/
     function scripts() external view returns (string[] memory _scripts) {
-        uint256 _scriptCount = _scriptStorageContracts.length;
+        uint256 _scriptCount = scriptStringStorage.length;
         _scripts = new string[](_scriptCount);
 
         for (uint256 i; i < _scriptCount; ) {
-            _scripts[i] = IScriptStorage(_scriptStorageContracts[i])
-                .getScript();
+            _scripts[i] = IStringStorage(
+                scriptStringStorage[i].stringStorageAddress
+            ).stringAtSlot(scriptStringStorage[i].stringStorageSlot);
 
             unchecked {
                 ++i;
