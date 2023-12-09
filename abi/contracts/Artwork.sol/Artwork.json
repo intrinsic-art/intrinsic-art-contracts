@@ -12,11 +12,6 @@
         "type": "string"
       },
       {
-        "internalType": "string",
-        "name": "_metadataJSON",
-        "type": "string"
-      },
-      {
         "internalType": "address",
         "name": "_artistAddress",
         "type": "address"
@@ -25,11 +20,6 @@
         "internalType": "address",
         "name": "_projectRegistry",
         "type": "address"
-      },
-      {
-        "internalType": "address[]",
-        "name": "_scriptStorageAddresses",
-        "type": "address[]"
       },
       {
         "internalType": "uint96",
@@ -45,6 +35,40 @@
         "internalType": "uint256[]",
         "name": "_royaltyShares",
         "type": "uint256[]"
+      },
+      {
+        "components": [
+          {
+            "internalType": "uint8",
+            "name": "stringStorageSlot",
+            "type": "uint8"
+          },
+          {
+            "internalType": "address",
+            "name": "stringStorageAddress",
+            "type": "address"
+          }
+        ],
+        "internalType": "struct IArtwork.StringStorageData",
+        "name": "_metadataJSONStringStorage",
+        "type": "tuple"
+      },
+      {
+        "components": [
+          {
+            "internalType": "uint8",
+            "name": "stringStorageSlot",
+            "type": "uint8"
+          },
+          {
+            "internalType": "address",
+            "name": "stringStorageAddress",
+            "type": "address"
+          }
+        ],
+        "internalType": "struct IArtwork.StringStorageData",
+        "name": "_scriptStringStorage",
+        "type": "tuple"
       }
     ],
     "stateMutability": "nonpayable",
@@ -373,6 +397,24 @@
         "internalType": "string",
         "name": "",
         "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "metadataJSONStringStorage",
+    "outputs": [
+      {
+        "internalType": "uint8",
+        "name": "stringStorageSlot",
+        "type": "uint8"
+      },
+      {
+        "internalType": "address",
+        "name": "stringStorageAddress",
+        "type": "address"
       }
     ],
     "stateMutability": "view",
@@ -710,12 +752,12 @@
   },
   {
     "inputs": [],
-    "name": "scriptStorageContracts",
+    "name": "script",
     "outputs": [
       {
-        "internalType": "address[]",
-        "name": "_scripts",
-        "type": "address[]"
+        "internalType": "string",
+        "name": "",
+        "type": "string"
       }
     ],
     "stateMutability": "view",
@@ -723,12 +765,17 @@
   },
   {
     "inputs": [],
-    "name": "scripts",
+    "name": "scriptStringStorage",
     "outputs": [
       {
-        "internalType": "string[]",
-        "name": "_scripts",
-        "type": "string[]"
+        "internalType": "uint8",
+        "name": "stringStorageSlot",
+        "type": "uint8"
+      },
+      {
+        "internalType": "address",
+        "name": "stringStorageAddress",
+        "type": "address"
       }
     ],
     "stateMutability": "view",

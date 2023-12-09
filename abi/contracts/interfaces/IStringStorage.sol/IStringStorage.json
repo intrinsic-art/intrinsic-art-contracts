@@ -1,7 +1,18 @@
 [
   {
     "inputs": [],
-    "name": "getScript",
+    "name": "EmptySlot",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint8",
+        "name": "_slot",
+        "type": "uint8"
+      }
+    ],
+    "name": "stringAtSlot",
     "outputs": [
       {
         "internalType": "string",

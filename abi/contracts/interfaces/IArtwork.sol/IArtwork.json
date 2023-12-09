@@ -289,6 +289,19 @@
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "metadataJSON",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "uint256[]",
@@ -490,25 +503,12 @@
   },
   {
     "inputs": [],
-    "name": "scriptStorageContracts",
+    "name": "script",
     "outputs": [
       {
-        "internalType": "address[]",
-        "name": "_scriptContracts",
-        "type": "address[]"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "scripts",
-    "outputs": [
-      {
-        "internalType": "string[]",
-        "name": "_scripts",
-        "type": "string[]"
+        "internalType": "string",
+        "name": "",
+        "type": "string"
       }
     ],
     "stateMutability": "view",
