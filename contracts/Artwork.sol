@@ -24,12 +24,10 @@ contract Artwork is IArtwork, IERC721Metadata, ERC2981, ERC721, ERC1155Holder {
     address public artistAddress;
     IProjectRegistry public projectRegistry;
     ITraits public traits;
-    // string public metadataJSON;
-    string public constant VERSION = "1.0.0";
+    string public constant VERSION = "1.0";
     uint256 public nextTokenId;
-    // address[] private _scriptStorageContracts;
     StringStorageData public metadataJSONStringStorage;
-    StringStorageData[] public scriptStringStorage;
+    StringStorageData public scriptStringStorage;
 
     mapping(uint256 => ArtworkData) private artworkData;
     mapping(address => uint256) private userNonces;
@@ -37,15 +35,13 @@ contract Artwork is IArtwork, IERC721Metadata, ERC2981, ERC721, ERC1155Holder {
     constructor(
         string memory _name,
         string memory _symbol,
-        // string memory _metadataJSON,
         address _artistAddress,
         address _projectRegistry,
-        // address[] memory _scriptStorageAddresses,
         uint96 _royaltyFeeNumerator,
         address[] memory _royaltyPayees,
         uint256[] memory _royaltyShares,
         StringStorageData memory _metadataJSONStringStorage,
-        StringStorageData[] memory _scriptStringStorage
+        StringStorageData memory _scriptStringStorage
     ) ERC721(_name, _symbol) {
         artistAddress = _artistAddress;
         projectRegistry = IProjectRegistry(_projectRegistry);
@@ -239,19 +235,10 @@ contract Artwork is IArtwork, IERC721Metadata, ERC2981, ERC721, ERC1155Holder {
     }
 
     /** @inheritdoc IArtwork*/
-    function scripts() external view returns (string[] memory _scripts) {
-        uint256 _scriptCount = scriptStringStorage.length;
-        _scripts = new string[](_scriptCount);
-
-        for (uint256 i; i < _scriptCount; ) {
-            _scripts[i] = IStringStorage(
-                scriptStringStorage[i].stringStorageAddress
-            ).stringAtSlot(scriptStringStorage[i].stringStorageSlot);
-
-            unchecked {
-                ++i;
-            }
-        }
+    function script() external view returns (string memory) {
+        return
+            IStringStorage(scriptStringStorage.stringStorageAddress)
+                .stringAtSlot(scriptStringStorage.stringStorageSlot);
     }
 
     /** @inheritdoc IArtwork*/

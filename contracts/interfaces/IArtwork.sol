@@ -143,11 +143,11 @@ interface IArtwork is IERC2981, IERC721 {
     function metadataJSON() external view returns (string memory);
 
     /**
-     * Returns an array of strings to be concatenated together to form the generative script
+     * Returns the string that contains the generative art javascript
      *
-     * @return string[] the array of script strings
+     * @return string the generative art javascript
      */
-    function scripts() external view returns (string[] memory);
+    function script() external view returns (string memory);
 
     /**
      * Returns the specified user's nonce, which is used to generate artwork hashes
