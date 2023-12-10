@@ -38,7 +38,8 @@ const CreateProject = async (hre: HardhatRuntimeEnvironment): Promise<void> => {
     },
   ];
 
-  const artworkDeployResult = await deploy("Artwork", {
+  const artworkDeployResult = await deploy("TackLineTornArtwork", {
+    contract: "Artwork",
     log: true,
     from: deployer,
     args: artworkConstructorArgs,
@@ -55,7 +56,8 @@ const CreateProject = async (hre: HardhatRuntimeEnvironment): Promise<void> => {
     config.traitsConstructorData.royaltyShares,
   ];
 
-  const traitsDeployResult = await deploy("Traits", {
+  const traitsDeployResult = await deploy("TackLineTornTraits", {
+    contract: "Traits",
     log: true,
     from: deployer,
     args: traitsConstructorArgs,
