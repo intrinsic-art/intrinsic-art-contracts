@@ -11,7 +11,7 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   await deploy("ProjectRegistry", {
     log: true,
     from: deployer,
-    args: [deployer, [deployer]],
+    args: [deployer, [deployer], "https://historian.encryptafile.com/"],
   });
 
   await new Promise((resolve) => setTimeout(resolve, 20000));
@@ -21,7 +21,11 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   try {
     await hre.run("verify:verify", {
       address: projectRegistry.address,
-      constructorArguments: [deployer, [deployer]],
+      constructorArguments: [
+        deployer,
+        [deployer],
+        "https://historian.encryptafile.com/",
+      ],
     });
   } catch (error) {
     console.error();
