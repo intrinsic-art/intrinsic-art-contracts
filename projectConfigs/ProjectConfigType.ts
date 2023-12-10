@@ -1,39 +1,37 @@
-import { BigNumber, ethers } from "ethers";
+import { BigNumber } from "ethers";
 
 interface ProjectConfig {
   artworkConstructorData: {
-    royaltyFeeNumerator: BigNumber;
     name: string;
     symbol: string;
-    baseURI: string;
-    scriptJSON: string;
-    owner: string;
+    artistAddress: string;
+    royaltyFeeNumerator: BigNumber;
     royaltyPayees: string[];
     royaltyShares: BigNumber[];
   };
   traitsConstructorData: {
-    royaltyFeeNumerator: BigNumber;
-    uri: string;
-    owner: string;
+    traitsSetupData: {
+      traitTypeNames: string[];
+      traitTypeValues: string[];
+      traitNames: string[];
+      traitValues: string[];
+      traitTypeIndexes: number[];
+      traitMaxSupplys: BigNumber[];
+    };
     primarySalesPayees: string[];
     primarySalesShares: BigNumber[];
     royaltyPayees: string[];
     royaltyShares: BigNumber[];
   };
-  createTraitsData: {
-    traitTypeNames: string[];
-    traitTypeValues: string[];
-    traitNames: string[];
-    traitValues: string[];
-    traitTypeIndexes: number[];
-    traitMaxSupplys: BigNumber[];
-  };
-  scheduleAuctionData: {
+  setupData: {
+    auctionExponential: boolean;
     auctionStartTime: number;
     auctionEndTime: number;
-    auctionStartPrice: ethers.BigNumber;
-    auctionEndPrice: ethers.BigNumber;
+    auctionStartPrice: BigNumber;
+    auctionEndPrice: BigNumber;
+    auctionPriceSteps: number;
     traitsSaleStartTime: number;
+    whitelistStartTime: number;
   };
 }
 
