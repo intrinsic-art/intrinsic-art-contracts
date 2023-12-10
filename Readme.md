@@ -53,8 +53,8 @@ npx hardhat deploy --network goerli
 ```
 Deploy project contracts, verify on Etherscan, and setup configuration
 ```shell
-npx hardhat CreateTackLineTorn --network goerli
-npx hardhat CreateMetta --network goerli
+npx hardhat DeployTackLineTorn --network goerli
+npx hardhat DeployMetta --network goerli
 ```
 
 
