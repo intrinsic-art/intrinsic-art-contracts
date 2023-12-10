@@ -9,20 +9,18 @@ import "hardhat-gas-reporter";
 import "hardhat-contract-sizer";
 import "hardhat-abi-exporter";
 import "solidity-coverage";
-import CreateMetta from "./scripts/CreateMetta";
-import CreateTackLineTorn from "./scripts/CreateTackLineTorn";
+import DeployMetta from "./scripts/DeployMetta";
+import DeployTackLineTorn from "./scripts/DeployTackLineTorn";
 
 dotenv.config();
 
-task("CreateMetta", "Creates the Metta project").setAction(
-  async (taskArgs, hre) => {
-    await CreateMetta(hre);
-  }
-);
+task("DeployMetta", "Deploys the project").setAction(async (taskArgs, hre) => {
+  await DeployMetta(hre);
+});
 
-task("CreateTackLineTorn", "Creates the Tack Line Torn project").setAction(
+task("DeployTackLineTorn", "Deploys the project").setAction(
   async (taskArgs, hre) => {
-    await CreateTackLineTorn(hre);
+    await DeployTackLineTorn(hre);
   }
 );
 
