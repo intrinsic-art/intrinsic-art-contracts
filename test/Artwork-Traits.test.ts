@@ -83,8 +83,6 @@ describe("Artwork and Traits", function () {
     );
 
     traits = await new Traits__factory(deployer).deploy(
-      "Intrinsic.art Traits",
-      "INSC",
       projectRegistry.address,
       {
         traitTypeNames: ["Hair Color", "Eye Color"],

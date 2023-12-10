@@ -125,8 +125,6 @@ describe("Deployment and setup", function () {
   it("Traits contract can't be deployed with invalid array lengths", async () => {
     await expect(
       new Traits__factory(deployer).deploy(
-        "Intrinsic.art Traits",
-        "INSC",
         projectRegistry.address,
         {
           traitTypeNames: ["Hair Color", "Eye Color"],
@@ -145,8 +143,6 @@ describe("Deployment and setup", function () {
 
     await expect(
       new Traits__factory(deployer).deploy(
-        "Intrinsic.art Traits",
-        "INSC",
         projectRegistry.address,
         {
           traitTypeNames: ["Hair Color", "Eye Color"],
@@ -165,8 +161,6 @@ describe("Deployment and setup", function () {
 
     await expect(
       new Traits__factory(deployer).deploy(
-        "Intrinsic.art Traits",
-        "INSC",
         projectRegistry.address,
         {
           traitTypeNames: ["Hair Color", "Eye Color"],
@@ -185,8 +179,6 @@ describe("Deployment and setup", function () {
 
     await expect(
       new Traits__factory(deployer).deploy(
-        "Intrinsic.art Traits",
-        "INSC",
         projectRegistry.address,
         {
           traitTypeNames: ["Hair Color"],
@@ -205,8 +197,6 @@ describe("Deployment and setup", function () {
 
     await expect(
       new Traits__factory(deployer).deploy(
-        "Intrinsic.art Traits",
-        "INSC",
         projectRegistry.address,
         {
           traitTypeNames: ["Hair Color", "Eye Color"],
@@ -225,8 +215,6 @@ describe("Deployment and setup", function () {
 
     await expect(
       new Traits__factory(deployer).deploy(
-        "Intrinsic.art Traits",
-        "INSC",
         projectRegistry.address,
         {
           traitTypeNames: ["Hair Color", "Eye Color"],
@@ -245,8 +233,6 @@ describe("Deployment and setup", function () {
 
     await expect(
       new Traits__factory(deployer).deploy(
-        "Intrinsic.art Traits",
-        "INSC",
         projectRegistry.address,
         {
           traitTypeNames: ["Hair Color", "Eye Color"],
@@ -265,8 +251,6 @@ describe("Deployment and setup", function () {
 
     await expect(
       new Traits__factory(deployer).deploy(
-        "Intrinsic.art Traits",
-        "INSC",
         projectRegistry.address,
         {
           traitTypeNames: ["Hair Color", "Eye Color"],
@@ -298,8 +282,6 @@ describe("Deployment and setup", function () {
     );
 
     traits = await new Traits__factory(deployer).deploy(
-      "Intrinsic.art Traits",
-      "INSC",
       projectRegistry.address,
       {
         traitTypeNames: ["Hair Color", "Eye Color"],
@@ -395,8 +377,6 @@ describe("Deployment and setup", function () {
     );
 
     traits = await new Traits__factory(deployer).deploy(
-      "Intrinsic.art Traits",
-      "INSC",
       projectRegistry.address,
       {
         traitTypeNames: ["Hair Color", "Eye Color"],
@@ -595,8 +575,6 @@ describe("Deployment and setup", function () {
     );
 
     traits = await new Traits__factory(deployer).deploy(
-      "Intrinsic.art Traits",
-      "INSC",
       projectRegistry.address,
       {
         traitTypeNames: ["Hair Color", "Eye Color"],
@@ -631,8 +609,6 @@ describe("Deployment and setup", function () {
     );
 
     traits = await new Traits__factory(deployer).deploy(
-      "Intrinsic.art Traits",
-      "INSC",
       projectRegistry.address,
       {
         traitTypeNames: ["Hair Color", "Eye Color"],

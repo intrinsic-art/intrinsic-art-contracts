@@ -22,8 +22,6 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
     string public constant VERSION = "1.0";
     IArtwork public artwork;
     IProjectRegistry public projectRegistry;
-    string public name;
-    string public symbol;
     uint256 public auctionStartTime;
     uint256 public auctionEndTime;
     uint256 public auctionStartPrice;
@@ -47,8 +45,6 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
     }
 
     constructor(
-        string memory _name,
-        string memory _symbol,
         address _projectRegistry,
         TraitsSetup memory _traitsSetup,
         address[] memory _primarySalesPayees,
@@ -58,9 +54,6 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
     ) ERC1155("") PaymentSplitter(_primarySalesPayees, _primarySalesShares) {
         if (_whitelistAddresses.length != _whitelistAmounts.length)
             revert InvalidArrayLengths();
-
-        name = _name;
-        symbol = _symbol;
 
         projectRegistry = IProjectRegistry(_projectRegistry);
 
