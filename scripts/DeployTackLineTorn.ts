@@ -1,5 +1,5 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import config from "../projectConfigs/metta/config";
+import config from "../projectConfigs/tackLineTorn/config";
 
 const CreateProject = async (hre: HardhatRuntimeEnvironment): Promise<void> => {
   const abiCoder = hre.ethers.utils.defaultAbiCoder;
