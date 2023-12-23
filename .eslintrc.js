@@ -5,6 +5,7 @@ module.exports = {
     mocha: true,
     node: true,
   },
+  ignorePatterns: ["projectConfigs/"],
   plugins: ["@typescript-eslint"],
   extends: [
     "standard",
