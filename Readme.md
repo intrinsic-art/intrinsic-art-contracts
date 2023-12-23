@@ -57,6 +57,12 @@ npx hardhat DeployTackLineTorn --network sepolia
 npx hardhat DeployMetta --network sepolia
 ```
 
+## Escapify Project Scripts & Descriptions
+Project scripts and descriptions are stored in the bytecode of string storage smart contracts to save on deployment gas.
+The `escapify` script can be used to escape quotes, newlines, and backslashes:
+```shell
+npm run escapify -- projectConfigs/metta/description
+```
 
 ## Test Coverage
 ```shell
