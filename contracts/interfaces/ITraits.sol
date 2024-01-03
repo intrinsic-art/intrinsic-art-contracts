@@ -46,7 +46,6 @@ interface ITraits is IERC1155 {
     error OnlyProjectRegistry();
     error AlreadySetup();
     error NotSetup();
-    error InvalidArrayLengths();
     error InvalidAuction();
     error MaxSupply();
     error InvalidEthAmount();
