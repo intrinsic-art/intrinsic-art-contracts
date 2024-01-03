@@ -711,6 +711,24 @@
   },
   {
     "inputs": [],
+    "name": "payees",
+    "outputs": [
+      {
+        "internalType": "address[]",
+        "name": "payees",
+        "type": "address[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "shares",
+        "type": "uint256[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "projectRegistry",
     "outputs": [
       {
@@ -768,8 +786,8 @@
   {
     "inputs": [
       {
-        "internalType": "address payable",
-        "name": "account",
+        "internalType": "contract IERC20",
+        "name": "token",
         "type": "address"
       }
     ],
@@ -779,18 +797,7 @@
     "type": "function"
   },
   {
-    "inputs": [
-      {
-        "internalType": "contract IERC20",
-        "name": "token",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
-      }
-    ],
+    "inputs": [],
     "name": "release",
     "outputs": [],
     "stateMutability": "nonpayable",

@@ -1023,9 +1023,9 @@ describe("Artwork and Traits", function () {
     ).to.eq(platformRevenueClaimerInitialBalance);
 
     // Platform revenue is released
-    await traits
-      .connect(user1)
-      ["release(address)"](platformRevenueClaimer.address);
+    const tx1 = await traits.connect(platformRevenueClaimer)["release()"]();
+    const receipt1 = await tx1.wait();
+    const tx1Gas = receipt1.cumulativeGasUsed.mul(receipt1.effectiveGasPrice);
 
     const platformRevenueClaimed1 = ethRevenue1.mul(10).div(100);
 
@@ -1050,17 +1050,21 @@ describe("Artwork and Traits", function () {
     ).to.eq(artistRevenueClaimerInitialBalance);
     expect(
       await ethers.provider.getBalance(platformRevenueClaimer.address)
-    ).to.eq(platformRevenueClaimerInitialBalance.add(platformRevenueClaimed1));
+    ).to.eq(
+      platformRevenueClaimerInitialBalance
+        .add(platformRevenueClaimed1)
+        .sub(tx1Gas)
+    );
 
     // Platform revenue cannot be released again since releasable amount is zero
     await expect(
-      traits.connect(user1)["release(address)"](platformRevenueClaimer.address)
+      traits.connect(platformRevenueClaimer)["release()"]()
     ).to.be.revertedWith("PaymentSplitter: account is not due payment");
 
     // User that isn't setup as a payee can't release to themselves
-    await expect(
-      traits.connect(user1)["release(address)"](user1.address)
-    ).to.be.revertedWith("PaymentSplitter: account has no shares");
+    await expect(traits.connect(user1)["release()"]()).to.be.revertedWith(
+      "PaymentSplitter: account has no shares"
+    );
 
     const ethRevenue2 = (await traits.traitPrice()).mul(20);
 
@@ -1089,14 +1093,18 @@ describe("Artwork and Traits", function () {
     ).to.eq(artistRevenueClaimerInitialBalance);
     expect(
       await ethers.provider.getBalance(platformRevenueClaimer.address)
-    ).to.eq(platformRevenueClaimerInitialBalance.add(platformRevenueClaimed1));
+    ).to.eq(
+      platformRevenueClaimerInitialBalance
+        .add(platformRevenueClaimed1)
+        .sub(tx1Gas)
+    );
 
     const platformRevenueClaimed2 = ethRevenue2.mul(10).div(100);
 
     // Platform revenue is released
-    await traits
-      .connect(user1)
-      ["release(address)"](platformRevenueClaimer.address);
+    const tx2 = await traits.connect(platformRevenueClaimer)["release()"]();
+    const receipt2 = await tx2.wait();
+    const tx2Gas = receipt2.cumulativeGasUsed.mul(receipt2.effectiveGasPrice);
 
     expect(await traits["totalReleased()"]()).to.eq(
       platformRevenueClaimed1.add(platformRevenueClaimed2)
@@ -1128,14 +1136,16 @@ describe("Artwork and Traits", function () {
       platformRevenueClaimerInitialBalance
         .add(platformRevenueClaimed1)
         .add(platformRevenueClaimed2)
+        .sub(tx1Gas)
+        .sub(tx2Gas)
     );
 
     const artistRevenueClaimed1 = ethRevenue1.add(ethRevenue2).mul(90).div(100);
 
     // Artist revenue is released
-    await traits
-      .connect(user1)
-      ["release(address)"](artistRevenueClaimer.address);
+    const tx3 = await traits.connect(artistRevenueClaimer)["release()"]();
+    const receipt3 = await tx3.wait();
+    const tx3Gas = receipt3.cumulativeGasUsed.mul(receipt3.effectiveGasPrice);
 
     expect(await traits["totalReleased()"]()).to.eq(
       platformRevenueClaimed1
@@ -1163,24 +1173,28 @@ describe("Artwork and Traits", function () {
     );
     expect(
       await ethers.provider.getBalance(artistRevenueClaimer.address)
-    ).to.eq(artistRevenueClaimerInitialBalance.add(artistRevenueClaimed1));
+    ).to.eq(
+      artistRevenueClaimerInitialBalance.add(artistRevenueClaimed1).sub(tx3Gas)
+    );
     expect(
       await ethers.provider.getBalance(platformRevenueClaimer.address)
     ).to.eq(
       platformRevenueClaimerInitialBalance
         .add(platformRevenueClaimed1)
         .add(platformRevenueClaimed2)
+        .sub(tx1Gas)
+        .sub(tx2Gas)
     );
     expect(await ethers.provider.getBalance(traits.address)).to.eq(0);
 
     // Platform revenue cannot be released again since releasable amount is zero
     await expect(
-      traits.connect(user1)["release(address)"](platformRevenueClaimer.address)
+      traits.connect(platformRevenueClaimer)["release()"]()
     ).to.be.revertedWith("PaymentSplitter: account is not due payment");
 
     // Artist revenue cannot be released again since releasable amount is zero
     await expect(
-      traits.connect(user1)["release(address)"](artistRevenueClaimer.address)
+      traits.connect(artistRevenueClaimer)["release()"]()
     ).to.be.revertedWith("PaymentSplitter: account is not due payment");
   });
 
@@ -1380,15 +1394,17 @@ describe("Artwork and Traits", function () {
     );
 
     // Platform releases its payment
-    await royaltySplitter
-      .connect(user1)
-      ["release(address)"](platformRevenueClaimer.address);
+    const tx1 = await royaltySplitter
+      .connect(platformRevenueClaimer)
+      ["release()"]();
+    const receipt1 = await tx1.wait();
+    const tx1Gas = receipt1.cumulativeGasUsed.mul(receipt1.effectiveGasPrice);
 
     // Platform claimer balance should have increased by 1 ETH
     expect(
-      (await ethers.provider.getBalance(platformRevenueClaimer.address)).sub(
-        platformETHBalanceBeforeRelease
-      )
+      (await ethers.provider.getBalance(platformRevenueClaimer.address))
+        .sub(platformETHBalanceBeforeRelease)
+        .add(tx1Gas)
     ).to.eq(ethers.utils.parseEther("1"));
 
     // Platform claimer should have 0 ETH releasable
@@ -1410,15 +1426,17 @@ describe("Artwork and Traits", function () {
     );
 
     // Artist releases its payment
-    await royaltySplitter
-      .connect(user1)
-      ["release(address)"](artistRevenueClaimer.address);
+    const tx2 = await royaltySplitter
+      .connect(artistRevenueClaimer)
+      ["release()"]();
+    const receipt2 = await tx2.wait();
+    const tx2Gas = receipt2.cumulativeGasUsed.mul(receipt2.effectiveGasPrice);
 
     // Artist claimer balance should have increased by 9 ETH
     expect(
-      (await ethers.provider.getBalance(artistRevenueClaimer.address)).sub(
-        artistETHBalanceBeforeRelease
-      )
+      (await ethers.provider.getBalance(artistRevenueClaimer.address))
+        .sub(artistETHBalanceBeforeRelease)
+        .add(tx2Gas)
     ).to.eq(ethers.utils.parseEther("9"));
   });
 });
