@@ -16,7 +16,7 @@ import {ERC1155Holder, ERC1155Receiver, IERC165} from "@openzeppelin/contracts/t
  * Implements ERC-721 standard for artwork tokens, and
  * functionality for minting artwork and reclaiming traits
  */
-contract Artwork is IArtwork, IERC721Metadata, ERC2981, ERC721, ERC1155Holder {
+contract Artwork is IArtwork, IERC721Metadata, ERC2981, ERC721, ERC1155Holder, PaymentSplitter {
     using Strings for uint256;
     using Strings for address;
 
@@ -42,13 +42,12 @@ contract Artwork is IArtwork, IERC721Metadata, ERC2981, ERC721, ERC1155Holder {
         uint256[] memory _royaltyShares,
         StringStorageData memory _metadataJSONStringStorage,
         StringStorageData memory _scriptStringStorage
-    ) ERC721(_name, _symbol) {
+    ) ERC721(_name, _symbol) PaymentSplitter(_royaltyPayees, _royaltyShares) {
         artistAddress = _artistAddress;
         projectRegistry = IProjectRegistry(_projectRegistry);
-        address royaltySplitter = address(
-            new PaymentSplitter(_royaltyPayees, _royaltyShares)
-        );
-        _setDefaultRoyalty(royaltySplitter, _royaltyFeeNumerator);
+
+        // Set EIP-2981 royalties to be sent to this contract
+        _setDefaultRoyalty(address(this), _royaltyFeeNumerator);
 
         metadataJSONStringStorage = _metadataJSONStringStorage;
         scriptStringStorage = _scriptStringStorage;

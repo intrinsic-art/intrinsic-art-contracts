@@ -77,7 +77,7 @@ describe("Deployment and setup", function () {
         { stringStorageSlot: 0, stringStorageAddress: stringStorage.address },
         { stringStorageSlot: 1, stringStorageAddress: stringStorage.address }
       )
-    ).to.be.revertedWith("PaymentSplitter: payees and shares length mismatch");
+    ).to.be.revertedWith("InvalidArrayLengths()");
 
     await expect(
       new Artwork__factory(deployer).deploy(
@@ -91,7 +91,7 @@ describe("Deployment and setup", function () {
         { stringStorageSlot: 0, stringStorageAddress: stringStorage.address },
         { stringStorageSlot: 1, stringStorageAddress: stringStorage.address }
       )
-    ).to.be.revertedWith("PaymentSplitter: payees and shares length mismatch");
+    ).to.be.revertedWith("InvalidArrayLengths()");
 
     await expect(
       new Artwork__factory(deployer).deploy(
@@ -105,7 +105,7 @@ describe("Deployment and setup", function () {
         { stringStorageSlot: 0, stringStorageAddress: stringStorage.address },
         { stringStorageSlot: 1, stringStorageAddress: stringStorage.address }
       )
-    ).to.be.revertedWith("PaymentSplitter: no payees");
+    ).to.be.revertedWith("NoPayees()");
   });
 
   it("Only an admin can update the base URI on the project registry", async () => {
@@ -139,7 +139,7 @@ describe("Deployment and setup", function () {
         [whitelistedUser1.address, whitelistedUser2.address],
         [1, 1]
       )
-    ).to.be.revertedWith("PaymentSplitter: payees and shares length mismatch");
+    ).to.be.revertedWith("InvalidArrayLengths()");
 
     await expect(
       new Traits__factory(deployer).deploy(
@@ -157,7 +157,7 @@ describe("Deployment and setup", function () {
         [whitelistedUser1.address, whitelistedUser2.address],
         [1, 1]
       )
-    ).to.be.revertedWith("PaymentSplitter: payees and shares length mismatch");
+    ).to.be.revertedWith("InvalidArrayLengths()");
 
     await expect(
       new Traits__factory(deployer).deploy(
