@@ -388,6 +388,7 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
             super.supportsInterface(interfaceId);
     }
 
+    /** @inheritdoc ERC2981*/
     function royaltyInfo(
         uint256 tokenId,
         uint256 salePrice
