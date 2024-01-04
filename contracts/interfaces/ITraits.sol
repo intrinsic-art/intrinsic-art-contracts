@@ -32,20 +32,27 @@ interface ITraits is IERC1155 {
     );
 
     event AuctionScheduled(
-        uint256 _auctionStartTime,
-        uint256 _auctionEndTime,
-        uint256 _auctionStartPrice,
-        uint256 _auctionEndPrice,
-        uint256 _auctionPriceSteps,
-        bool _auctionExponential,
-        uint256 _traitsSaleStartTime,
-        uint256 _whitelistStartTime
+        uint256 auctionStartTime,
+        uint256 auctionEndTime,
+        uint256 auctionStartPrice,
+        uint256 auctionEndPrice,
+        uint256 auctionPriceSteps,
+        bool auctionExponential,
+        uint256 traitsSaleStartTime,
+        uint256 whitelistStartTime
     );
+
+    event WhitelistUpdated(
+        address[] whitelistAddresses,
+        uint256[] whitelistAmounts
+    );
+
+    event WhitelistArtworkMint(address indexed caller);
 
     error OnlyArtwork();
     error OnlyProjectRegistry();
     error AlreadySetup();
-    error NotSetup();
+    error AuctionIsLive();
     error InvalidAuction();
     error MaxSupply();
     error InvalidEthAmount();
@@ -61,9 +68,7 @@ interface ITraits is IERC1155 {
      *
      * @param _data bytes data containt the artwork contract address and auction data
      */
-    function setup(
-        bytes calldata _data
-    ) external;
+    function setup(bytes calldata _data) external;
 
     /**
      * Updates the schedule of the dutch auction, can only
@@ -88,6 +93,17 @@ interface ITraits is IERC1155 {
         bool _auctionExponential,
         uint256 _traitsSaleStartTime,
         uint256 _whitelistStartTime
+    ) external;
+
+    /**
+     * Updates the whitelisted addresses and amounts they can claim
+     *
+     * @param _whitelistAddresses addresses to be whitelisted
+     * @param _whitelistAmounts amount of whitelist mints for each address
+     */
+    function updateWhitelist(
+        address[] memory _whitelistAddresses,
+        uint256[] memory _whitelistAmounts
     ) external;
 
     /**
@@ -217,7 +233,9 @@ interface ITraits is IERC1155 {
      *
      * @return uint256 the number of whitelist mints remaining
      */
-    function whitelistMintsRemaining(address _user) external view returns (uint256);
+    function whitelistMintsRemaining(
+        address _user
+    ) external view returns (uint256);
 
     /**
      * Returns the max supply of the specified token ID
