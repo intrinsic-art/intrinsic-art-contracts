@@ -93,19 +93,6 @@
     "anonymous": false,
     "inputs": [
       {
-        "indexed": true,
-        "internalType": "address",
-        "name": "caller",
-        "type": "address"
-      }
-    ],
-    "name": "ArtworkWhitelistMint",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
         "indexed": false,
         "internalType": "uint256",
         "name": "auctionStartTime",
@@ -146,15 +133,9 @@
         "internalType": "uint256",
         "name": "traitsSaleStartTime",
         "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "whitelistStartTime",
-        "type": "uint256"
       }
     ],
-    "name": "AuctionScheduled",
+    "name": "AuctionUpdated",
     "type": "event"
   },
   {
@@ -278,6 +259,25 @@
   {
     "anonymous": false,
     "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "caller",
+        "type": "address"
+      }
+    ],
+    "name": "WhitelistArtworkMint",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "whitelistStartTime",
+        "type": "uint256"
+      },
       {
         "indexed": false,
         "internalType": "address[]",
@@ -740,11 +740,6 @@
         "internalType": "uint256",
         "name": "_traitsSaleStartTime",
         "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_whitelistStartTime",
-        "type": "uint256"
       }
     ],
     "name": "updateAuction",
@@ -754,6 +749,11 @@
   },
   {
     "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_whitelistStartTime",
+        "type": "uint256"
+      },
       {
         "internalType": "address[]",
         "name": "_whitelistAddresses",

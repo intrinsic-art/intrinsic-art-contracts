@@ -48,9 +48,7 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
         address _projectRegistry,
         TraitsSetup memory _traitsSetup,
         address[] memory _primarySalesPayees,
-        uint256[] memory _primarySalesShares,
-        address[] memory _whitelistAddresses,
-        uint256[] memory _whitelistAmounts
+        uint256[] memory _primarySalesShares
     ) ERC1155("") PaymentSplitter(_primarySalesPayees, _primarySalesShares) {
         projectRegistry = IProjectRegistry(_projectRegistry);
 
@@ -62,8 +60,6 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
             _traitsSetup.traitTypeIndexes,
             _traitsSetup.traitMaxSupplys
         );
-
-        _updateWhitelist(_whitelistAddresses, _whitelistAmounts);
     }
 
     /** @inheritdoc ITraits*/
@@ -79,7 +75,9 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
             uint256 _auctionEndPrice,
             uint256 _auctionPriceSteps,
             uint256 _traitsSaleStartTime,
-            uint256 _whitelistStartTime
+            uint256 _whitelistStartTime,
+            address[] memory _whitelistAddresses,
+            uint256[] memory _whitelistAmounts
         ) = abi.decode(
                 _data,
                 (
@@ -91,7 +89,9 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
                     uint256,
                     uint256,
                     uint256,
-                    uint256
+                    uint256,
+                    address[],
+                    uint256[]
                 )
             );
 
@@ -104,8 +104,13 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
             _auctionEndPrice,
             _auctionPriceSteps,
             _auctionExponential,
-            _traitsSaleStartTime,
-            _whitelistStartTime
+            _traitsSaleStartTime
+        );
+
+        _updateWhitelist(
+            _whitelistStartTime,
+            _whitelistAddresses,
+            _whitelistAmounts
         );
     }
 
@@ -117,8 +122,7 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
         uint256 _auctionEndPrice,
         uint256 _auctionPriceSteps,
         bool _auctionExponential,
-        uint256 _traitsSaleStartTime,
-        uint256 _whitelistStartTime
+        uint256 _traitsSaleStartTime
     ) external onlyProjectRegistry {
         if (auctionStartTime <= block.timestamp) revert AuctionIsLive();
 
@@ -129,19 +133,23 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
             _auctionEndPrice,
             _auctionPriceSteps,
             _auctionExponential,
-            _traitsSaleStartTime,
-            _whitelistStartTime
+            _traitsSaleStartTime
         );
     }
 
     /** @inheritdoc ITraits*/
     function updateWhitelist(
+        uint256 _whitelistStartTime,
         address[] memory _whitelistAddresses,
         uint256[] memory _whitelistAmounts
     ) external onlyProjectRegistry {
         if (auctionStartTime <= block.timestamp) revert AuctionIsLive();
 
-        _updateWhitelist(_whitelistAddresses, _whitelistAmounts);
+        _updateWhitelist(
+            _whitelistStartTime,
+            _whitelistAddresses,
+            _whitelistAmounts
+        );
     }
 
     /** @inheritdoc ITraits*/
@@ -322,12 +330,6 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
 
     /** @inheritdoc ITraits*/
     function traitPrice() public view returns (uint256) {
-        if (block.timestamp < auctionStartTime) revert AuctionNotLive();
-        if (block.timestamp >= auctionEndTime) {
-            // Auction has ended
-            return auctionEndPrice;
-        }
-
         // Auction is active
         if (auctionExponential) {
             // Exponential curve auction
@@ -335,13 +337,13 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
                 (((auctionStartPrice - auctionEndPrice) *
                     (auctionPriceSteps - traitPriceStep() - 1) ** 2) /
                     (auctionPriceSteps - 1) ** 2) + auctionEndPrice;
-        } else {
-            // Linear curve auction
-            return
-                auctionStartPrice -
-                ((traitPriceStep() * (auctionStartPrice - auctionEndPrice)) /
-                    (auctionPriceSteps - 1));
         }
+
+        // Linear curve auction
+        return
+            auctionStartPrice -
+            ((traitPriceStep() * (auctionStartPrice - auctionEndPrice)) /
+                (auctionPriceSteps - 1));
     }
 
     /** @inheritdoc ITraits*/
@@ -506,7 +508,7 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
      * @param _auctionPriceSteps number of different prices auction steps through
      * @param _auctionExponential true indicates auction curve is exponential, otherwise linear
      * @param _traitsSaleStartTime timestamp at which traits can be bought individually
-     * @param _whitelistStartTime timestamp at which whitelisted users can start minting
+
      */
     function _updateAuction(
         uint256 _auctionStartTime,
@@ -515,8 +517,7 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
         uint256 _auctionEndPrice,
         uint256 _auctionPriceSteps,
         bool _auctionExponential,
-        uint256 _traitsSaleStartTime,
-        uint256 _whitelistStartTime
+        uint256 _traitsSaleStartTime
     ) private {
         if (
             _auctionEndTime < _auctionStartTime ||
@@ -533,32 +534,34 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
         auctionPriceSteps = _auctionPriceSteps;
         auctionExponential = _auctionExponential;
         traitsSaleStartTime = _traitsSaleStartTime;
-        whitelistStartTime = _whitelistStartTime;
 
-        emit AuctionScheduled(
+        emit AuctionUpdated(
             _auctionStartTime,
             _auctionEndTime,
             _auctionStartPrice,
             _auctionEndPrice,
             _auctionPriceSteps,
             _auctionExponential,
-            _traitsSaleStartTime,
-            _whitelistStartTime
+            _traitsSaleStartTime
         );
     }
 
     /**
      * Updates whitelist data
      *
+     * @param _whitelistStartTime timestamp at which whitelisted users can start minting
      * @param _whitelistAddresses the addresses to whitelist
      * @param _whitelistAmounts the amounts each address can whitelist mint
      */
     function _updateWhitelist(
+        uint256 _whitelistStartTime,
         address[] memory _whitelistAddresses,
         uint256[] memory _whitelistAmounts
     ) private {
         if (_whitelistAddresses.length != _whitelistAmounts.length)
             revert InvalidArrayLengths();
+
+        whitelistStartTime = _whitelistStartTime;
 
         for (uint256 i; i < _whitelistAddresses.length; ) {
             _whitelistMintsRemaining[
@@ -570,6 +573,10 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
             }
         }
 
-        emit WhitelistUpdated(_whitelistAddresses, _whitelistAmounts);
+        emit WhitelistUpdated(
+            _whitelistStartTime,
+            _whitelistAddresses,
+            _whitelistAmounts
+        );
     }
 }

@@ -135,9 +135,7 @@ describe("Deployment and setup", function () {
           traitMaxSupplys: [10, 20, 30, 40, 50],
         },
         [artistRevenueClaimer.address],
-        [90, 10],
-        [whitelistedUser1.address, whitelistedUser2.address],
-        [1, 1]
+        [90, 10]
       )
     ).to.be.revertedWith("InvalidArrayLengths()");
 
@@ -153,27 +151,7 @@ describe("Deployment and setup", function () {
           traitMaxSupplys: [10, 20, 30, 40, 50],
         },
         [artistRevenueClaimer.address, platformRevenueClaimer.address],
-        [90],
-        [whitelistedUser1.address, whitelistedUser2.address],
-        [1, 1]
-      )
-    ).to.be.revertedWith("InvalidArrayLengths()");
-
-    await expect(
-      new Traits__factory(deployer).deploy(
-        projectRegistry.address,
-        {
-          traitTypeNames: ["Hair Color", "Eye Color"],
-          traitTypeValues: ["hairColor", "eyeColor"],
-          traitNames: ["Blonde", "Brown", "Black", "Green", "Blue"],
-          traitValues: ["blonde", "brown", "black", "green", "blue"],
-          traitTypeIndexes: [0, 0, 0, 1, 1],
-          traitMaxSupplys: [10, 20, 30, 40, 50],
-        },
-        [artistRevenueClaimer.address, platformRevenueClaimer.address],
-        [90, 10],
-        [whitelistedUser1.address, whitelistedUser2.address],
-        [1]
+        [90]
       )
     ).to.be.revertedWith("InvalidArrayLengths()");
 
@@ -189,9 +167,7 @@ describe("Deployment and setup", function () {
           traitMaxSupplys: [10, 20, 30, 40, 50],
         },
         [artistRevenueClaimer.address, platformRevenueClaimer.address],
-        [90, 10],
-        [whitelistedUser1.address, whitelistedUser2.address],
-        [1, 1]
+        [90, 10]
       )
     ).to.be.revertedWith("InvalidArrayLengths()");
 
@@ -207,9 +183,7 @@ describe("Deployment and setup", function () {
           traitMaxSupplys: [10, 20, 30, 40, 50],
         },
         [artistRevenueClaimer.address, platformRevenueClaimer.address],
-        [90, 10],
-        [whitelistedUser1.address, whitelistedUser2.address],
-        [1, 1]
+        [90, 10]
       )
     ).to.be.revertedWith("InvalidArrayLengths()");
 
@@ -225,9 +199,7 @@ describe("Deployment and setup", function () {
           traitMaxSupplys: [10, 20, 30, 40, 50],
         },
         [artistRevenueClaimer.address, platformRevenueClaimer.address],
-        [90, 10],
-        [whitelistedUser1.address, whitelistedUser2.address],
-        [1, 1]
+        [90, 10]
       )
     ).to.be.revertedWith("InvalidArrayLengths()");
 
@@ -243,9 +215,7 @@ describe("Deployment and setup", function () {
           traitMaxSupplys: [10, 20, 30, 40, 50],
         },
         [artistRevenueClaimer.address, platformRevenueClaimer.address],
-        [90, 10],
-        [whitelistedUser1.address, whitelistedUser2.address],
-        [1, 1]
+        [90, 10]
       )
     ).to.be.revertedWith("InvalidArrayLengths()");
 
@@ -261,9 +231,7 @@ describe("Deployment and setup", function () {
           traitMaxSupplys: [10, 20, 30, 40],
         },
         [artistRevenueClaimer.address, platformRevenueClaimer.address],
-        [90, 10],
-        [whitelistedUser1.address, whitelistedUser2.address],
-        [1, 1]
+        [90, 10]
       )
     ).to.be.revertedWith("InvalidArrayLengths()");
   });
@@ -292,9 +260,7 @@ describe("Deployment and setup", function () {
         traitMaxSupplys: [10, 20, 30, 40, 50],
       },
       [artistRevenueClaimer.address, platformRevenueClaimer.address],
-      [90, 10],
-      [whitelistedUser1.address, whitelistedUser2.address],
-      [1, 1]
+      [90, 10]
     );
 
     // should be invalid since auction start time is after end time
@@ -319,6 +285,8 @@ describe("Deployment and setup", function () {
         "uint256",
         "uint256",
         "uint256",
+        "address[]",
+        "uint256[]",
       ],
       [
         artwork.address,
@@ -330,6 +298,8 @@ describe("Deployment and setup", function () {
         auctionPriceSteps,
         traitsSaleStartTime,
         whitelistStartTime,
+        [whitelistedUser1.address, whitelistedUser2.address],
+        [1, 1],
       ]
     );
 
@@ -387,9 +357,7 @@ describe("Deployment and setup", function () {
         traitMaxSupplys: [10, 20, 30, 40, 50],
       },
       [artistRevenueClaimer.address, platformRevenueClaimer.address],
-      [90, 10],
-      [whitelistedUser1.address, whitelistedUser2.address],
-      [1, 1]
+      [90, 10]
     );
 
     // should be invalid since auction start time is after end time
@@ -414,6 +382,8 @@ describe("Deployment and setup", function () {
         "uint256",
         "uint256",
         "uint256",
+        "address[]",
+        "uint256[]",
       ],
       [
         artwork.address,
@@ -425,6 +395,8 @@ describe("Deployment and setup", function () {
         auctionPriceSteps,
         traitsSaleStartTime,
         whitelistStartTime,
+        [whitelistedUser1.address, whitelistedUser2.address],
+        [1, 1],
       ]
     );
 
@@ -585,9 +557,7 @@ describe("Deployment and setup", function () {
         traitMaxSupplys: [10, 20, 30, 40, 50],
       },
       [artistRevenueClaimer.address, platformRevenueClaimer.address],
-      [90, 10],
-      [whitelistedUser1.address, whitelistedUser2.address],
-      [1, 1]
+      [90, 10]
     );
 
     await expect(
@@ -619,9 +589,7 @@ describe("Deployment and setup", function () {
         traitMaxSupplys: [10, 20, 30, 40, 50],
       },
       [artistRevenueClaimer.address, platformRevenueClaimer.address],
-      [90, 10],
-      [whitelistedUser1.address, whitelistedUser2.address],
-      [1, 1]
+      [90, 10]
     );
 
     currentTime = (await ethers.provider.getBlock("latest")).timestamp;

@@ -91,9 +91,7 @@ describe("Artwork and Traits", function () {
         traitMaxSupplys: [10, 20, 30, 40, 50],
       },
       [artistRevenueClaimer.address, platformRevenueClaimer.address],
-      [90, 10],
-      [whitelistedUser1.address, whitelistedUser2.address],
-      [1, 1]
+      [90, 10]
     );
 
     auctionDuration = 100;
@@ -118,6 +116,8 @@ describe("Artwork and Traits", function () {
         "uint256",
         "uint256",
         "uint256",
+        "address[]",
+        "uint256[]",
       ],
       [
         artwork.address,
@@ -129,6 +129,8 @@ describe("Artwork and Traits", function () {
         auctionPriceSteps,
         traitsSaleStartTime,
         whitelistStartTime,
+        [whitelistedUser1.address, whitelistedUser2.address],
+        [1, 1],
       ]
     );
 
@@ -680,7 +682,6 @@ describe("Artwork and Traits", function () {
       auctionPriceSteps,
       true,
       traitsSaleStartTime,
-      whitelistStartTime,
     ]);
 
     // Update the auction through the registry to make it exponential
@@ -1278,7 +1279,6 @@ describe("Artwork and Traits", function () {
       auctionPriceSteps,
       true,
       traitsSaleStartTime,
-      whitelistStartTime,
     ]);
 
     await expect(
