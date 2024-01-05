@@ -5,7 +5,8 @@
     "clean": "hardhat clean",
     "compile": "hardhat compile",
     "test": "hardhat test",
-    "escapify": "ts-node scripts/escapify.ts"
+    "EscapifyJSON": "ts-node scripts/EscapifyJSON.ts",
+    "EscapifySolidity": "ts-node scripts/EscapifySolidity.ts"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "npm:hardhat-deploy-ethers@^0.3.0-beta.13",

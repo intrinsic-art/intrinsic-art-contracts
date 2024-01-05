@@ -16,21 +16,19 @@ fs.readFile(inputFilePath, "utf8", (err, data) => {
     return;
   }
 
-  // Replace newlines with the newline escape character
   const modifiedContent = data
-    .replace(/\\/g, "\\\\") // escape backslash
-    // .replace(/\n/g, "\\n") // replace newline
-    .replace(/\r?\n/g, "") // escape all newline characters
-    .replace(/'/g, "\\'") // replace single quote
-    .replace(/"/g, '\\"'); // replace double quote
-  // .replace(/\t/g, ""); // remove tabs
+    .replace(/\\/g, "\\\\") // Escape backslashes for JSON
+    .replace(/"/g, '\\"') // Escape double quotes for JSON
+    .replace(/\n/g, "\\n") // Escape newlines for JSON
+    .replace(/\r/g, "\\r") // Escape carriage returns for JSON
+    .replace(/\t/g, "\\t"); // Escape tabs for JSON
 
   // Write the modified content back to the file
   fs.writeFile(`${inputFilePath}-escaped`, modifiedContent, "utf8", (err) => {
     if (err) {
       console.error(err);
     } else {
-      console.log("Newlines replaced successfully.");
+      console.log("JSON escaped!");
     }
   });
 });
