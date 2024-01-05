@@ -52,8 +52,6 @@ const CreateProject = async (hre: HardhatRuntimeEnvironment): Promise<void> => {
     config.traitsConstructorData.traitsSetupData,
     config.traitsConstructorData.primarySalesPayees,
     config.traitsConstructorData.primarySalesShares,
-    config.traitsConstructorData.royaltyPayees,
-    config.traitsConstructorData.royaltyShares,
   ];
 
   const traitsDeployResult = await deploy("MettaTraits", {
@@ -111,6 +109,8 @@ const CreateProject = async (hre: HardhatRuntimeEnvironment): Promise<void> => {
       "uint256",
       "uint256",
       "uint256",
+      "address[]",
+      "uint256[]",
     ],
     [
       artwork.address,
@@ -122,6 +122,8 @@ const CreateProject = async (hre: HardhatRuntimeEnvironment): Promise<void> => {
       hre.ethers.BigNumber.from(config.setupData.auctionPriceSteps),
       hre.ethers.BigNumber.from(config.setupData.traitsSaleStartTime),
       hre.ethers.BigNumber.from(config.setupData.whitelistStartTime),
+      config.setupData.whitelistAddresses,
+      config.setupData.whitelistAmounts,
     ]
   );
 

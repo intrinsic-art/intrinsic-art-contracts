@@ -32,6 +32,8 @@ interface ProjectConfig {
     auctionPriceSteps: number;
     traitsSaleStartTime: number;
     whitelistStartTime: number;
+    whitelistAddresses: string[];
+    whitelistAmounts: number[];
   };
 }
 

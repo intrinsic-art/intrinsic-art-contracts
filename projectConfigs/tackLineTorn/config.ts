@@ -63,6 +63,8 @@ const projectConfig: ProjectConfig = {
     auctionPriceSteps: 720,
     traitsSaleStartTime: Math.trunc(Date.now() / 1000) + 600,
     whitelistStartTime: Math.trunc(Date.now() / 1000) + 600,
+    whitelistAddresses: ["0xAa9D46AE079851116967c6573f961B304095C34a"],
+    whitelistAmounts: [10]
   },
 };
 
