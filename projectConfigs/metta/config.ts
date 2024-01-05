@@ -5,10 +5,10 @@ const projectConfig: ProjectConfig = {
   artworkConstructorData: {
     name: "Metta",
     symbol: "METTA",
-    artistAddress: "0xAa9D46AE079851116967c6573f961B304095C34a",
-    royaltyFeeNumerator: BigNumber.from(1000),
-    royaltyPayees: ["0xAa9D46AE079851116967c6573f961B304095C34a"],
-    royaltyShares: [BigNumber.from(100)],
+    artistAddress: "0xA6a4Fe416F8Bf46bc3bCA068aC8b1fC4DF760653",
+    royaltyFeeNumerator: BigNumber.from(750),
+    royaltyPayees: ["0xA6a4Fe416F8Bf46bc3bCA068aC8b1fC4DF760653", "0xAa9D46AE079851116967c6573f961B304095C34a"],
+    royaltyShares: [BigNumber.from(500), BigNumber.from(250)],
   },
   traitsConstructorData: {
     traitsSetupData: {
@@ -113,8 +113,8 @@ const projectConfig: ProjectConfig = {
     auctionPriceSteps: 720,
     traitsSaleStartTime: Math.trunc(Date.now() / 1000) + 600,
     whitelistStartTime: Math.trunc(Date.now() / 1000) + 600,
-    whitelistAddresses: ["0xAa9D46AE079851116967c6573f961B304095C34a"],
-    whitelistAmounts: [10]
+    whitelistAddresses: ["0xAa9D46AE079851116967c6573f961B304095C34a", "0xA3a8D06505C85049D57F7fcF00432Ca7A7800055", "0x02d53D2C706252814D7264edb7FAf15686939702"],
+    whitelistAmounts: [10, 10, 10]
   },
 };
 
