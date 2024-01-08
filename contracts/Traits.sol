@@ -181,16 +181,16 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
         if (msg.value < _traitCount * traitPrice()) revert InvalidEthAmount();
 
         _mintBatch(_recipient, _traitTokenIds, _traitAmounts, "");
-
-        emit TraitsMinted(_recipient, _traitTokenIds, _traitAmounts);
     }
 
     /** @inheritdoc ITraits*/
     function mintTraitsArtistProof(
-        address _artistAddress,
+        address _caller,
         uint256[] calldata _traitTokenIds
     ) external onlyArtwork {
-        _mintTraitsWhitelistOrProof(_artistAddress, _traitTokenIds);
+        _mintTraitsWhitelistOrProof(_caller, _traitTokenIds);
+
+        emit ProofArtworkMint(_caller);
     }
 
     /** @inheritdoc ITraits*/

@@ -300,23 +300,11 @@
       {
         "indexed": true,
         "internalType": "address",
-        "name": "recipient",
+        "name": "caller",
         "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256[]",
-        "name": "traitTokenIds",
-        "type": "uint256[]"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256[]",
-        "name": "traitAmounts",
-        "type": "uint256[]"
       }
     ],
-    "name": "TraitsMinted",
+    "name": "ProofArtworkMint",
     "type": "event"
   },
   {
@@ -691,7 +679,7 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "_artistAddress",
+        "name": "_caller",
         "type": "address"
       },
       {

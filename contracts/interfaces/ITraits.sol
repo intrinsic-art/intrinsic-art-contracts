@@ -25,12 +25,6 @@ interface ITraits is IERC1155 {
         uint256[] traitMaxSupplys;
     }
 
-    event TraitsMinted(
-        address indexed recipient,
-        uint256[] traitTokenIds,
-        uint256[] traitAmounts
-    );
-
     event AuctionUpdated(
         uint256 auctionStartTime,
         uint256 auctionEndTime,
@@ -48,6 +42,8 @@ interface ITraits is IERC1155 {
     );
 
     event WhitelistArtworkMint(address indexed caller);
+
+    event ProofArtworkMint(address indexed caller);
 
     error OnlyArtwork();
     error OnlyProjectRegistry();
@@ -120,13 +116,13 @@ interface ITraits is IERC1155 {
     ) external payable;
 
     /**
-     * Allows the artist to mint traits for free for the proof artwork1
+     * Allows the artist to mint traits for free for the proof artwork
      *
-     * @param _artistAddress the artist address to receive the trait tokens
+     * @param _caller the artist address to receive the trait tokens
      * @param _traitTokenIds the trait token IDs to mint the artwork with
      */
     function mintTraitsArtistProof(
-        address _artistAddress,
+        address _caller,
         uint256[] calldata _traitTokenIds
     ) external;
 
