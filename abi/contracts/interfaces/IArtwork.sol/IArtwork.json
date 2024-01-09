@@ -6,6 +6,16 @@
   },
   {
     "inputs": [],
+    "name": "AuctionIsLive",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "NoWhitelistMints",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "OnlyArtist",
     "type": "error"
   },
@@ -37,6 +47,11 @@
   {
     "inputs": [],
     "name": "TraitsNotSet",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "WhitelistStartTime",
     "type": "error"
   },
   {
@@ -126,6 +141,25 @@
       {
         "indexed": true,
         "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "caller",
+        "type": "address"
+      }
+    ],
+    "name": "ProofArtworkMinted",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
         "name": "artworkTokenId",
         "type": "uint256"
       },
@@ -162,6 +196,50 @@
       }
     ],
     "name": "Transfer",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "caller",
+        "type": "address"
+      }
+    ],
+    "name": "WhitelistArtworkMinted",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "whitelistStartTime",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "address[]",
+        "name": "whitelistAddresses",
+        "type": "address[]"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256[]",
+        "name": "whitelistAmounts",
+        "type": "uint256[]"
+      }
+    ],
+    "name": "WhitelistUpdated",
     "type": "event"
   },
   {
@@ -609,12 +687,54 @@
   {
     "inputs": [
       {
+        "internalType": "uint256",
+        "name": "_whitelistStartTime",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address[]",
+        "name": "_whitelistAddresses",
+        "type": "address[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "_whitelistAmounts",
+        "type": "uint256[]"
+      }
+    ],
+    "name": "updateWhitelist",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "address",
         "name": "_user",
         "type": "address"
       }
     ],
     "name": "userNonce",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_user",
+        "type": "address"
+      }
+    ],
+    "name": "whitelistMintsRemaining",
     "outputs": [
       {
         "internalType": "uint256",

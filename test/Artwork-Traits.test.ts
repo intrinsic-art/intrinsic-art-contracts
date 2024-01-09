@@ -104,7 +104,15 @@ describe("Artwork and Traits", function () {
     traitsSaleStartTime = currentTime + 300;
     whitelistStartTime = currentTime + 110;
 
-    const encodedArtworkData = abiCoder.encode(["address"], [traits.address]);
+    const encodedArtworkData = abiCoder.encode(
+      ["address", "uint256", "address[]", "uint256[]"],
+      [
+        traits.address,
+        whitelistStartTime,
+        [whitelistedUser1.address, whitelistedUser2.address],
+        [1, 1],
+      ]
+    );
     const encodedTraitsData = abiCoder.encode(
       [
         "address",
@@ -115,9 +123,6 @@ describe("Artwork and Traits", function () {
         "uint256",
         "uint256",
         "uint256",
-        "uint256",
-        "address[]",
-        "uint256[]",
       ],
       [
         artwork.address,
@@ -128,9 +133,6 @@ describe("Artwork and Traits", function () {
         auctionEndPrice,
         auctionPriceSteps,
         traitsSaleStartTime,
-        whitelistStartTime,
-        [whitelistedUser1.address, whitelistedUser2.address],
-        [1, 1],
       ]
     );
 
@@ -1227,7 +1229,7 @@ describe("Artwork and Traits", function () {
     await time.increase(time.duration.seconds(120));
 
     expect(
-      await traits.whitelistMintsRemaining(whitelistedUser1.address)
+      await artwork.whitelistMintsRemaining(whitelistedUser1.address)
     ).to.eq(1);
 
     await artwork.connect(whitelistedUser1).mintArtworkWhitelist([0, 3], 100);
@@ -1235,14 +1237,14 @@ describe("Artwork and Traits", function () {
     expect(await artwork.ownerOf(0)).to.eq(whitelistedUser1.address);
 
     expect(
-      await traits.whitelistMintsRemaining(whitelistedUser1.address)
+      await artwork.whitelistMintsRemaining(whitelistedUser1.address)
     ).to.eq(0);
 
     await expect(
       artwork.connect(whitelistedUser1).mintArtworkWhitelist([0, 3], 100)
     ).to.be.revertedWith("NoWhitelistMints()");
 
-    expect(await traits.whitelistMintsRemaining(user1.address)).to.eq(0);
+    expect(await artwork.whitelistMintsRemaining(user1.address)).to.eq(0);
 
     await expect(
       artwork.connect(user1).mintArtworkWhitelist([0, 3], 100)

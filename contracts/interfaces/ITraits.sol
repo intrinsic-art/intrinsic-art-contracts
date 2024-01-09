@@ -35,16 +35,6 @@ interface ITraits is IERC1155 {
         uint256 traitsSaleStartTime
     );
 
-    event WhitelistUpdated(
-        uint256 whitelistStartTime,
-        address[] whitelistAddresses,
-        uint256[] whitelistAmounts
-    );
-
-    event WhitelistArtworkMint(address indexed caller);
-
-    event ProofArtworkMint(address indexed caller);
-
     error OnlyArtwork();
     error OnlyProjectRegistry();
     error AlreadySetup();
@@ -56,8 +46,6 @@ interface ITraits is IERC1155 {
     error AuctionNotLive();
     error InvalidTokenId();
     error TraitsSaleStartTime();
-    error WhitelistStartTime();
-    error NoWhitelistMints();
 
     /**
      * Sets the address of the Artwork contract and the auction configuration
@@ -90,19 +78,6 @@ interface ITraits is IERC1155 {
     ) external;
 
     /**
-     * Updates the whitelisted addresses and amounts they can claim
-     *
-     * @param _whitelistStartTime timestamp at which whitelisted users can start minting
-     * @param _whitelistAddresses addresses to be whitelisted
-     * @param _whitelistAmounts amount of whitelist mints for each address
-     */
-    function updateWhitelist(
-        uint256 _whitelistStartTime,
-        address[] memory _whitelistAddresses,
-        uint256[] memory _whitelistAmounts
-    ) external;
-
-    /**
      * Allows a user to mint any number of traits and amounts using ether
      *
      * @param _recipient the address to receive the trait tokens
@@ -116,23 +91,12 @@ interface ITraits is IERC1155 {
     ) external payable;
 
     /**
-     * Allows the artist to mint traits for free for the proof artwork
+     * Mints traits for artist proof and for whitelisted mints
      *
-     * @param _caller the artist address to receive the trait tokens
-     * @param _traitTokenIds the trait token IDs to mint the artwork with
+     * @param _recipient address to receive the minted traits
+     * @param _traitTokenIds trait token IDs to mint
      */
-    function mintTraitsArtistProof(
-        address _caller,
-        uint256[] calldata _traitTokenIds
-    ) external;
-
-    /**
-     * Allows a whitelisted user to mint traits for free
-     *
-     * @param _recipient the address to receive the trait tokens
-     * @param _traitTokenIds the trait token IDs to mint the artwork with
-     */
-    function mintTraitsWhitelist(
+    function mintTraitsWhitelistOrProof(
         address _recipient,
         uint256[] calldata _traitTokenIds
     ) external;
@@ -225,15 +189,6 @@ interface ITraits is IERC1155 {
     function traitPrice() external view returns (uint256 _price);
 
     /**
-     * Returns how many more whitelist mints the specified address has
-     *
-     * @return uint256 the number of whitelist mints remaining
-     */
-    function whitelistMintsRemaining(
-        address _user
-    ) external view returns (uint256);
-
-    /**
      * Returns the max supply of the specified token ID
      *
      * @return _maxSupply the max supply of the token
@@ -249,6 +204,16 @@ interface ITraits is IERC1155 {
      * @return string the token specific URI
      */
     function uri(uint256 _tokenId) external view returns (string memory);
+
+    /**
+     * Returns the auction start timestamp
+     *
+     * @return uint256 the timestamp the auction starts
+     */
+    function auctionStartTime()
+        external
+        view
+        returns (uint256);
 
     /**
      * Returns whether the specified interface ID is supported by the contract
