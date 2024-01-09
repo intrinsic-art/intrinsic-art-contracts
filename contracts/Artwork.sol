@@ -16,7 +16,14 @@ import {ERC1155Holder, ERC1155Receiver, IERC165} from "@openzeppelin/contracts/t
  * Implements ERC-721 standard for artwork tokens, and
  * functionality for minting artwork and reclaiming traits
  */
-contract Artwork is IArtwork, IERC721Metadata, ERC2981, ERC721, ERC1155Holder, PaymentSplitter {
+contract Artwork is
+    IArtwork,
+    IERC721Metadata,
+    ERC2981,
+    ERC721,
+    ERC1155Holder,
+    PaymentSplitter
+{
     using Strings for uint256;
     using Strings for address;
 
@@ -28,9 +35,17 @@ contract Artwork is IArtwork, IERC721Metadata, ERC2981, ERC721, ERC1155Holder, P
     uint256 public nextTokenId;
     StringStorageData public metadataJSONStringStorage;
     StringStorageData public scriptStringStorage;
+    uint256 public whitelistStartTime;
 
     mapping(uint256 => ArtworkData) private artworkData;
     mapping(address => uint256) private userNonces;
+    mapping(address => uint256) private _whitelistMintsRemaining;
+
+    modifier onlyProjectRegistry() {
+        if (msg.sender != address(projectRegistry))
+            revert OnlyProjectRegistry();
+        _;
+    }
 
     constructor(
         string memory _name,
@@ -59,9 +74,36 @@ contract Artwork is IArtwork, IERC721Metadata, ERC2981, ERC721, ERC1155Holder, P
             revert OnlyProjectRegistry();
         if (address(traits) != address(0)) revert AlreadySetup();
 
-        address _traits = abi.decode(_data, (address));
+        (
+            address _traits,
+            uint256 _whitelistStartTime,
+            address[] memory _whitelistAddresses,
+            uint256[] memory _whitelistAmounts
+        ) = abi.decode(_data, (address, uint256, address[], uint256[]));
 
         traits = ITraits(_traits);
+
+        _updateWhitelist(
+            _whitelistStartTime,
+            _whitelistAddresses,
+            _whitelistAmounts
+        );
+    }
+
+    /** @inheritdoc IArtwork*/
+    function updateWhitelist(
+        uint256 _whitelistStartTime,
+        address[] memory _whitelistAddresses,
+        uint256[] memory _whitelistAmounts
+    ) external onlyProjectRegistry {
+        if (traits.auctionStartTime() <= block.timestamp)
+            revert AuctionIsLive();
+
+        _updateWhitelist(
+            _whitelistStartTime,
+            _whitelistAddresses,
+            _whitelistAmounts
+        );
     }
 
     /** @inheritdoc IArtwork*/
@@ -86,6 +128,60 @@ contract Artwork is IArtwork, IERC721Metadata, ERC2981, ERC721, ERC1155Holder, P
         _safeMint(msg.sender, _artworkTokenId);
 
         emit ArtworkMinted(_artworkTokenId, _traitTokenIds, _hash, msg.sender);
+    }
+
+    /** @inheritdoc IArtwork*/
+    function mintArtworkProof(
+        uint256[] calldata _traitTokenIds,
+        uint256 _saltNonce
+    ) external {
+        if (proofMinted) revert ProofAlreadyMinted();
+        if (
+            msg.sender != artistAddress &&
+            msg.sender != address(projectRegistry)
+        ) revert OnlyArtistOrProjectRegistry();
+
+        proofMinted = true;
+
+        traits.mintTraitsWhitelistOrProof(msg.sender, _traitTokenIds);
+
+        uint256 tokenId = mintArtwork(_traitTokenIds, _saltNonce);
+
+        emit ProofArtworkMinted(tokenId, msg.sender);
+    }
+
+    /** @inheritdoc IArtwork*/
+    function mintArtworkWhitelist(
+        uint256[] calldata _traitTokenIds,
+        uint256 _saltNonce
+    ) external {
+        if (block.timestamp < whitelistStartTime) revert WhitelistStartTime();
+        if (_whitelistMintsRemaining[msg.sender] == 0)
+            revert NoWhitelistMints();
+
+        _whitelistMintsRemaining[msg.sender]--;
+
+        traits.mintTraitsWhitelistOrProof(msg.sender, _traitTokenIds);
+
+        uint256 tokenId = mintArtwork(_traitTokenIds, _saltNonce);
+
+        emit WhitelistArtworkMinted(tokenId, msg.sender);
+    }
+
+    /** @inheritdoc IArtwork*/
+    function mintTraitsAndArtwork(
+        uint256[] calldata _traitTokenIdsToBuy,
+        uint256[] calldata _traitAmountsToBuy,
+        uint256[] calldata _traitTokenIdsToCreateArtwork,
+        uint256 _saltNonce
+    ) external payable {
+        traits.mintTraits{value: msg.value}(
+            msg.sender,
+            _traitTokenIdsToBuy,
+            _traitAmountsToBuy
+        );
+
+        mintArtwork(_traitTokenIdsToCreateArtwork, _saltNonce);
     }
 
     /** @inheritdoc IArtwork*/
@@ -119,50 +215,6 @@ contract Artwork is IArtwork, IERC721Metadata, ERC2981, ERC721, ERC1155Holder, P
     }
 
     /** @inheritdoc IArtwork*/
-    function mintArtworkProof(
-        uint256[] calldata _traitTokenIds,
-        uint256 _saltNonce
-    ) external {
-        if (proofMinted) revert ProofAlreadyMinted();
-        if (
-            msg.sender != artistAddress &&
-            msg.sender != address(projectRegistry)
-        ) revert OnlyArtistOrProjectRegistry();
-
-        proofMinted = true;
-
-        traits.mintTraitsArtistProof(msg.sender, _traitTokenIds);
-
-        mintArtwork(_traitTokenIds, _saltNonce);
-    }
-
-    /** @inheritdoc IArtwork*/
-    function mintArtworkWhitelist(
-        uint256[] calldata _traitTokenIds,
-        uint256 _saltNonce
-    ) external {
-        traits.mintTraitsWhitelist(msg.sender, _traitTokenIds);
-
-        mintArtwork(_traitTokenIds, _saltNonce);
-    }
-
-    /** @inheritdoc IArtwork*/
-    function mintTraitsAndArtwork(
-        uint256[] calldata _traitTokenIdsToBuy,
-        uint256[] calldata _traitAmountsToBuy,
-        uint256[] calldata _traitTokenIdsToCreateArtwork,
-        uint256 _saltNonce
-    ) external payable {
-        traits.mintTraits{value: msg.value}(
-            msg.sender,
-            _traitTokenIdsToBuy,
-            _traitAmountsToBuy
-        );
-
-        mintArtwork(_traitTokenIdsToCreateArtwork, _saltNonce);
-    }
-
-    /** @inheritdoc IArtwork*/
     function tokenURI(
         uint256 _tokenId
     )
@@ -184,6 +236,13 @@ contract Artwork is IArtwork, IERC721Metadata, ERC2981, ERC721, ERC1155Holder, P
                     )
                 )
                 : "";
+    }
+
+    /** @inheritdoc IArtwork*/
+    function whitelistMintsRemaining(
+        address _user
+    ) external view returns (uint256) {
+        return _whitelistMintsRemaining[_user];
     }
 
     /** @inheritdoc IArtwork*/
@@ -257,5 +316,39 @@ contract Artwork is IArtwork, IERC721Metadata, ERC2981, ERC721, ERC1155Holder, P
         return
             interfaceId == type(IArtwork).interfaceId ||
             super.supportsInterface(interfaceId);
+    }
+
+    /**
+     * Updates whitelist data
+     *
+     * @param _whitelistStartTime timestamp at which whitelisted users can start minting
+     * @param _whitelistAddresses the addresses to whitelist
+     * @param _whitelistAmounts the amounts each address can whitelist mint
+     */
+    function _updateWhitelist(
+        uint256 _whitelistStartTime,
+        address[] memory _whitelistAddresses,
+        uint256[] memory _whitelistAmounts
+    ) private {
+        if (_whitelistAddresses.length != _whitelistAmounts.length)
+            revert InvalidArrayLengths();
+
+        whitelistStartTime = _whitelistStartTime;
+
+        for (uint256 i; i < _whitelistAddresses.length; ) {
+            _whitelistMintsRemaining[
+                _whitelistAddresses[i]
+            ] = _whitelistAmounts[i];
+
+            unchecked {
+                ++i;
+            }
+        }
+
+        emit WhitelistUpdated(
+            _whitelistStartTime,
+            _whitelistAddresses,
+            _whitelistAmounts
+        );
     }
 }

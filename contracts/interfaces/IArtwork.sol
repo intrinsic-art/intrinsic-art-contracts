@@ -23,6 +23,9 @@ interface IArtwork is IERC2981, IERC721 {
     error OnlyArtistOrProjectRegistry();
     error OnlyArtworkOwner();
     error AlreadySetup();
+    error WhitelistStartTime();
+    error NoWhitelistMints();
+    error AuctionIsLive();
 
     event ArtworkMinted(
         uint256 indexed artworkTokenId,
@@ -34,13 +37,33 @@ interface IArtwork is IERC2981, IERC721 {
         uint256 indexed artworkTokenId,
         address indexed caller
     );
+    event WhitelistUpdated(
+        uint256 whitelistStartTime,
+        address[] whitelistAddresses,
+        uint256[] whitelistAmounts
+    );
+    event WhitelistArtworkMinted(uint256 indexed tokenId, address indexed caller);
+    event ProofArtworkMinted(uint256 indexed tokenId, address indexed caller);
 
     /**
      * Sets up the contract
      *
-     * @param _data bytes containing address of the traits contract
+     * @param _data bytes containing address of the traits contract and whitelist data
      */
     function setup(bytes calldata _data) external;
+
+    /**
+     * Updates the whitelisted addresses and amounts they can claim
+     *
+     * @param _whitelistStartTime timestamp at which whitelisted users can start minting
+     * @param _whitelistAddresses addresses to be whitelisted
+     * @param _whitelistAmounts amount of whitelist mints for each address
+     */
+    function updateWhitelist(
+        uint256 _whitelistStartTime,
+        address[] memory _whitelistAddresses,
+        uint256[] memory _whitelistAmounts
+    ) external;
 
     /**
      * Mints a new artwork with the specified trait token IDs
@@ -54,15 +77,6 @@ interface IArtwork is IERC2981, IERC721 {
         uint256[] calldata _traitTokenIds,
         uint256 _saltNonce
     ) external returns (uint256 _artworkTokenId);
-
-    /**
-     * Reclaims the traits the specified artwork token into the traits its composed of
-     * The artwork token is burned, and the token ID will never be reused
-     * The traits are transferred to the caller's address
-     *
-     * @param _artworkTokenId the token ID of the artwork being reclaimed
-     */
-    function reclaimTraits(uint256 _artworkTokenId) external;
 
     /**
      * Allows the artist or project registry to mint the proof mint
@@ -103,12 +117,30 @@ interface IArtwork is IERC2981, IERC721 {
     ) external payable;
 
     /**
+     * Reclaims the traits the specified artwork token into the traits its composed of
+     * The artwork token is burned, and the token ID will never be reused
+     * The traits are transferred to the caller's address
+     *
+     * @param _artworkTokenId the token ID of the artwork being reclaimed
+     */
+    function reclaimTraits(uint256 _artworkTokenId) external;
+
+    /**
      * Returns the URI of the specified token ID
      *
      * @param _tokenId token ID to get URI for
      * @return string the token URI
      */
     function tokenURI(uint256 _tokenId) external view returns (string memory);
+
+    /**
+     * Returns how many more whitelist mints the specified address has
+     *
+     * @return uint256 the number of whitelist mints remaining
+     */
+    function whitelistMintsRemaining(
+        address _user
+    ) external view returns (uint256);
 
     /**
      * Returns info about the specified artwork token

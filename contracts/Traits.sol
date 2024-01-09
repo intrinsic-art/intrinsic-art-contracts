@@ -28,10 +28,9 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
     uint256 public auctionEndPrice;
     uint256 public auctionPriceSteps;
     uint256 public traitsSaleStartTime;
-    uint256 public whitelistStartTime;
+
     TraitType[] private _traitTypes;
     Trait[] private _traits;
-    mapping(address => uint256) private _whitelistMintsRemaining;
 
     modifier onlyArtwork() {
         if (msg.sender != address(artwork)) revert OnlyArtwork();
@@ -74,10 +73,7 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
             uint256 _auctionStartPrice,
             uint256 _auctionEndPrice,
             uint256 _auctionPriceSteps,
-            uint256 _traitsSaleStartTime,
-            uint256 _whitelistStartTime,
-            address[] memory _whitelistAddresses,
-            uint256[] memory _whitelistAmounts
+            uint256 _traitsSaleStartTime
         ) = abi.decode(
                 _data,
                 (
@@ -88,10 +84,7 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
                     uint256,
                     uint256,
                     uint256,
-                    uint256,
-                    uint256,
-                    address[],
-                    uint256[]
+                    uint256
                 )
             );
 
@@ -105,12 +98,6 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
             _auctionPriceSteps,
             _auctionExponential,
             _traitsSaleStartTime
-        );
-
-        _updateWhitelist(
-            _whitelistStartTime,
-            _whitelistAddresses,
-            _whitelistAmounts
         );
     }
 
@@ -134,21 +121,6 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
             _auctionPriceSteps,
             _auctionExponential,
             _traitsSaleStartTime
-        );
-    }
-
-    /** @inheritdoc ITraits*/
-    function updateWhitelist(
-        uint256 _whitelistStartTime,
-        address[] memory _whitelistAddresses,
-        uint256[] memory _whitelistAmounts
-    ) external onlyProjectRegistry {
-        if (auctionStartTime <= block.timestamp) revert AuctionIsLive();
-
-        _updateWhitelist(
-            _whitelistStartTime,
-            _whitelistAddresses,
-            _whitelistAmounts
         );
     }
 
@@ -184,28 +156,30 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
     }
 
     /** @inheritdoc ITraits*/
-    function mintTraitsArtistProof(
-        address _caller,
+    function mintTraitsWhitelistOrProof(
+        address _recipient,
         uint256[] calldata _traitTokenIds
     ) external onlyArtwork {
-        _mintTraitsWhitelistOrProof(_caller, _traitTokenIds);
+        if (_traitTokenIds.length != _traitTypes.length)
+            revert InvalidArrayLengths();
 
-        emit ProofArtworkMint(_caller);
-    }
+        uint256[] memory traitAmounts = new uint256[](_traitTokenIds.length);
 
-    /** @inheritdoc ITraits*/
-    function mintTraitsWhitelist(
-        address _caller,
-        uint256[] calldata _traitTokenIds
-    ) external onlyArtwork {
-        if (block.timestamp < whitelistStartTime) revert WhitelistStartTime();
-        if (_whitelistMintsRemaining[_caller] == 0) revert NoWhitelistMints();
+        for (uint256 i; i < _traitTokenIds.length; ) {
+            if (_traits[_traitTokenIds[i]].typeIndex != i)
+                revert InvalidTraits();
+            if (
+                totalSupply(_traitTokenIds[i]) + 1 >
+                _traits[_traitTokenIds[i]].maxSupply
+            ) revert MaxSupply();
+            traitAmounts[i] = 1;
 
-        _whitelistMintsRemaining[_caller]--;
+            unchecked {
+                ++i;
+            }
+        }
 
-        _mintTraitsWhitelistOrProof(_caller, _traitTokenIds);
-
-        emit WhitelistArtworkMint(_caller);
+        _mintBatch(_recipient, _traitTokenIds, traitAmounts, "");
     }
 
     /** @inheritdoc ITraits*/
@@ -347,13 +321,6 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
     }
 
     /** @inheritdoc ITraits*/
-    function whitelistMintsRemaining(
-        address _user
-    ) external view returns (uint256) {
-        return _whitelistMintsRemaining[_user];
-    }
-
-    /** @inheritdoc ITraits*/
     function maxSupply(
         uint256 _tokenId
     ) external view returns (uint256 _maxSupply) {
@@ -408,38 +375,6 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
         bytes memory data
     ) internal override(ERC1155, ERC1155Supply) {
         super._beforeTokenTransfer(operator, from, to, ids, amounts, data);
-    }
-
-    /**
-     * Mints traits for artist proof and for whitelisted mints
-     *
-     * @param _recipient address to receive the minted traits
-     * @param _traitTokenIds trait token IDs to mint
-     */
-    function _mintTraitsWhitelistOrProof(
-        address _recipient,
-        uint256[] calldata _traitTokenIds
-    ) private {
-        if (_traitTokenIds.length != _traitTypes.length)
-            revert InvalidArrayLengths();
-
-        uint256[] memory traitAmounts = new uint256[](_traitTokenIds.length);
-
-        for (uint256 i; i < _traitTokenIds.length; ) {
-            if (_traits[_traitTokenIds[i]].typeIndex != i)
-                revert InvalidTraits();
-            if (
-                totalSupply(_traitTokenIds[i]) + 1 >
-                _traits[_traitTokenIds[i]].maxSupply
-            ) revert MaxSupply();
-            traitAmounts[i] = 1;
-
-            unchecked {
-                ++i;
-            }
-        }
-
-        _mintBatch(_recipient, _traitTokenIds, traitAmounts, "");
     }
 
     /**
@@ -543,40 +478,6 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
             _auctionPriceSteps,
             _auctionExponential,
             _traitsSaleStartTime
-        );
-    }
-
-    /**
-     * Updates whitelist data
-     *
-     * @param _whitelistStartTime timestamp at which whitelisted users can start minting
-     * @param _whitelistAddresses the addresses to whitelist
-     * @param _whitelistAmounts the amounts each address can whitelist mint
-     */
-    function _updateWhitelist(
-        uint256 _whitelistStartTime,
-        address[] memory _whitelistAddresses,
-        uint256[] memory _whitelistAmounts
-    ) private {
-        if (_whitelistAddresses.length != _whitelistAmounts.length)
-            revert InvalidArrayLengths();
-
-        whitelistStartTime = _whitelistStartTime;
-
-        for (uint256 i; i < _whitelistAddresses.length; ) {
-            _whitelistMintsRemaining[
-                _whitelistAddresses[i]
-            ] = _whitelistAmounts[i];
-
-            unchecked {
-                ++i;
-            }
-        }
-
-        emit WhitelistUpdated(
-            _whitelistStartTime,
-            _whitelistAddresses,
-            _whitelistAmounts
         );
     }
 }

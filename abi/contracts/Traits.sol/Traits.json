@@ -124,11 +124,6 @@
   },
   {
     "inputs": [],
-    "name": "NoWhitelistMints",
-    "type": "error"
-  },
-  {
-    "inputs": [],
     "name": "OnlyArtwork",
     "type": "error"
   },
@@ -140,11 +135,6 @@
   {
     "inputs": [],
     "name": "TraitsSaleStartTime",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "WhitelistStartTime",
     "type": "error"
   },
   {
@@ -300,19 +290,6 @@
       {
         "indexed": true,
         "internalType": "address",
-        "name": "caller",
-        "type": "address"
-      }
-    ],
-    "name": "ProofArtworkMint",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
         "name": "operator",
         "type": "address"
       },
@@ -398,44 +375,6 @@
       }
     ],
     "name": "URI",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "caller",
-        "type": "address"
-      }
-    ],
-    "name": "WhitelistArtworkMint",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "whitelistStartTime",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "address[]",
-        "name": "whitelistAddresses",
-        "type": "address[]"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256[]",
-        "name": "whitelistAmounts",
-        "type": "uint256[]"
-      }
-    ],
-    "name": "WhitelistUpdated",
     "type": "event"
   },
   {
@@ -679,7 +618,7 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "_caller",
+        "name": "_recipient",
         "type": "address"
       },
       {
@@ -688,25 +627,7 @@
         "type": "uint256[]"
       }
     ],
-    "name": "mintTraitsArtistProof",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "_caller",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256[]",
-        "name": "_traitTokenIds",
-        "type": "uint256[]"
-      }
-    ],
-    "name": "mintTraitsWhitelist",
+    "name": "mintTraitsWhitelistOrProof",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -1299,29 +1220,6 @@
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "_whitelistStartTime",
-        "type": "uint256"
-      },
-      {
-        "internalType": "address[]",
-        "name": "_whitelistAddresses",
-        "type": "address[]"
-      },
-      {
-        "internalType": "uint256[]",
-        "name": "_whitelistAmounts",
-        "type": "uint256[]"
-      }
-    ],
-    "name": "updateWhitelist",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
         "name": "_tokenId",
         "type": "uint256"
       }
@@ -1332,38 +1230,6 @@
         "internalType": "string",
         "name": "",
         "type": "string"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "_user",
-        "type": "address"
-      }
-    ],
-    "name": "whitelistMintsRemaining",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "whitelistStartTime",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
       }
     ],
     "stateMutability": "view",

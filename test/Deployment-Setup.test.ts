@@ -273,7 +273,15 @@ describe("Deployment and setup", function () {
     traitsSaleStartTime = currentTime + 300;
     whitelistStartTime = currentTime + 110;
 
-    const encodedArtworkData = abiCoder.encode(["address"], [traits.address]);
+    const encodedArtworkData = abiCoder.encode(
+      ["address", "uint256", "address[]", "uint256[]"],
+      [
+        traits.address,
+        whitelistStartTime,
+        [whitelistedUser1.address, whitelistedUser2.address],
+        [1, 1],
+      ]
+    );
     const encodedTraitsData = abiCoder.encode(
       [
         "address",
@@ -284,9 +292,6 @@ describe("Deployment and setup", function () {
         "uint256",
         "uint256",
         "uint256",
-        "uint256",
-        "address[]",
-        "uint256[]",
       ],
       [
         artwork.address,
@@ -297,9 +302,6 @@ describe("Deployment and setup", function () {
         auctionEndPrice,
         auctionPriceSteps,
         traitsSaleStartTime,
-        whitelistStartTime,
-        [whitelistedUser1.address, whitelistedUser2.address],
-        [1, 1],
       ]
     );
 
@@ -370,7 +372,15 @@ describe("Deployment and setup", function () {
     traitsSaleStartTime = currentTime + 300;
     whitelistStartTime = currentTime + 110;
 
-    const encodedArtworkData = abiCoder.encode(["address"], [traits.address]);
+    const encodedArtworkData = abiCoder.encode(
+      ["address", "uint256", "address[]", "uint256[]"],
+      [
+        traits.address,
+        whitelistStartTime,
+        [whitelistedUser1.address, whitelistedUser2.address],
+        [1, 1],
+      ]
+    );
     const encodedTraitsData = abiCoder.encode(
       [
         "address",
@@ -381,9 +391,6 @@ describe("Deployment and setup", function () {
         "uint256",
         "uint256",
         "uint256",
-        "uint256",
-        "address[]",
-        "uint256[]",
       ],
       [
         artwork.address,
@@ -394,9 +401,6 @@ describe("Deployment and setup", function () {
         auctionEndPrice,
         auctionPriceSteps,
         traitsSaleStartTime,
-        whitelistStartTime,
-        [whitelistedUser1.address, whitelistedUser2.address],
-        [1, 1],
       ]
     );
 
@@ -531,10 +535,9 @@ describe("Deployment and setup", function () {
         "uint256",
         "uint256",
         "uint256",
-        "uint256",
       ],
       [
-        user1.address,
+        artwork.address,
         false,
         auctionStartTime,
         auctionEndTime,
@@ -542,7 +545,6 @@ describe("Deployment and setup", function () {
         auctionEndPrice,
         auctionPriceSteps,
         traitsSaleStartTime,
-        whitelistStartTime,
       ]
     );
 
@@ -601,12 +603,19 @@ describe("Deployment and setup", function () {
     traitsSaleStartTime = currentTime + 300;
     whitelistStartTime = currentTime + 110;
 
-    const encodedArtworkData = abiCoder.encode(["address"], [traits.address]);
+    const encodedArtworkData = abiCoder.encode(
+      ["address", "uint256", "address[]", "uint256[]"],
+      [
+        traits.address,
+        whitelistStartTime,
+        [whitelistedUser1.address, whitelistedUser2.address],
+        [1, 1],
+      ]
+    );
     const encodedTraitsData = abiCoder.encode(
       [
         "address",
         "bool",
-        "uint256",
         "uint256",
         "uint256",
         "uint256",
@@ -623,7 +632,6 @@ describe("Deployment and setup", function () {
         auctionEndPrice,
         auctionPriceSteps,
         traitsSaleStartTime,
-        whitelistStartTime,
       ]
     );
 

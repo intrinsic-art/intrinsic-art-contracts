@@ -97,7 +97,15 @@ const CreateProject = async (hre: HardhatRuntimeEnvironment): Promise<void> => {
 
   console.log("Registering project & scheduling auction...");
 
-  const encodedArtworkData = abiCoder.encode(["address"], [traits.address]);
+  const encodedArtworkData = abiCoder.encode(
+    ["address", "uint256", "address[]", "uint256[]"],
+    [
+      traits.address,
+      hre.ethers.BigNumber.from(config.setupData.whitelistStartTime),
+      config.setupData.whitelistAddresses,
+      config.setupData.whitelistAmounts,
+    ]
+  );
   const encodedTraitsData = abiCoder.encode(
     [
       "address",
@@ -108,9 +116,6 @@ const CreateProject = async (hre: HardhatRuntimeEnvironment): Promise<void> => {
       "uint256",
       "uint256",
       "uint256",
-      "uint256",
-      "address[]",
-      "uint256[]",
     ],
     [
       artwork.address,
@@ -121,9 +126,6 @@ const CreateProject = async (hre: HardhatRuntimeEnvironment): Promise<void> => {
       config.setupData.auctionEndPrice,
       hre.ethers.BigNumber.from(config.setupData.auctionPriceSteps),
       hre.ethers.BigNumber.from(config.setupData.traitsSaleStartTime),
-      hre.ethers.BigNumber.from(config.setupData.whitelistStartTime),
-      config.setupData.whitelistAddresses,
-      config.setupData.whitelistAmounts,
     ]
   );
 
