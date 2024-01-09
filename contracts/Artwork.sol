@@ -39,7 +39,7 @@ contract Artwork is
 
     mapping(uint256 => ArtworkData) private artworkData;
     mapping(address => uint256) private userNonces;
-    mapping(address => uint256) private _whitelistMintsRemaining;
+    mapping(address => uint256) public whitelistMintsRemaining;
 
     modifier onlyProjectRegistry() {
         if (msg.sender != address(projectRegistry))
@@ -156,10 +156,10 @@ contract Artwork is
         uint256 _saltNonce
     ) external {
         if (block.timestamp < whitelistStartTime) revert WhitelistStartTime();
-        if (_whitelistMintsRemaining[msg.sender] == 0)
+        if (whitelistMintsRemaining[msg.sender] == 0)
             revert NoWhitelistMints();
 
-        _whitelistMintsRemaining[msg.sender]--;
+        whitelistMintsRemaining[msg.sender]--;
 
         traits.mintTraitsWhitelistOrProof(msg.sender, _traitTokenIds);
 
@@ -236,13 +236,6 @@ contract Artwork is
                     )
                 )
                 : "";
-    }
-
-    /** @inheritdoc IArtwork*/
-    function whitelistMintsRemaining(
-        address _user
-    ) external view returns (uint256) {
-        return _whitelistMintsRemaining[_user];
     }
 
     /** @inheritdoc IArtwork*/
@@ -336,7 +329,7 @@ contract Artwork is
         whitelistStartTime = _whitelistStartTime;
 
         for (uint256 i; i < _whitelistAddresses.length; ) {
-            _whitelistMintsRemaining[
+            whitelistMintsRemaining[
                 _whitelistAddresses[i]
             ] = _whitelistAmounts[i];
 
