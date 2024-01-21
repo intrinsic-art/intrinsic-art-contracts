@@ -7,7 +7,7 @@ import {IProjectRegistry} from "./interfaces/IProjectRegistry.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {ERC2981} from "@openzeppelin/contracts/token/common/ERC2981.sol";
 import {ERC1155, IERC165} from "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
-import {PaymentSplitter} from "@openzeppelin/contracts/finance/PaymentSplitter.sol";
+import {PaymentSplitter} from "./PaymentSplitter.sol";
 import {ERC1155Supply} from "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
 
 /**
@@ -28,10 +28,9 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
     uint256 public auctionEndPrice;
     uint256 public auctionPriceSteps;
     uint256 public traitsSaleStartTime;
-    uint256 public whitelistStartTime;
+
     TraitType[] private _traitTypes;
     Trait[] private _traits;
-    mapping(address => uint256) private _whitelistMintsRemaining;
 
     modifier onlyArtwork() {
         if (msg.sender != address(artwork)) revert OnlyArtwork();
@@ -48,13 +47,8 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
         address _projectRegistry,
         TraitsSetup memory _traitsSetup,
         address[] memory _primarySalesPayees,
-        uint256[] memory _primarySalesShares,
-        address[] memory _whitelistAddresses,
-        uint256[] memory _whitelistAmounts
+        uint256[] memory _primarySalesShares
     ) ERC1155("") PaymentSplitter(_primarySalesPayees, _primarySalesShares) {
-        if (_whitelistAddresses.length != _whitelistAmounts.length)
-            revert InvalidArrayLengths();
-
         projectRegistry = IProjectRegistry(_projectRegistry);
 
         _createTraitsAndTypes(
@@ -65,16 +59,6 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
             _traitsSetup.traitTypeIndexes,
             _traitsSetup.traitMaxSupplys
         );
-
-        for (uint256 i; i < _whitelistAddresses.length; ) {
-            _whitelistMintsRemaining[
-                _whitelistAddresses[i]
-            ] = _whitelistAmounts[i];
-
-            unchecked {
-                ++i;
-            }
-        }
     }
 
     /** @inheritdoc ITraits*/
@@ -89,14 +73,12 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
             uint256 _auctionStartPrice,
             uint256 _auctionEndPrice,
             uint256 _auctionPriceSteps,
-            uint256 _traitsSaleStartTime,
-            uint256 _whitelistStartTime
+            uint256 _traitsSaleStartTime
         ) = abi.decode(
                 _data,
                 (
                     address,
                     bool,
-                    uint256,
                     uint256,
                     uint256,
                     uint256,
@@ -115,8 +97,7 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
             _auctionEndPrice,
             _auctionPriceSteps,
             _auctionExponential,
-            _traitsSaleStartTime,
-            _whitelistStartTime
+            _traitsSaleStartTime
         );
     }
 
@@ -128,10 +109,9 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
         uint256 _auctionEndPrice,
         uint256 _auctionPriceSteps,
         bool _auctionExponential,
-        uint256 _traitsSaleStartTime,
-        uint256 _whitelistStartTime
+        uint256 _traitsSaleStartTime
     ) external onlyProjectRegistry {
-        if (auctionStartTime == 0) revert NotSetup();
+        if (auctionStartTime <= block.timestamp) revert AuctionIsLive();
 
         _updateAuction(
             _auctionStartTime,
@@ -140,8 +120,7 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
             _auctionEndPrice,
             _auctionPriceSteps,
             _auctionExponential,
-            _traitsSaleStartTime,
-            _whitelistStartTime
+            _traitsSaleStartTime
         );
     }
 
@@ -174,30 +153,33 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
         if (msg.value < _traitCount * traitPrice()) revert InvalidEthAmount();
 
         _mintBatch(_recipient, _traitTokenIds, _traitAmounts, "");
-
-        emit TraitsMinted(_recipient, _traitTokenIds, _traitAmounts);
     }
 
     /** @inheritdoc ITraits*/
-    function mintTraitsArtistProof(
-        address _artistAddress,
-        uint256[] calldata _traitTokenIds
-    ) external onlyArtwork {
-        _mintTraitsWhitelistOrProof(_artistAddress, _traitTokenIds);
-    }
-
-    /** @inheritdoc ITraits*/
-    function mintTraitsWhitelist(
+    function mintTraitsWhitelistOrProof(
         address _recipient,
         uint256[] calldata _traitTokenIds
     ) external onlyArtwork {
-        if (block.timestamp < whitelistStartTime) revert WhitelistStartTime();
-        if (_whitelistMintsRemaining[_recipient] == 0)
-            revert NoWhitelistMints();
+        if (_traitTokenIds.length != _traitTypes.length)
+            revert InvalidArrayLengths();
 
-        _whitelistMintsRemaining[_recipient]--;
+        uint256[] memory traitAmounts = new uint256[](_traitTokenIds.length);
 
-        _mintTraitsWhitelistOrProof(_recipient, _traitTokenIds);
+        for (uint256 i; i < _traitTokenIds.length; ) {
+            if (_traits[_traitTokenIds[i]].typeIndex != i)
+                revert InvalidTraits();
+            if (
+                totalSupply(_traitTokenIds[i]) + 1 >
+                _traits[_traitTokenIds[i]].maxSupply
+            ) revert MaxSupply();
+            traitAmounts[i] = 1;
+
+            unchecked {
+                ++i;
+            }
+        }
+
+        _mintBatch(_recipient, _traitTokenIds, traitAmounts, "");
     }
 
     /** @inheritdoc ITraits*/
@@ -322,12 +304,6 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
 
     /** @inheritdoc ITraits*/
     function traitPrice() public view returns (uint256) {
-        if (block.timestamp < auctionStartTime) revert AuctionNotLive();
-        if (block.timestamp >= auctionEndTime) {
-            // Auction has ended
-            return auctionEndPrice;
-        }
-
         // Auction is active
         if (auctionExponential) {
             // Exponential curve auction
@@ -335,20 +311,13 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
                 (((auctionStartPrice - auctionEndPrice) *
                     (auctionPriceSteps - traitPriceStep() - 1) ** 2) /
                     (auctionPriceSteps - 1) ** 2) + auctionEndPrice;
-        } else {
-            // Linear curve auction
-            return
-                auctionStartPrice -
-                ((traitPriceStep() * (auctionStartPrice - auctionEndPrice)) /
-                    (auctionPriceSteps - 1));
         }
-    }
 
-    /** @inheritdoc ITraits*/
-    function whitelistMintsRemaining(
-        address _user
-    ) external view returns (uint256) {
-        return _whitelistMintsRemaining[_user];
+        // Linear curve auction
+        return
+            auctionStartPrice -
+            ((traitPriceStep() * (auctionStartPrice - auctionEndPrice)) /
+                (auctionPriceSteps - 1));
     }
 
     /** @inheritdoc ITraits*/
@@ -388,6 +357,7 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
             super.supportsInterface(interfaceId);
     }
 
+    /** @inheritdoc ERC2981*/
     function royaltyInfo(
         uint256 tokenId,
         uint256 salePrice
@@ -405,37 +375,6 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
         bytes memory data
     ) internal override(ERC1155, ERC1155Supply) {
         super._beforeTokenTransfer(operator, from, to, ids, amounts, data);
-    }
-
-    /**
-     * Mints traits for artist proof and for whitelisted mints
-     *
-     * @param _recipient address to receive the minted traits
-     * @param _traitTokenIds trait token IDs to mint
-     */
-    function _mintTraitsWhitelistOrProof(
-        address _recipient,
-        uint256[] calldata _traitTokenIds
-    ) private {
-        if (_traitTokenIds.length != _traitTypes.length)
-            revert InvalidArrayLengths();
-
-        uint256[] memory traitAmounts = new uint256[](_traitTokenIds.length);
-
-        for (uint256 i; i < _traitTokenIds.length; ) {
-            if (_traits[_traitTokenIds[i]].typeIndex != i)
-                revert InvalidTraits();
-            if (
-                totalSupply(_traitTokenIds[i]) + 1 >
-                _traits[_traitTokenIds[i]].maxSupply
-            ) revert MaxSupply();
-            traitAmounts[i] = 1;
-            unchecked {
-                ++i;
-            }
-        }
-
-        _mintBatch(_recipient, _traitTokenIds, traitAmounts, "");
     }
 
     /**
@@ -504,7 +443,7 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
      * @param _auctionPriceSteps number of different prices auction steps through
      * @param _auctionExponential true indicates auction curve is exponential, otherwise linear
      * @param _traitsSaleStartTime timestamp at which traits can be bought individually
-     * @param _whitelistStartTime timestamp at which whitelisted users can start minting
+
      */
     function _updateAuction(
         uint256 _auctionStartTime,
@@ -513,8 +452,7 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
         uint256 _auctionEndPrice,
         uint256 _auctionPriceSteps,
         bool _auctionExponential,
-        uint256 _traitsSaleStartTime,
-        uint256 _whitelistStartTime
+        uint256 _traitsSaleStartTime
     ) private {
         if (
             _auctionEndTime < _auctionStartTime ||
@@ -531,17 +469,15 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
         auctionPriceSteps = _auctionPriceSteps;
         auctionExponential = _auctionExponential;
         traitsSaleStartTime = _traitsSaleStartTime;
-        whitelistStartTime = _whitelistStartTime;
 
-        emit AuctionScheduled(
+        emit AuctionUpdated(
             _auctionStartTime,
             _auctionEndTime,
             _auctionStartPrice,
             _auctionEndPrice,
             _auctionPriceSteps,
             _auctionExponential,
-            _traitsSaleStartTime,
-            _whitelistStartTime
+            _traitsSaleStartTime
         );
     }
 }

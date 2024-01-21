@@ -77,7 +77,7 @@ describe("Deployment and setup", function () {
         { stringStorageSlot: 0, stringStorageAddress: stringStorage.address },
         { stringStorageSlot: 1, stringStorageAddress: stringStorage.address }
       )
-    ).to.be.revertedWith("PaymentSplitter: payees and shares length mismatch");
+    ).to.be.revertedWith("InvalidArrayLengths()");
 
     await expect(
       new Artwork__factory(deployer).deploy(
@@ -91,7 +91,7 @@ describe("Deployment and setup", function () {
         { stringStorageSlot: 0, stringStorageAddress: stringStorage.address },
         { stringStorageSlot: 1, stringStorageAddress: stringStorage.address }
       )
-    ).to.be.revertedWith("PaymentSplitter: payees and shares length mismatch");
+    ).to.be.revertedWith("InvalidArrayLengths()");
 
     await expect(
       new Artwork__factory(deployer).deploy(
@@ -105,7 +105,7 @@ describe("Deployment and setup", function () {
         { stringStorageSlot: 0, stringStorageAddress: stringStorage.address },
         { stringStorageSlot: 1, stringStorageAddress: stringStorage.address }
       )
-    ).to.be.revertedWith("PaymentSplitter: no payees");
+    ).to.be.revertedWith("NoPayees()");
   });
 
   it("Only an admin can update the base URI on the project registry", async () => {
@@ -135,11 +135,9 @@ describe("Deployment and setup", function () {
           traitMaxSupplys: [10, 20, 30, 40, 50],
         },
         [artistRevenueClaimer.address],
-        [90, 10],
-        [whitelistedUser1.address, whitelistedUser2.address],
-        [1, 1]
+        [90, 10]
       )
-    ).to.be.revertedWith("PaymentSplitter: payees and shares length mismatch");
+    ).to.be.revertedWith("InvalidArrayLengths()");
 
     await expect(
       new Traits__factory(deployer).deploy(
@@ -153,27 +151,7 @@ describe("Deployment and setup", function () {
           traitMaxSupplys: [10, 20, 30, 40, 50],
         },
         [artistRevenueClaimer.address, platformRevenueClaimer.address],
-        [90],
-        [whitelistedUser1.address, whitelistedUser2.address],
-        [1, 1]
-      )
-    ).to.be.revertedWith("PaymentSplitter: payees and shares length mismatch");
-
-    await expect(
-      new Traits__factory(deployer).deploy(
-        projectRegistry.address,
-        {
-          traitTypeNames: ["Hair Color", "Eye Color"],
-          traitTypeValues: ["hairColor", "eyeColor"],
-          traitNames: ["Blonde", "Brown", "Black", "Green", "Blue"],
-          traitValues: ["blonde", "brown", "black", "green", "blue"],
-          traitTypeIndexes: [0, 0, 0, 1, 1],
-          traitMaxSupplys: [10, 20, 30, 40, 50],
-        },
-        [artistRevenueClaimer.address, platformRevenueClaimer.address],
-        [90, 10],
-        [whitelistedUser1.address, whitelistedUser2.address],
-        [1]
+        [90]
       )
     ).to.be.revertedWith("InvalidArrayLengths()");
 
@@ -189,9 +167,7 @@ describe("Deployment and setup", function () {
           traitMaxSupplys: [10, 20, 30, 40, 50],
         },
         [artistRevenueClaimer.address, platformRevenueClaimer.address],
-        [90, 10],
-        [whitelistedUser1.address, whitelistedUser2.address],
-        [1, 1]
+        [90, 10]
       )
     ).to.be.revertedWith("InvalidArrayLengths()");
 
@@ -207,9 +183,7 @@ describe("Deployment and setup", function () {
           traitMaxSupplys: [10, 20, 30, 40, 50],
         },
         [artistRevenueClaimer.address, platformRevenueClaimer.address],
-        [90, 10],
-        [whitelistedUser1.address, whitelistedUser2.address],
-        [1, 1]
+        [90, 10]
       )
     ).to.be.revertedWith("InvalidArrayLengths()");
 
@@ -225,9 +199,7 @@ describe("Deployment and setup", function () {
           traitMaxSupplys: [10, 20, 30, 40, 50],
         },
         [artistRevenueClaimer.address, platformRevenueClaimer.address],
-        [90, 10],
-        [whitelistedUser1.address, whitelistedUser2.address],
-        [1, 1]
+        [90, 10]
       )
     ).to.be.revertedWith("InvalidArrayLengths()");
 
@@ -243,9 +215,7 @@ describe("Deployment and setup", function () {
           traitMaxSupplys: [10, 20, 30, 40, 50],
         },
         [artistRevenueClaimer.address, platformRevenueClaimer.address],
-        [90, 10],
-        [whitelistedUser1.address, whitelistedUser2.address],
-        [1, 1]
+        [90, 10]
       )
     ).to.be.revertedWith("InvalidArrayLengths()");
 
@@ -261,9 +231,7 @@ describe("Deployment and setup", function () {
           traitMaxSupplys: [10, 20, 30, 40],
         },
         [artistRevenueClaimer.address, platformRevenueClaimer.address],
-        [90, 10],
-        [whitelistedUser1.address, whitelistedUser2.address],
-        [1, 1]
+        [90, 10]
       )
     ).to.be.revertedWith("InvalidArrayLengths()");
   });
@@ -292,9 +260,7 @@ describe("Deployment and setup", function () {
         traitMaxSupplys: [10, 20, 30, 40, 50],
       },
       [artistRevenueClaimer.address, platformRevenueClaimer.address],
-      [90, 10],
-      [whitelistedUser1.address, whitelistedUser2.address],
-      [1, 1]
+      [90, 10]
     );
 
     // should be invalid since auction start time is after end time
@@ -307,12 +273,19 @@ describe("Deployment and setup", function () {
     traitsSaleStartTime = currentTime + 300;
     whitelistStartTime = currentTime + 110;
 
-    const encodedArtworkData = abiCoder.encode(["address"], [traits.address]);
+    const encodedArtworkData = abiCoder.encode(
+      ["address", "uint256", "address[]", "uint256[]"],
+      [
+        traits.address,
+        whitelistStartTime,
+        [whitelistedUser1.address, whitelistedUser2.address],
+        [1, 1],
+      ]
+    );
     const encodedTraitsData = abiCoder.encode(
       [
         "address",
         "bool",
-        "uint256",
         "uint256",
         "uint256",
         "uint256",
@@ -329,7 +302,6 @@ describe("Deployment and setup", function () {
         auctionEndPrice,
         auctionPriceSteps,
         traitsSaleStartTime,
-        whitelistStartTime,
       ]
     );
 
@@ -387,9 +359,7 @@ describe("Deployment and setup", function () {
         traitMaxSupplys: [10, 20, 30, 40, 50],
       },
       [artistRevenueClaimer.address, platformRevenueClaimer.address],
-      [90, 10],
-      [whitelistedUser1.address, whitelistedUser2.address],
-      [1, 1]
+      [90, 10]
     );
 
     // should be invalid since auction start time is after end time
@@ -402,12 +372,19 @@ describe("Deployment and setup", function () {
     traitsSaleStartTime = currentTime + 300;
     whitelistStartTime = currentTime + 110;
 
-    const encodedArtworkData = abiCoder.encode(["address"], [traits.address]);
+    const encodedArtworkData = abiCoder.encode(
+      ["address", "uint256", "address[]", "uint256[]"],
+      [
+        traits.address,
+        whitelistStartTime,
+        [whitelistedUser1.address, whitelistedUser2.address],
+        [1, 1],
+      ]
+    );
     const encodedTraitsData = abiCoder.encode(
       [
         "address",
         "bool",
-        "uint256",
         "uint256",
         "uint256",
         "uint256",
@@ -424,7 +401,6 @@ describe("Deployment and setup", function () {
         auctionEndPrice,
         auctionPriceSteps,
         traitsSaleStartTime,
-        whitelistStartTime,
       ]
     );
 
@@ -559,10 +535,9 @@ describe("Deployment and setup", function () {
         "uint256",
         "uint256",
         "uint256",
-        "uint256",
       ],
       [
-        user1.address,
+        artwork.address,
         false,
         auctionStartTime,
         auctionEndTime,
@@ -570,7 +545,6 @@ describe("Deployment and setup", function () {
         auctionEndPrice,
         auctionPriceSteps,
         traitsSaleStartTime,
-        whitelistStartTime,
       ]
     );
 
@@ -585,9 +559,7 @@ describe("Deployment and setup", function () {
         traitMaxSupplys: [10, 20, 30, 40, 50],
       },
       [artistRevenueClaimer.address, platformRevenueClaimer.address],
-      [90, 10],
-      [whitelistedUser1.address, whitelistedUser2.address],
-      [1, 1]
+      [90, 10]
     );
 
     await expect(
@@ -619,9 +591,7 @@ describe("Deployment and setup", function () {
         traitMaxSupplys: [10, 20, 30, 40, 50],
       },
       [artistRevenueClaimer.address, platformRevenueClaimer.address],
-      [90, 10],
-      [whitelistedUser1.address, whitelistedUser2.address],
-      [1, 1]
+      [90, 10]
     );
 
     currentTime = (await ethers.provider.getBlock("latest")).timestamp;
@@ -633,12 +603,19 @@ describe("Deployment and setup", function () {
     traitsSaleStartTime = currentTime + 300;
     whitelistStartTime = currentTime + 110;
 
-    const encodedArtworkData = abiCoder.encode(["address"], [traits.address]);
+    const encodedArtworkData = abiCoder.encode(
+      ["address", "uint256", "address[]", "uint256[]"],
+      [
+        traits.address,
+        whitelistStartTime,
+        [whitelistedUser1.address, whitelistedUser2.address],
+        [1, 1],
+      ]
+    );
     const encodedTraitsData = abiCoder.encode(
       [
         "address",
         "bool",
-        "uint256",
         "uint256",
         "uint256",
         "uint256",
@@ -655,7 +632,6 @@ describe("Deployment and setup", function () {
         auctionEndPrice,
         auctionPriceSteps,
         traitsSaleStartTime,
-        whitelistStartTime,
       ]
     );
 

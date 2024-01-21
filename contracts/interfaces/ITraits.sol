@@ -25,28 +25,20 @@ interface ITraits is IERC1155 {
         uint256[] traitMaxSupplys;
     }
 
-    event TraitsMinted(
-        address indexed recipient,
-        uint256[] traitTokenIds,
-        uint256[] traitAmounts
-    );
-
-    event AuctionScheduled(
-        uint256 _auctionStartTime,
-        uint256 _auctionEndTime,
-        uint256 _auctionStartPrice,
-        uint256 _auctionEndPrice,
-        uint256 _auctionPriceSteps,
-        bool _auctionExponential,
-        uint256 _traitsSaleStartTime,
-        uint256 _whitelistStartTime
+    event AuctionUpdated(
+        uint256 auctionStartTime,
+        uint256 auctionEndTime,
+        uint256 auctionStartPrice,
+        uint256 auctionEndPrice,
+        uint256 auctionPriceSteps,
+        bool auctionExponential,
+        uint256 traitsSaleStartTime
     );
 
     error OnlyArtwork();
     error OnlyProjectRegistry();
     error AlreadySetup();
-    error NotSetup();
-    error InvalidArrayLengths();
+    error AuctionIsLive();
     error InvalidAuction();
     error MaxSupply();
     error InvalidEthAmount();
@@ -54,17 +46,13 @@ interface ITraits is IERC1155 {
     error AuctionNotLive();
     error InvalidTokenId();
     error TraitsSaleStartTime();
-    error WhitelistStartTime();
-    error NoWhitelistMints();
 
     /**
      * Sets the address of the Artwork contract and the auction configuration
      *
      * @param _data bytes data containt the artwork contract address and auction data
      */
-    function setup(
-        bytes calldata _data
-    ) external;
+    function setup(bytes calldata _data) external;
 
     /**
      * Updates the schedule of the dutch auction, can only
@@ -78,7 +66,6 @@ interface ITraits is IERC1155 {
      * @param _auctionPriceSteps number of different prices auction steps through
      * @param _auctionExponential true indicates auction curve is exponential, otherwise linear
      * @param _traitsSaleStartTime timestamp at which traits can be bought individually
-     * @param _whitelistStartTime timestamp at which whitelisted users can start minting
      */
     function updateAuction(
         uint256 _auctionStartTime,
@@ -87,8 +74,7 @@ interface ITraits is IERC1155 {
         uint256 _auctionEndPrice,
         uint256 _auctionPriceSteps,
         bool _auctionExponential,
-        uint256 _traitsSaleStartTime,
-        uint256 _whitelistStartTime
+        uint256 _traitsSaleStartTime
     ) external;
 
     /**
@@ -105,23 +91,12 @@ interface ITraits is IERC1155 {
     ) external payable;
 
     /**
-     * Allows the artist to mint traits for free for the proof artwork1
+     * Mints traits for artist proof and for whitelisted mints
      *
-     * @param _artistAddress the artist address to receive the trait tokens
-     * @param _traitTokenIds the trait token IDs to mint the artwork with
+     * @param _recipient address to receive the minted traits
+     * @param _traitTokenIds trait token IDs to mint
      */
-    function mintTraitsArtistProof(
-        address _artistAddress,
-        uint256[] calldata _traitTokenIds
-    ) external;
-
-    /**
-     * Allows a whitelisted user to mint traits for free
-     *
-     * @param _recipient the address to receive the trait tokens
-     * @param _traitTokenIds the trait token IDs to mint the artwork with
-     */
-    function mintTraitsWhitelist(
+    function mintTraitsWhitelistOrProof(
         address _recipient,
         uint256[] calldata _traitTokenIds
     ) external;
@@ -214,13 +189,6 @@ interface ITraits is IERC1155 {
     function traitPrice() external view returns (uint256 _price);
 
     /**
-     * Returns how many more whitelist mints the specified address has
-     *
-     * @return uint256 the number of whitelist mints remaining
-     */
-    function whitelistMintsRemaining(address _user) external view returns (uint256);
-
-    /**
      * Returns the max supply of the specified token ID
      *
      * @return _maxSupply the max supply of the token
@@ -236,6 +204,16 @@ interface ITraits is IERC1155 {
      * @return string the token specific URI
      */
     function uri(uint256 _tokenId) external view returns (string memory);
+
+    /**
+     * Returns the auction start timestamp
+     *
+     * @return uint256 the timestamp the auction starts
+     */
+    function auctionStartTime()
+        external
+        view
+        returns (uint256);
 
     /**
      * Returns whether the specified interface ID is supported by the contract

@@ -1,19 +1,38 @@
 [
   {
-    "inputs": [
-      {
-        "internalType": "address[]",
-        "name": "payees",
-        "type": "address[]"
-      },
-      {
-        "internalType": "uint256[]",
-        "name": "shares_",
-        "type": "uint256[]"
-      }
-    ],
-    "stateMutability": "payable",
-    "type": "constructor"
+    "inputs": [],
+    "name": "DuplicatePayee",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InvalidArrayLengths",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "NoPayees",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "NoPaymentDue",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "NoShares",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "ZeroAddress",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "ZeroShares",
+    "type": "error"
   },
   {
     "anonymous": false,
@@ -65,25 +84,6 @@
       {
         "indexed": false,
         "internalType": "address",
-        "name": "from",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      }
-    ],
-    "name": "PaymentReceived",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "address",
         "name": "to",
         "type": "address"
       },
@@ -117,19 +117,18 @@
     "type": "function"
   },
   {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
-      }
-    ],
-    "name": "releasable",
+    "inputs": [],
+    "name": "payees",
     "outputs": [
       {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
+        "internalType": "address[]",
+        "name": "payees_",
+        "type": "address[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "shares_",
+        "type": "uint256[]"
       }
     ],
     "stateMutability": "view",
@@ -148,7 +147,7 @@
         "type": "address"
       }
     ],
-    "name": "releasable",
+    "name": "releasableERC20",
     "outputs": [
       {
         "internalType": "uint256",
@@ -162,12 +161,38 @@
   {
     "inputs": [
       {
-        "internalType": "address payable",
+        "internalType": "address",
         "name": "account",
         "type": "address"
       }
     ],
-    "name": "release",
+    "name": "releasableETH",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "contract IERC20",
+        "name": "token",
+        "type": "address"
+      }
+    ],
+    "name": "releaseERC20",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "releaseETH",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -185,25 +210,7 @@
         "type": "address"
       }
     ],
-    "name": "release",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "contract IERC20",
-        "name": "token",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
-      }
-    ],
-    "name": "released",
+    "name": "releasedERC20",
     "outputs": [
       {
         "internalType": "uint256",
@@ -222,7 +229,7 @@
         "type": "address"
       }
     ],
-    "name": "released",
+    "name": "releasedETH",
     "outputs": [
       {
         "internalType": "uint256",
@@ -260,7 +267,7 @@
         "type": "address"
       }
     ],
-    "name": "totalReleased",
+    "name": "totalReleasedERC20",
     "outputs": [
       {
         "internalType": "uint256",
@@ -273,7 +280,7 @@
   },
   {
     "inputs": [],
-    "name": "totalReleased",
+    "name": "totalReleasedETH",
     "outputs": [
       {
         "internalType": "uint256",
@@ -296,9 +303,5 @@
     ],
     "stateMutability": "view",
     "type": "function"
-  },
-  {
-    "stateMutability": "payable",
-    "type": "receive"
   }
 ]

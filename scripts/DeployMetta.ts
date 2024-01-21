@@ -52,8 +52,6 @@ const CreateProject = async (hre: HardhatRuntimeEnvironment): Promise<void> => {
     config.traitsConstructorData.traitsSetupData,
     config.traitsConstructorData.primarySalesPayees,
     config.traitsConstructorData.primarySalesShares,
-    config.traitsConstructorData.royaltyPayees,
-    config.traitsConstructorData.royaltyShares,
   ];
 
   const traitsDeployResult = await deploy("MettaTraits", {
@@ -99,12 +97,19 @@ const CreateProject = async (hre: HardhatRuntimeEnvironment): Promise<void> => {
 
   console.log("Registering project & scheduling auction...");
 
-  const encodedArtworkData = abiCoder.encode(["address"], [traits.address]);
+  const encodedArtworkData = abiCoder.encode(
+    ["address", "uint256", "address[]", "uint256[]"],
+    [
+      traits.address,
+      hre.ethers.BigNumber.from(config.setupData.whitelistStartTime),
+      config.setupData.whitelistAddresses,
+      config.setupData.whitelistAmounts,
+    ]
+  );
   const encodedTraitsData = abiCoder.encode(
     [
       "address",
       "bool",
-      "uint256",
       "uint256",
       "uint256",
       "uint256",
@@ -121,7 +126,6 @@ const CreateProject = async (hre: HardhatRuntimeEnvironment): Promise<void> => {
       config.setupData.auctionEndPrice,
       hre.ethers.BigNumber.from(config.setupData.auctionPriceSteps),
       hre.ethers.BigNumber.from(config.setupData.traitsSaleStartTime),
-      hre.ethers.BigNumber.from(config.setupData.whitelistStartTime),
     ]
   );
 

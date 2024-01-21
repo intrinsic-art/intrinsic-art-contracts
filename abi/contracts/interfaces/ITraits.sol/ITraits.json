@@ -6,12 +6,12 @@
   },
   {
     "inputs": [],
-    "name": "AuctionNotLive",
+    "name": "AuctionIsLive",
     "type": "error"
   },
   {
     "inputs": [],
-    "name": "InvalidArrayLengths",
+    "name": "AuctionNotLive",
     "type": "error"
   },
   {
@@ -41,16 +41,6 @@
   },
   {
     "inputs": [],
-    "name": "NoWhitelistMints",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "NotSetup",
-    "type": "error"
-  },
-  {
-    "inputs": [],
     "name": "OnlyArtwork",
     "type": "error"
   },
@@ -62,11 +52,6 @@
   {
     "inputs": [],
     "name": "TraitsSaleStartTime",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "WhitelistStartTime",
     "type": "error"
   },
   {
@@ -100,78 +85,47 @@
       {
         "indexed": false,
         "internalType": "uint256",
-        "name": "_auctionStartTime",
+        "name": "auctionStartTime",
         "type": "uint256"
       },
       {
         "indexed": false,
         "internalType": "uint256",
-        "name": "_auctionEndTime",
+        "name": "auctionEndTime",
         "type": "uint256"
       },
       {
         "indexed": false,
         "internalType": "uint256",
-        "name": "_auctionStartPrice",
+        "name": "auctionStartPrice",
         "type": "uint256"
       },
       {
         "indexed": false,
         "internalType": "uint256",
-        "name": "_auctionEndPrice",
+        "name": "auctionEndPrice",
         "type": "uint256"
       },
       {
         "indexed": false,
         "internalType": "uint256",
-        "name": "_auctionPriceSteps",
+        "name": "auctionPriceSteps",
         "type": "uint256"
       },
       {
         "indexed": false,
         "internalType": "bool",
-        "name": "_auctionExponential",
+        "name": "auctionExponential",
         "type": "bool"
       },
       {
         "indexed": false,
         "internalType": "uint256",
-        "name": "_traitsSaleStartTime",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "_whitelistStartTime",
+        "name": "traitsSaleStartTime",
         "type": "uint256"
       }
     ],
-    "name": "AuctionScheduled",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "recipient",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256[]",
-        "name": "traitTokenIds",
-        "type": "uint256[]"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256[]",
-        "name": "traitAmounts",
-        "type": "uint256[]"
-      }
-    ],
-    "name": "TraitsMinted",
+    "name": "AuctionUpdated",
     "type": "event"
   },
   {
@@ -266,6 +220,19 @@
     ],
     "name": "URI",
     "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "auctionStartTime",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
   },
   {
     "inputs": [
@@ -385,24 +352,6 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "_artistAddress",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256[]",
-        "name": "_traitTokenIds",
-        "type": "uint256[]"
-      }
-    ],
-    "name": "mintTraitsArtistProof",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
         "name": "_recipient",
         "type": "address"
       },
@@ -412,7 +361,7 @@
         "type": "uint256[]"
       }
     ],
-    "name": "mintTraitsWhitelist",
+    "name": "mintTraitsWhitelistOrProof",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -713,11 +662,6 @@
         "internalType": "uint256",
         "name": "_traitsSaleStartTime",
         "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_whitelistStartTime",
-        "type": "uint256"
       }
     ],
     "name": "updateAuction",
@@ -739,25 +683,6 @@
         "internalType": "string",
         "name": "",
         "type": "string"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "_user",
-        "type": "address"
-      }
-    ],
-    "name": "whitelistMintsRemaining",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
       }
     ],
     "stateMutability": "view",

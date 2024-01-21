@@ -52,16 +52,6 @@
         "internalType": "uint256[]",
         "name": "_primarySalesShares",
         "type": "uint256[]"
-      },
-      {
-        "internalType": "address[]",
-        "name": "_whitelistAddresses",
-        "type": "address[]"
-      },
-      {
-        "internalType": "uint256[]",
-        "name": "_whitelistAmounts",
-        "type": "uint256[]"
       }
     ],
     "stateMutability": "nonpayable",
@@ -74,7 +64,17 @@
   },
   {
     "inputs": [],
+    "name": "AuctionIsLive",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "AuctionNotLive",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "DuplicatePayee",
     "type": "error"
   },
   {
@@ -109,12 +109,17 @@
   },
   {
     "inputs": [],
-    "name": "NoWhitelistMints",
+    "name": "NoPayees",
     "type": "error"
   },
   {
     "inputs": [],
-    "name": "NotSetup",
+    "name": "NoPaymentDue",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "NoShares",
     "type": "error"
   },
   {
@@ -134,7 +139,12 @@
   },
   {
     "inputs": [],
-    "name": "WhitelistStartTime",
+    "name": "ZeroAddress",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "ZeroShares",
     "type": "error"
   },
   {
@@ -168,53 +178,47 @@
       {
         "indexed": false,
         "internalType": "uint256",
-        "name": "_auctionStartTime",
+        "name": "auctionStartTime",
         "type": "uint256"
       },
       {
         "indexed": false,
         "internalType": "uint256",
-        "name": "_auctionEndTime",
+        "name": "auctionEndTime",
         "type": "uint256"
       },
       {
         "indexed": false,
         "internalType": "uint256",
-        "name": "_auctionStartPrice",
+        "name": "auctionStartPrice",
         "type": "uint256"
       },
       {
         "indexed": false,
         "internalType": "uint256",
-        "name": "_auctionEndPrice",
+        "name": "auctionEndPrice",
         "type": "uint256"
       },
       {
         "indexed": false,
         "internalType": "uint256",
-        "name": "_auctionPriceSteps",
+        "name": "auctionPriceSteps",
         "type": "uint256"
       },
       {
         "indexed": false,
         "internalType": "bool",
-        "name": "_auctionExponential",
+        "name": "auctionExponential",
         "type": "bool"
       },
       {
         "indexed": false,
         "internalType": "uint256",
-        "name": "_traitsSaleStartTime",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "_whitelistStartTime",
+        "name": "traitsSaleStartTime",
         "type": "uint256"
       }
     ],
-    "name": "AuctionScheduled",
+    "name": "AuctionUpdated",
     "type": "event"
   },
   {
@@ -267,25 +271,6 @@
       {
         "indexed": false,
         "internalType": "address",
-        "name": "from",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      }
-    ],
-    "name": "PaymentReceived",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "address",
         "name": "to",
         "type": "address"
       },
@@ -297,31 +282,6 @@
       }
     ],
     "name": "PaymentReleased",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "recipient",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256[]",
-        "name": "traitTokenIds",
-        "type": "uint256[]"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256[]",
-        "name": "traitAmounts",
-        "type": "uint256[]"
-      }
-    ],
-    "name": "TraitsMinted",
     "type": "event"
   },
   {
@@ -658,24 +618,6 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "_artistAddress",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256[]",
-        "name": "_traitTokenIds",
-        "type": "uint256[]"
-      }
-    ],
-    "name": "mintTraitsArtistProof",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
         "name": "_recipient",
         "type": "address"
       },
@@ -685,7 +627,7 @@
         "type": "uint256[]"
       }
     ],
-    "name": "mintTraitsWhitelist",
+    "name": "mintTraitsWhitelistOrProof",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -711,6 +653,24 @@
   },
   {
     "inputs": [],
+    "name": "payees",
+    "outputs": [
+      {
+        "internalType": "address[]",
+        "name": "payees_",
+        "type": "address[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "shares_",
+        "type": "uint256[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "projectRegistry",
     "outputs": [
       {
@@ -725,12 +685,36 @@
   {
     "inputs": [
       {
+        "internalType": "contract IERC20",
+        "name": "token",
+        "type": "address"
+      },
+      {
         "internalType": "address",
         "name": "account",
         "type": "address"
       }
     ],
-    "name": "releasable",
+    "name": "releasableERC20",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
+    ],
+    "name": "releasableETH",
     "outputs": [
       {
         "internalType": "uint256",
@@ -747,33 +731,16 @@
         "internalType": "contract IERC20",
         "name": "token",
         "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
       }
     ],
-    "name": "releasable",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
+    "name": "releaseERC20",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
-    "inputs": [
-      {
-        "internalType": "address payable",
-        "name": "account",
-        "type": "address"
-      }
-    ],
-    "name": "release",
+    "inputs": [],
+    "name": "releaseETH",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -791,25 +758,7 @@
         "type": "address"
       }
     ],
-    "name": "release",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "contract IERC20",
-        "name": "token",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
-      }
-    ],
-    "name": "released",
+    "name": "releasedERC20",
     "outputs": [
       {
         "internalType": "uint256",
@@ -828,7 +777,7 @@
         "type": "address"
       }
     ],
-    "name": "released",
+    "name": "releasedETH",
     "outputs": [
       {
         "internalType": "uint256",
@@ -1011,7 +960,7 @@
         "type": "address"
       }
     ],
-    "name": "totalReleased",
+    "name": "totalReleasedERC20",
     "outputs": [
       {
         "internalType": "uint256",
@@ -1024,7 +973,7 @@
   },
   {
     "inputs": [],
-    "name": "totalReleased",
+    "name": "totalReleasedETH",
     "outputs": [
       {
         "internalType": "uint256",
@@ -1260,11 +1209,6 @@
         "internalType": "uint256",
         "name": "_traitsSaleStartTime",
         "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_whitelistStartTime",
-        "type": "uint256"
       }
     ],
     "name": "updateAuction",
@@ -1286,38 +1230,6 @@
         "internalType": "string",
         "name": "",
         "type": "string"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "_user",
-        "type": "address"
-      }
-    ],
-    "name": "whitelistMintsRemaining",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "whitelistStartTime",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
       }
     ],
     "stateMutability": "view",
