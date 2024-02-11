@@ -38,7 +38,7 @@ contract Artwork is
     uint256 public whitelistStartTime;
 
     mapping(uint256 => ArtworkData) private artworkData;
-    mapping(address => uint256) private userNonces;
+    mapping(bytes32 => bool) private hashUsed;
     mapping(address => uint256) public whitelistMintsRemaining;
 
     modifier onlyProjectRegistry() {
@@ -115,14 +115,16 @@ contract Artwork is
             abi.encodePacked(
                 address(this),
                 msg.sender,
-                userNonces[msg.sender],
                 _saltNonce
             )
         );
+
+        if (hashUsed[_hash]) revert HashAlreadyUsed();
+
         _artworkTokenId = nextTokenId++;
         artworkData[_artworkTokenId].hash = _hash;
         artworkData[_artworkTokenId].traitTokenIds = _traitTokenIds;
-        userNonces[msg.sender]++;
+        hashUsed[_hash] = true;
 
         traits.transferTraitsToMintArtwork(msg.sender, _traitTokenIds);
         _safeMint(msg.sender, _artworkTokenId);
@@ -293,8 +295,8 @@ contract Artwork is
     }
 
     /** @inheritdoc IArtwork*/
-    function userNonce(address _user) external view returns (uint256) {
-        return userNonces[_user];
+    function isHashUsed(bytes32 _hash) external view returns (bool) {
+        return hashUsed[_hash];
     }
 
     /** @inheritdoc IArtwork*/

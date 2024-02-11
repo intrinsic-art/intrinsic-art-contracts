@@ -261,7 +261,6 @@ describe("Artwork and Traits", function () {
     await expect(artwork.ownerOf(0)).to.be.revertedWith(
       "ERC721: invalid token ID"
     );
-    expect(await artwork.userNonce(artist.address)).to.eq(0);
     await expect(artwork.artwork(0)).to.be.revertedWith(
       "ERC721: invalid token ID"
     );
@@ -276,10 +275,8 @@ describe("Artwork and Traits", function () {
       ["blonde", "green"],
       ["Hair Color", "Eye Color"],
       ["hairColor", "eyeColor"],
-      artworkHash(artwork.address, artist.address, 0, 100),
+      artworkHash(artwork.address, artist.address, 100),
     ]);
-
-    expect(await artwork.userNonce(artist.address)).to.eq(1);
 
     expect(await traits.balanceOf(artist.address, 0)).to.eq(0);
     expect(await traits.balanceOf(artist.address, 3)).to.eq(0);
@@ -305,7 +302,7 @@ describe("Artwork and Traits", function () {
       ["brown", "blue"],
       ["Hair Color", "Eye Color"],
       ["hairColor", "eyeColor"],
-      artworkHash(artwork.address, whitelistedUser1.address, 0, 200),
+      artworkHash(artwork.address, whitelistedUser1.address, 200),
     ]);
 
     expect(await artwork.artwork(2)).to.deep.eq([
@@ -314,7 +311,7 @@ describe("Artwork and Traits", function () {
       ["black", "blue"],
       ["Hair Color", "Eye Color"],
       ["hairColor", "eyeColor"],
-      artworkHash(artwork.address, whitelistedUser2.address, 0, 300),
+      artworkHash(artwork.address, whitelistedUser2.address, 300),
     ]);
   });
 
@@ -330,7 +327,6 @@ describe("Artwork and Traits", function () {
     await expect(artwork.ownerOf(0)).to.be.revertedWith(
       "ERC721: invalid token ID"
     );
-    expect(await artwork.userNonce(user1.address)).to.eq(0);
     await expect(artwork.artwork(0)).to.be.revertedWith(
       "ERC721: invalid token ID"
     );
@@ -352,10 +348,8 @@ describe("Artwork and Traits", function () {
       ["blonde", "green"],
       ["Hair Color", "Eye Color"],
       ["hairColor", "eyeColor"],
-      artworkHash(artwork.address, user1.address, 0, 100),
+      artworkHash(artwork.address, user1.address, 100),
     ]);
-
-    expect(await artwork.userNonce(user1.address)).to.eq(1);
 
     expect(await traits.balanceOf(user1.address, 0)).to.eq(0);
     expect(await traits.balanceOf(user1.address, 3)).to.eq(0);
@@ -420,7 +414,7 @@ describe("Artwork and Traits", function () {
       ["blonde", "green"],
       ["Hair Color", "Eye Color"],
       ["hairColor", "eyeColor"],
-      artworkHash(artwork.address, user1.address, 0, 100),
+      artworkHash(artwork.address, user1.address, 100),
     ]);
 
     await artwork.connect(user1).reclaimTraits(0);
@@ -440,7 +434,7 @@ describe("Artwork and Traits", function () {
     );
 
     // Mint artwork 1
-    await artwork.connect(user1).mintArtwork([0, 3], 100);
+    await artwork.connect(user1).mintArtwork([0, 3], 200);
 
     expect(await artwork.nextTokenId()).to.eq(2);
     await expect(artwork.ownerOf(0)).to.be.revertedWith(
@@ -456,7 +450,7 @@ describe("Artwork and Traits", function () {
       ["blonde", "green"],
       ["Hair Color", "Eye Color"],
       ["hairColor", "eyeColor"],
-      artworkHash(artwork.address, user1.address, 1, 100),
+      artworkHash(artwork.address, user1.address, 200),
     ]);
 
     await artwork.connect(user1).reclaimTraits(1);
@@ -464,7 +458,7 @@ describe("Artwork and Traits", function () {
     // Create artwork 2
     await artwork
       .connect(user1)
-      .mintTraitsAndArtwork([1, 4], [1, 1], [1, 4], 100, {
+      .mintTraitsAndArtwork([1, 4], [1, 1], [1, 4], 300, {
         value: ethAmount,
       });
 
@@ -488,7 +482,7 @@ describe("Artwork and Traits", function () {
       ["brown", "blue"],
       ["Hair Color", "Eye Color"],
       ["hairColor", "eyeColor"],
-      artworkHash(artwork.address, user1.address, 2, 100),
+      artworkHash(artwork.address, user1.address, 300),
     ]);
   });
 
@@ -504,7 +498,6 @@ describe("Artwork and Traits", function () {
     await expect(artwork.ownerOf(1)).to.be.revertedWith(
       "ERC721: invalid token ID"
     );
-    expect(await artwork.userNonce(user1.address)).to.eq(0);
     await expect(artwork.artwork(0)).to.be.revertedWith(
       "ERC721: invalid token ID"
     );
@@ -544,10 +537,8 @@ describe("Artwork and Traits", function () {
       ["brown", "blue"],
       ["Hair Color", "Eye Color"],
       ["hairColor", "eyeColor"],
-      artworkHash(artwork.address, user1.address, 0, 100),
+      artworkHash(artwork.address, user1.address, 100),
     ]);
-
-    expect(await artwork.userNonce(user1.address)).to.eq(1);
 
     expect(await traits.balanceOf(user1.address, 0)).to.eq(0);
     expect(await traits.balanceOf(user1.address, 3)).to.eq(0);
@@ -1385,5 +1376,27 @@ describe("Artwork and Traits", function () {
         .sub(artistETHBalanceBeforeRelease)
         .add(tx2Gas)
     ).to.eq(ethers.utils.parseEther("9"));
+  });
+
+  it("Artwork with the same hash cannot be created", async () => {
+    // Move forward in time so auction is active
+    await time.increase(time.duration.seconds(120));
+
+    const ethAmount = (await traits.traitPrice()).mul(2);
+
+    // User 1 creates artwork 0
+    await artwork
+      .connect(user1)
+      .mintTraitsAndArtwork([0, 3], [1, 1], [0, 3], 100, {
+        value: ethAmount,
+      });
+
+    // User 1 attempts to create duplicate artwork
+
+    await expect(
+      artwork.connect(user1).mintTraitsAndArtwork([0, 3], [1, 1], [0, 3], 100, {
+        value: ethAmount,
+      })
+    ).to.be.revertedWith("HashAlreadyUsed()");
   });
 });

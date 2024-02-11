@@ -11,6 +11,11 @@
   },
   {
     "inputs": [],
+    "name": "HashAlreadyUsed",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "NoWhitelistMints",
     "type": "error"
   },
@@ -367,6 +372,25 @@
     "type": "function"
   },
   {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "_hash",
+        "type": "bytes32"
+      }
+    ],
+    "name": "isHashUsed",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [],
     "name": "metadataJSON",
     "outputs": [
@@ -705,25 +729,6 @@
     "name": "updateWhitelist",
     "outputs": [],
     "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "_user",
-        "type": "address"
-      }
-    ],
-    "name": "userNonce",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
     "type": "function"
   },
   {
