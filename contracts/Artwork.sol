@@ -6,11 +6,11 @@ import {IArtwork} from "./interfaces/IArtwork.sol";
 import {IStringStorage} from "./interfaces/IStringStorage.sol";
 import {IProjectRegistry} from "./interfaces/IProjectRegistry.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
-import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import {ERC2981} from "@openzeppelin/contracts/token/common/ERC2981.sol";
+import {ERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
+import {ERC2981Upgradeable} from "@openzeppelin/contracts-upgradeable/token/common/ERC2981Upgradeable.sol";
 import {PaymentSplitter} from "./PaymentSplitter.sol";
-import {IERC721Metadata} from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
-import {ERC1155Holder, ERC1155Receiver, IERC165} from "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
+import {IERC721MetadataUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/IERC721MetadataUpgradeable.sol";
+import {ERC1155HolderUpgradeable, ERC1155ReceiverUpgradeable, IERC165Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC1155/utils/ERC1155HolderUpgradeable.sol";
 
 /**
  * Implements ERC-721 standard for artwork tokens, and
@@ -18,10 +18,10 @@ import {ERC1155Holder, ERC1155Receiver, IERC165} from "@openzeppelin/contracts/t
  */
 contract Artwork is
     IArtwork,
-    IERC721Metadata,
-    ERC2981,
-    ERC721,
-    ERC1155Holder,
+    IERC721MetadataUpgradeable,
+    ERC2981Upgradeable,
+    ERC721Upgradeable,
+    ERC1155HolderUpgradeable,
     PaymentSplitter
 {
     using Strings for uint256;
@@ -47,27 +47,6 @@ contract Artwork is
         _;
     }
 
-    constructor(
-        string memory _name,
-        string memory _symbol,
-        address _artistAddress,
-        address _projectRegistry,
-        uint96 _royaltyFeeNumerator,
-        address[] memory _royaltyPayees,
-        uint256[] memory _royaltyShares,
-        StringStorageData memory _metadataJSONStringStorage,
-        StringStorageData memory _scriptStringStorage
-    ) ERC721(_name, _symbol) PaymentSplitter(_royaltyPayees, _royaltyShares) {
-        artistAddress = _artistAddress;
-        projectRegistry = IProjectRegistry(_projectRegistry);
-
-        // Set EIP-2981 royalties to be sent to this contract
-        _setDefaultRoyalty(address(this), _royaltyFeeNumerator);
-
-        metadataJSONStringStorage = _metadataJSONStringStorage;
-        scriptStringStorage = _scriptStringStorage;
-    }
-
     /** @inheritdoc IArtwork*/
     function setup(bytes calldata _data) external {
         if (msg.sender != address(projectRegistry))
@@ -75,11 +54,32 @@ contract Artwork is
         if (address(traits) != address(0)) revert AlreadySetup();
 
         (
+            string memory _name,
+            string memory _symbol,
+            address _artistAddress,
+            address _projectRegistry,
+            uint96 _royaltyFeeNumerator,
+            address[] memory _royaltyPayees,
+            uint256[] memory _royaltyShares,
+            StringStorageData memory _metadataJSONStringStorage,
+            StringStorageData memory _scriptStringStorage,
             address _traits,
             uint256 _whitelistStartTime,
             address[] memory _whitelistAddresses,
             uint256[] memory _whitelistAmounts
-        ) = abi.decode(_data, (address, uint256, address[], uint256[]));
+        ) = abi.decode(_data, (string, string, address, address, uint96, address[], uint256[], StringStorageData, StringStorageData, address, uint256, address[], uint256[]));
+
+        __ERC721_init(_name, _symbol);
+        __ERC2981_init();
+        __PaymentSplitter_init(_royaltyPayees, _royaltyShares);
+
+        artistAddress = _artistAddress;
+        projectRegistry = IProjectRegistry(_projectRegistry);
+        metadataJSONStringStorage = _metadataJSONStringStorage;
+        scriptStringStorage = _scriptStringStorage;
+
+        // Set EIP-2981 royalties to be sent to this contract
+        _setDefaultRoyalty(address(this), _royaltyFeeNumerator);
 
         traits = ITraits(_traits);
 
@@ -222,7 +222,7 @@ contract Artwork is
     )
         public
         view
-        override(ERC721, IERC721Metadata, IArtwork)
+        override(ERC721Upgradeable, IERC721MetadataUpgradeable, IArtwork)
         returns (string memory)
     {
         string memory baseURI = projectRegistry.baseURI();
@@ -305,7 +305,7 @@ contract Artwork is
     )
         public
         view
-        override(IERC165, ERC721, ERC1155Receiver, IArtwork, ERC2981)
+        override(IERC165Upgradeable, ERC721Upgradeable, ERC1155ReceiverUpgradeable, IArtwork, ERC2981Upgradeable)
         returns (bool)
     {
         return

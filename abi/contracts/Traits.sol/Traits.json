@@ -1,63 +1,5 @@
 [
   {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "_projectRegistry",
-        "type": "address"
-      },
-      {
-        "components": [
-          {
-            "internalType": "string[]",
-            "name": "traitTypeNames",
-            "type": "string[]"
-          },
-          {
-            "internalType": "string[]",
-            "name": "traitTypeValues",
-            "type": "string[]"
-          },
-          {
-            "internalType": "string[]",
-            "name": "traitNames",
-            "type": "string[]"
-          },
-          {
-            "internalType": "string[]",
-            "name": "traitValues",
-            "type": "string[]"
-          },
-          {
-            "internalType": "uint256[]",
-            "name": "traitTypeIndexes",
-            "type": "uint256[]"
-          },
-          {
-            "internalType": "uint256[]",
-            "name": "traitMaxSupplys",
-            "type": "uint256[]"
-          }
-        ],
-        "internalType": "struct ITraits.TraitsSetup",
-        "name": "_traitsSetup",
-        "type": "tuple"
-      },
-      {
-        "internalType": "address[]",
-        "name": "_primarySalesPayees",
-        "type": "address[]"
-      },
-      {
-        "internalType": "uint256[]",
-        "name": "_primarySalesShares",
-        "type": "uint256[]"
-      }
-    ],
-    "stateMutability": "nonpayable",
-    "type": "constructor"
-  },
-  {
     "inputs": [],
     "name": "AlreadySetup",
     "type": "error"
@@ -244,6 +186,19 @@
       }
     ],
     "name": "ERC20PaymentReleased",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint8",
+        "name": "version",
+        "type": "uint8"
+      }
+    ],
+    "name": "Initialized",
     "type": "event"
   },
   {

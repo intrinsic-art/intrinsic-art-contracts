@@ -5,12 +5,13 @@ pragma solidity =0.8.19;
 import {SafeERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {IPaymentSplitter} from "./interfaces/IPaymentSplitter.sol";
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 /**
  * This contract supports multiple payees with different share amounts
  * to receive payments in ETH and ERC20 tokens
  */
-contract PaymentSplitter is IPaymentSplitter {
+contract PaymentSplitter is IPaymentSplitter, Initializable {
     uint256 private _totalShares;
     uint256 private _totalReleased;
     address[] private _payees;
@@ -19,7 +20,11 @@ contract PaymentSplitter is IPaymentSplitter {
     mapping(IERC20 => uint256) private _erc20TotalReleased;
     mapping(IERC20 => mapping(address => uint256)) private _erc20Released;
 
-    constructor(address[] memory payees_, uint256[] memory shares_) payable {
+    function __PaymentSplitter_init(address[] memory payees_, uint256[] memory shares_) internal onlyInitializing {
+        __PaymentSplitter_init_unchained(payees_, shares_);
+    }
+
+    function __PaymentSplitter_init_unchained(address[] memory payees_, uint256[] memory shares_) internal onlyInitializing {
         if (payees_.length != shares_.length) revert InvalidArrayLengths();
         if (payees_.length == 0) revert NoPayees();
 

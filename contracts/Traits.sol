@@ -5,16 +5,16 @@ import {ITraits} from "./interfaces/ITraits.sol";
 import {IArtwork} from "./interfaces/IArtwork.sol";
 import {IProjectRegistry} from "./interfaces/IProjectRegistry.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
-import {ERC2981} from "@openzeppelin/contracts/token/common/ERC2981.sol";
-import {ERC1155} from "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
+import {ERC2981Upgradeable} from "@openzeppelin/contracts-upgradeable/token/common/ERC2981Upgradeable.sol";
+import {ERC1155Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol";
 import {PaymentSplitter} from "./PaymentSplitter.sol";
-import {ERC1155Supply} from "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
+import {ERC1155SupplyUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC1155/extensions/ERC1155SupplyUpgradeable.sol";
 
 /**
  * Implements ERC-1155 standard for trait tokens,
  * and provides Dutch Auction functionality for initial trait sales
  */
-contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
+contract Traits is ITraits, ERC2981Upgradeable, ERC1155Upgradeable, ERC1155SupplyUpgradeable, PaymentSplitter {
     using Strings for uint256;
     using Strings for address;
 
@@ -43,62 +43,66 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
         _;
     }
 
-    constructor(
-        address _projectRegistry,
-        TraitsSetup memory _traitsSetup,
-        address[] memory _primarySalesPayees,
-        uint256[] memory _primarySalesShares
-    ) ERC1155("") PaymentSplitter(_primarySalesPayees, _primarySalesShares) {
-        projectRegistry = IProjectRegistry(_projectRegistry);
-
-        _createTraitsAndTypes(
-            _traitsSetup.traitTypeNames,
-            _traitsSetup.traitTypeValues,
-            _traitsSetup.traitNames,
-            _traitsSetup.traitValues,
-            _traitsSetup.traitTypeIndexes,
-            _traitsSetup.traitMaxSupplys
-        );
-    }
-
     /** @inheritdoc ITraits*/
     function setup(bytes calldata _data) external onlyProjectRegistry {
         if (address(artwork) != address(0)) revert AlreadySetup();
 
-        (
-            address _artwork,
-            bool _auctionExponential,
-            uint256 _auctionStartTime,
-            uint256 _auctionEndTime,
-            uint256 _auctionStartPrice,
-            uint256 _auctionEndPrice,
-            uint256 _auctionPriceSteps,
-            uint256 _traitsSaleStartTime
-        ) = abi.decode(
-                _data,
-                (
-                    address,
-                    bool,
-                    uint256,
-                    uint256,
-                    uint256,
-                    uint256,
-                    uint256,
-                    uint256
-                )
-            );
+        // (
+        //     address _projectRegistry,
+        //     TraitsSetup memory _traitsSetup,
+        //     address[] memory _primarySalesPayees,
+        //     uint256[] memory _primarySalesShares,
+        //     address _artwork,
+        //     bool _auctionExponential,
+        //     uint256 _auctionStartTime,
+        //     uint256 _auctionEndTime,
+        //     uint256 _auctionStartPrice,
+        //     uint256 _auctionEndPrice,
+        //     uint256 _auctionPriceSteps,
+        //     uint256 _traitsSaleStartTime
+        // ) = abi.decode(
+        //         _data,
+        //         (
+        //             address,
+        //             TraitsSetup,
+        //             address[],
+        //             uint256[],
+        //             address,
+        //             bool,
+        //             uint256,
+        //             uint256,
+        //             uint256,
+        //             uint256,
+        //             uint256,
+        //             uint256
+        //         )
+        //     );
 
-        artwork = IArtwork(_artwork);
+        // projectRegistry = IProjectRegistry(_projectRegistry);
 
-        _updateAuction(
-            _auctionStartTime,
-            _auctionEndTime,
-            _auctionStartPrice,
-            _auctionEndPrice,
-            _auctionPriceSteps,
-            _auctionExponential,
-            _traitsSaleStartTime
-        );
+        // _createTraitsAndTypes(
+        //     _traitsSetup.traitTypeNames,
+        //     _traitsSetup.traitTypeValues,
+        //     _traitsSetup.traitNames,
+        //     _traitsSetup.traitValues,
+        //     _traitsSetup.traitTypeIndexes,
+        //     _traitsSetup.traitMaxSupplys
+        // );
+
+        // __ERC1155_init("");
+        // __PaymentSplitter_init(_primarySalesPayees, _primarySalesShares);
+
+        // artwork = IArtwork(_artwork);
+
+        // _updateAuction(
+        //     _auctionStartTime,
+        //     _auctionEndTime,
+        //     _auctionStartPrice,
+        //     _auctionEndPrice,
+        //     _auctionPriceSteps,
+        //     _auctionExponential,
+        //     _traitsSaleStartTime
+        // );
     }
 
     /** @inheritdoc ITraits*/
@@ -330,7 +334,7 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
     /** @inheritdoc ITraits*/
     function uri(
         uint256 _tokenId
-    ) public view override(ERC1155, ITraits) returns (string memory) {
+    ) public view override(ERC1155Upgradeable, ITraits) returns (string memory) {
         if (_tokenId >= _traits.length) revert InvalidTokenId();
 
         string memory baseURI = projectRegistry.baseURI();
@@ -351,13 +355,13 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
     /** @inheritdoc ITraits*/
     function supportsInterface(
         bytes4 interfaceId
-    ) public view override(ITraits, ERC1155, ERC2981) returns (bool) {
+    ) public view override(ITraits, ERC1155Upgradeable, ERC2981Upgradeable) returns (bool) {
         return
             interfaceId == type(ITraits).interfaceId ||
             super.supportsInterface(interfaceId);
     }
 
-    /** @inheritdoc ERC2981*/
+    /** @inheritdoc ERC2981Upgradeable*/
     function royaltyInfo(
         uint256 tokenId,
         uint256 salePrice
@@ -365,7 +369,7 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
         return artwork.royaltyInfo(tokenId, salePrice);
     }
 
-    /** @inheritdoc ERC1155*/
+    /** @inheritdoc ERC1155Upgradeable*/
     function _beforeTokenTransfer(
         address operator,
         address from,
@@ -373,7 +377,7 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
         uint256[] memory ids,
         uint256[] memory amounts,
         bytes memory data
-    ) internal override(ERC1155, ERC1155Supply) {
+    ) internal override(ERC1155Upgradeable, ERC1155SupplyUpgradeable) {
         super._beforeTokenTransfer(operator, from, to, ids, amounts, data);
     }
 
