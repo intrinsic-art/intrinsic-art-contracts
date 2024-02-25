@@ -48,10 +48,9 @@ contract Artwork is
     }
 
     /** @inheritdoc IArtwork*/
-    function setup(bytes calldata _data) external {
+    function setup(bytes calldata _data) external initializer {
         if (msg.sender != address(projectRegistry))
             revert OnlyProjectRegistry();
-        if (address(traits) != address(0)) revert AlreadySetup();
 
         (
             string memory _name,
@@ -64,10 +63,8 @@ contract Artwork is
             StringStorageData memory _metadataJSONStringStorage,
             StringStorageData memory _scriptStringStorage,
             address _traits,
-            uint256 _whitelistStartTime,
-            address[] memory _whitelistAddresses,
-            uint256[] memory _whitelistAmounts
-        ) = abi.decode(_data, (string, string, address, address, uint96, address[], uint256[], StringStorageData, StringStorageData, address, uint256, address[], uint256[]));
+            WhitelistData memory _whitelistData
+        ) = abi.decode(_data, (string, string, address, address, uint96, address[], uint256[], StringStorageData, StringStorageData, address, WhitelistData));
 
         __ERC721_init(_name, _symbol);
         __ERC2981_init();
@@ -84,25 +81,19 @@ contract Artwork is
         traits = ITraits(_traits);
 
         _updateWhitelist(
-            _whitelistStartTime,
-            _whitelistAddresses,
-            _whitelistAmounts
+            _whitelistData
         );
     }
 
     /** @inheritdoc IArtwork*/
     function updateWhitelist(
-        uint256 _whitelistStartTime,
-        address[] memory _whitelistAddresses,
-        uint256[] memory _whitelistAmounts
+        WhitelistData memory _whitelistData
     ) external onlyProjectRegistry {
         if (traits.auctionStartTime() <= block.timestamp)
             revert AuctionIsLive();
 
         _updateWhitelist(
-            _whitelistStartTime,
-            _whitelistAddresses,
-            _whitelistAmounts
+            _whitelistData
         );
     }
 
@@ -316,24 +307,20 @@ contract Artwork is
     /**
      * Updates whitelist data
      *
-     * @param _whitelistStartTime timestamp at which whitelisted users can start minting
-     * @param _whitelistAddresses the addresses to whitelist
-     * @param _whitelistAmounts the amounts each address can whitelist mint
+     * @param _whitelistData struct containing the whitelist start time, whitelist addresses, and whitelist amounts
      */
     function _updateWhitelist(
-        uint256 _whitelistStartTime,
-        address[] memory _whitelistAddresses,
-        uint256[] memory _whitelistAmounts
+        WhitelistData memory _whitelistData
     ) private {
-        if (_whitelistAddresses.length != _whitelistAmounts.length)
+        if (_whitelistData.addresses.length != _whitelistData.amounts.length)
             revert InvalidArrayLengths();
 
-        whitelistStartTime = _whitelistStartTime;
+        whitelistStartTime = _whitelistData.startTime;
 
-        for (uint256 i; i < _whitelistAddresses.length; ) {
+        for (uint256 i; i < _whitelistData.addresses.length; ) {
             whitelistMintsRemaining[
-                _whitelistAddresses[i]
-            ] = _whitelistAmounts[i];
+                _whitelistData.addresses[i]
+            ] = _whitelistData.amounts[i];
 
             unchecked {
                 ++i;
@@ -341,9 +328,9 @@ contract Artwork is
         }
 
         emit WhitelistUpdated(
-            _whitelistStartTime,
-            _whitelistAddresses,
-            _whitelistAmounts
+            _whitelistData.startTime,
+            _whitelistData.addresses,
+            _whitelistData.amounts
         );
     }
 }

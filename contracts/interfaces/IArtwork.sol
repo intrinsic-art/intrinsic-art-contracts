@@ -15,6 +15,12 @@ interface IArtwork is IERC2981Upgradeable, IERC721Upgradeable {
       address stringStorageAddress;
     }
 
+    struct WhitelistData {
+        uint256 startTime;
+        address[] addresses;
+        uint256[] amounts;
+    }
+
     error OnlyProjectRegistry();
     error ProofAlreadyMinted();
     error TraitsAlreadySet();
@@ -22,7 +28,6 @@ interface IArtwork is IERC2981Upgradeable, IERC721Upgradeable {
     error OnlyArtist();
     error OnlyArtistOrProjectRegistry();
     error OnlyArtworkOwner();
-    error AlreadySetup();
     error WhitelistStartTime();
     error NoWhitelistMints();
     error AuctionIsLive();
@@ -56,14 +61,10 @@ interface IArtwork is IERC2981Upgradeable, IERC721Upgradeable {
     /**
      * Updates the whitelisted addresses and amounts they can claim
      *
-     * @param _whitelistStartTime timestamp at which whitelisted users can start minting
-     * @param _whitelistAddresses addresses to be whitelisted
-     * @param _whitelistAmounts amount of whitelist mints for each address
+     * @param _whitelistData struct containing the whitelist start time, whitelist addresses, and whitelist amounts
      */
     function updateWhitelist(
-        uint256 _whitelistStartTime,
-        address[] memory _whitelistAddresses,
-        uint256[] memory _whitelistAmounts
+        WhitelistData memory _whitelistData
     ) external;
 
     /**
