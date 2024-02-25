@@ -26,6 +26,7 @@ interface IArtwork is IERC2981, IERC721 {
     error WhitelistStartTime();
     error NoWhitelistMints();
     error AuctionIsLive();
+    error HashAlreadyUsed();
 
     event ArtworkMinted(
         uint256 indexed artworkTokenId,
@@ -182,12 +183,12 @@ interface IArtwork is IERC2981, IERC721 {
     function script() external view returns (string memory);
 
     /**
-     * Returns the specified user's nonce, which is used to generate artwork hashes
+     * Returns whether the specified hash has been used to mint an artwork
      *
-     * @param _user the address of the user
-     * @return uint256 the user's nonce
+     * @param _hash the artwork seed hash
+     * @return bool whether the hash has been used
      */
-    function userNonce(address _user) external view returns (uint256);
+    function isHashUsed(bytes32 _hash) external view returns (bool);
 
     /**
      * Returns whether the specified interface ID is supported by the contract

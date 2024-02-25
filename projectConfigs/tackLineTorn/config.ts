@@ -57,7 +57,7 @@ const projectConfig: ProjectConfig = {
   setupData: {
     auctionExponential: true,
     auctionStartTime: Math.trunc(Date.now() / 1000) + 600,
-    auctionEndTime: Math.trunc(Date.now() / 1000) + 864000,
+    auctionEndTime: Math.trunc(Date.now() / 1000) + 600,
     auctionStartPrice: ethers.utils.parseEther("0.1"),
     auctionEndPrice: ethers.utils.parseEther("0.01"),
     auctionPriceSteps: 720,
