@@ -14,19 +14,29 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     args: [deployer, [deployer], "https://historian.encryptafile.com/"],
   });
 
+  console.log("a");
   await new Promise((resolve) => setTimeout(resolve, 20000));
+
+  console.log("b");
 
   const projectRegistry = await hre.ethers.getContract("ProjectRegistry");
 
+  console.log("project registry", projectRegistry);
+
+  console.log("c");
+
   try {
-    await hre.run("verify:verify", {
-      address: projectRegistry.address,
-      constructorArguments: [
-        deployer,
-        [deployer],
-        "https://historian.encryptafile.com/",
-      ],
-    });
+    console.log("verifying");
+    console.log(
+      await hre.run("verify:verify", {
+        address: projectRegistry.address,
+        constructorArguments: [
+          deployer,
+          [deployer],
+          "https://historian.encryptafile.com/",
+        ],
+      })
+    );
   } catch (error) {
     console.error();
   }
