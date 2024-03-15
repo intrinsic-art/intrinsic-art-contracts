@@ -54,7 +54,6 @@ const config: HardhatUserConfig = {
     deployer: {
       default: 0,
       mainnet: `privatekey://${process.env.MAINNET_DEPLOYER_PRIVATE_KEY}`,
-      goerli: `privatekey://${process.env.GOERLI_DEPLOYER_PRIVATE_KEY}`,
       sepolia: `privatekey://${process.env.SEPOLIA_DEPLOYER_PRIVATE_KEY}`,
     },
   },
@@ -71,12 +70,6 @@ const config: HardhatUserConfig = {
       accounts: [process.env.BASE_SEPOLIA_DEPLOYER_PRIVATE_KEY || ""],
       saveDeployments: true,
     },
-    goerli: {
-      chainId: 5,
-      url: process.env.GOERLI_PROVIDER,
-      accounts: [process.env.GOERLI_DEPLOYER_PRIVATE_KEY || ""],
-      saveDeployments: true,
-    },
     sepolia: {
       chainId: 11155111,
       url: process.env.SEPOLIA_PROVIDER,
@@ -87,7 +80,6 @@ const config: HardhatUserConfig = {
   etherscan: {
     apiKey: {
       mainnet: `${process.env.ETHERSCAN_API_KEY}`,
-      goerli: `${process.env.ETHERSCAN_API_KEY}`,
       sepolia: `${process.env.ETHERSCAN_API_KEY}`,
       baseSepolia: `${process.env.BASESCAN_API_KEY}`,
     },
