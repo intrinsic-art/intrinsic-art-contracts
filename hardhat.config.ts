@@ -86,10 +86,21 @@ const config: HardhatUserConfig = {
   },
   etherscan: {
     apiKey: {
-      mainnet: `${process.env.ETHERSCAN_ETHEREUM_API_KEY}`,
-      goerli: `${process.env.ETHERSCAN_ETHEREUM_API_KEY}`,
-      sepolia: `${process.env.ETHERSCAN_ETHEREUM_API_KEY}`,
+      mainnet: `${process.env.ETHERSCAN_API_KEY}`,
+      goerli: `${process.env.ETHERSCAN_API_KEY}`,
+      sepolia: `${process.env.ETHERSCAN_API_KEY}`,
+      baseSepolia: `${process.env.BASESCAN_API_KEY}`,
     },
+    customChains: [
+      {
+        network: "baseSepolia",
+        chainId: 84532,
+        urls: {
+          apiURL: "https://api.basescan.org/api",
+          browserURL: "https://sepolia.basescan.org/",
+        },
+      },
+    ],
   },
 };
 
