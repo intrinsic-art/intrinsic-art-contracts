@@ -69,20 +69,13 @@ contract Artwork is
         __ERC721_init(_name, _symbol);
         __ERC2981_init();
         __PaymentSplitter_init(_royaltyPayees, _royaltyShares);
-
+        _setDefaultRoyalty(address(this), _royaltyFeeNumerator);
+        _updateWhitelist(_whitelistData);
         artistAddress = _artistAddress;
         projectRegistry = IProjectRegistry(_projectRegistry);
         metadataJSONStringStorage = _metadataJSONStringStorage;
         scriptStringStorage = _scriptStringStorage;
-
-        // Set EIP-2981 royalties to be sent to this contract
-        _setDefaultRoyalty(address(this), _royaltyFeeNumerator);
-
         traits = ITraits(_traits);
-
-        _updateWhitelist(
-            _whitelistData
-        );
     }
 
     /** @inheritdoc IArtwork*/
