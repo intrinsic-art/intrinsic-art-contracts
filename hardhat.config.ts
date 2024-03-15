@@ -63,7 +63,13 @@ const config: HardhatUserConfig = {
       chainId: 1,
       url: process.env.MAINNET_PROVIDER,
       accounts: [process.env.MAINNET_DEPLOYER_PRIVATE_KEY || ""],
-      saveDeployments: false,
+      saveDeployments: true,
+    },
+    baseSepolia: {
+      chainId: 84532,
+      url: process.env.BASE_SEPOLIA_PROVIDER,
+      accounts: [process.env.BASE_SEPOLIA_DEPLOYER_PRIVATE_KEY || ""],
+      saveDeployments: true,
     },
     goerli: {
       chainId: 5,
