@@ -16,30 +16,20 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     args: [deployer, [deployer], "https://historian.encryptafile.com/"],
   });
 
-  console.log("a");
-  await new Promise((resolve) => setTimeout(resolve, 20000));
-
-  console.log("b");
+  console.log("Waiting 60s before verifying contract...");
+  await new Promise((resolve) => setTimeout(resolve, 60000));
 
   const projectRegistry = await hre.ethers.getContract("ProjectRegistry");
 
-  console.log("project registry", projectRegistry.address);
-
-  console.log("c");
-
   try {
-    // console.log("verifying");
-    console.log(
-      await hre.run("verify:verify", {
-        address: projectRegistry.address,
-        constructorArguments: [
-          deployer,
-          [deployer],
-          "https://historian.encryptafile.com/",
-        ],
-      })
-    );
-    console.log("yo");
+    await hre.run("verify:verify", {
+      address: projectRegistry.address,
+      constructorArguments: [
+        deployer,
+        [deployer],
+        "https://historian.encryptafile.com/",
+      ],
+    });
   } catch (error) {
     console.error();
   }
