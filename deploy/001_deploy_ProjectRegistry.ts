@@ -8,6 +8,8 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   } = hre;
   const { deployer } = await getNamedAccounts();
 
+  console.log("deployer: ", deployer);
+
   await deploy("ProjectRegistry", {
     log: true,
     from: deployer,
@@ -21,12 +23,12 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
 
   const projectRegistry = await hre.ethers.getContract("ProjectRegistry");
 
-  console.log("project registry", projectRegistry);
+  console.log("project registry", projectRegistry.address);
 
   console.log("c");
 
   try {
-    console.log("verifying");
+    // console.log("verifying");
     console.log(
       await hre.run("verify:verify", {
         address: projectRegistry.address,
@@ -37,6 +39,7 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
         ],
       })
     );
+    console.log("yo");
   } catch (error) {
     console.error();
   }
