@@ -49,12 +49,12 @@ npx hardhat node
 ## Example Deployment & Project Creation Scripts
 Deploy the contracts
 ```shell
-npx hardhat deploy --network sepolia
+npx hardhat deploy --network baseSepolia
 ```
 Deploy project contracts, verify on Etherscan, and register project on registry
 ```shell
-npx hardhat DeployTackLineTorn --network sepolia
-npx hardhat DeployMetta --network sepolia
+npx hardhat DeployTackLineTorn --network baseSepolia
+npx hardhat DeployMetta --network baseSepolia
 ```
 
 ## Escapify Project Scripts & Descriptions
