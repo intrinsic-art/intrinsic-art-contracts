@@ -13,7 +13,7 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   await deploy("ProjectRegistry", {
     log: true,
     from: deployer,
-    args: [deployer, [deployer], "https://historian.encryptafile.com/"],
+    args: [deployer, [deployer], "https://base-sepolia-api.intrinsic.art/"],
   });
 
   console.log("Waiting 60s before verifying contract...");
