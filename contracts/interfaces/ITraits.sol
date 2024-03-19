@@ -16,83 +16,90 @@ interface ITraits is IERC1155 {
         uint256 maxSupply;
     }
 
-    event TraitsBought(
-        address indexed recipient,
-        uint256[] traitTokenIds,
-        uint256[] traitAmounts
+    struct TraitsSetup {
+        string[] traitTypeNames;
+        string[] traitTypeValues;
+        string[] traitNames;
+        string[] traitValues;
+        uint256[] traitTypeIndexes;
+        uint256[] traitMaxSupplys;
+    }
+
+    event AuctionUpdated(
+        uint256 auctionStartTime,
+        uint256 auctionEndTime,
+        uint256 auctionStartPrice,
+        uint256 auctionEndPrice,
+        uint256 auctionPriceSteps,
+        bool auctionExponential,
+        uint256 traitsSaleStartTime
     );
 
     error OnlyArtwork();
-    error Locked();
-    error InvalidArrayLengths();
-    error NotLocked();
+    error OnlyProjectRegistry();
+    error AlreadySetup();
+    error AuctionIsLive();
     error InvalidAuction();
-    error OnlyClaimer();
     error MaxSupply();
     error InvalidEthAmount();
     error InvalidTraits();
-    error NoRevenue();
     error AuctionNotLive();
-    error TraitsAlreadyCreated();
     error InvalidTokenId();
     error TraitsSaleStartTime();
 
     /**
-     * Sets up the traits and trait types
+     * Sets the address of the Artwork contract and the auction configuration
      *
-     * @param _traitTypeNames human readable trait type names
-     * @param _traitTypeValues trait type values used in the generative scripts
-     * @param _traitNames human readable trait names
-     * @param _traitValues trait values used in the generative scripts
-     * @param _traitTypeIndexes trait type indexes each trait belongs to
-     * @param _traitMaxSupplys maximum number of mints for each trait
+     * @param _data bytes data containt the artwork contract address and auction data
      */
-    function createTraitsAndTypes(
-        string[] memory _traitTypeNames,
-        string[] memory _traitTypeValues,
-        string[] calldata _traitNames,
-        string[] calldata _traitValues,
-        uint256[] calldata _traitTypeIndexes,
-        uint256[] calldata _traitMaxSupplys
-    ) external;
+    function setup(bytes calldata _data) external;
 
     /**
-     * Schedules the dutch auction start and end time, and the prices
-     * the traits will start and end the auction at
+     * Updates the schedule of the dutch auction, can only
+     * be called if the dutch auction hasn't started yet, and
+     * can only update the auction to a later time, not sooner
      *
      * @param _auctionStartTime timestamp the auction begins at
      * @param _auctionEndTime timestamp the auction ends at
      * @param _auctionStartPrice trait price the auction begins at
      * @param _auctionEndPrice trait price the auction ends at
+     * @param _auctionPriceSteps number of different prices auction steps through
+     * @param _auctionExponential true indicates auction curve is exponential, otherwise linear
      * @param _traitsSaleStartTime timestamp at which traits can be bought individually
      */
-    function scheduleAuction(
+    function updateAuction(
         uint256 _auctionStartTime,
         uint256 _auctionEndTime,
         uint256 _auctionStartPrice,
         uint256 _auctionEndPrice,
+        uint256 _auctionPriceSteps,
+        bool _auctionExponential,
         uint256 _traitsSaleStartTime
     ) external;
 
     /**
-     * Updates the base URI string used to get full token URIs
-     *
-     * @param _uri the new base URI string
-     */
-    function updateURI(string memory _uri) external;
-
-    /**
-     * Allows a user to buy any number of traits and amounts using ether
+     * Allows a user to mint any number of traits and amounts using ether
      *
      * @param _recipient the address to receive the trait tokens
      * @param _traitTokenIds the trait token IDs to buy
      * @param _traitAmounts the amounts of each token ID to buy
      */
-    function buyTraits(
+    function mintTraits(
         address _recipient,
         uint256[] calldata _traitTokenIds,
         uint256[] calldata _traitAmounts
     ) external payable;
+
+    /**
+     * Mints traits for artist proof and for whitelisted mints
+     *
+     * @param _recipient address to receive the minted traits
+     * @param _traitTokenIds trait token IDs to mint
+     */
+    function mintTraitsWhitelistOrProof(
+        address _recipient,
+        uint256[] calldata _traitTokenIds
+    ) external;
 
     /**
      * Called by the Artwork contract to transfer traits from the caller to the Artwork
@@ -101,7 +108,7 @@ interface ITraits is IERC1155 {
      * @param _caller the address creating the artwork
      * @param _traitTokenIds the trait token IDs used to create the artwork
      */
-    function transferTraitsToCreateArtwork(
+    function transferTraitsToMintArtwork(
         address _caller,
         uint256[] calldata _traitTokenIds
     ) external;
@@ -168,6 +175,13 @@ interface ITraits is IERC1155 {
         );
 
     /**
+     * Returns which price step the auction is currently on
+     *
+     * @return the current price step
+     */
+    function traitPriceStep() external view returns (uint256);
+
+    /**
      * Returns the current trait price
      *
      * @return _price the current trait price in ether
@@ -190,6 +204,16 @@ interface ITraits is IERC1155 {
      * @return string the token specific URI
      */
     function uri(uint256 _tokenId) external view returns (string memory);
+
+    /**
+     * Returns the auction start timestamp
+     *
+     * @return uint256 the timestamp the auction starts
+     */
+    function auctionStartTime()
+        external
+        view
+        returns (uint256);
 
     /**
      * Returns whether the specified interface ID is supported by the contract

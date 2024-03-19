@@ -3,148 +3,141 @@ pragma solidity =0.8.19;
 
 import {ITraits} from "./interfaces/ITraits.sol";
 import {IArtwork} from "./interfaces/IArtwork.sol";
+import {IProjectRegistry} from "./interfaces/IProjectRegistry.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ERC2981} from "@openzeppelin/contracts/token/common/ERC2981.sol";
-import {ERC1155, IERC165} from "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
-import {PaymentSplitter} from "@openzeppelin/contracts/finance/PaymentSplitter.sol";
+import {ERC1155} from "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
+import {PaymentSplitter} from "./PaymentSplitter.sol";
 import {ERC1155Supply} from "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
 
 /**
  * Implements ERC-1155 standard for trait tokens,
  * and provides Dutch Auction functionality for initial trait sales
  */
-contract Traits is
-    ITraits,
-    ERC2981,
-    ERC1155,
-    ERC1155Supply,
-    Ownable,
-    PaymentSplitter
-{
+contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
     using Strings for uint256;
     using Strings for address;
 
+    bool public auctionExponential;
+    string public constant VERSION = "1.0";
     IArtwork public artwork;
-    address public royaltySplitter;
-    string public constant VERSION = "1.0.0";
+    IProjectRegistry public projectRegistry;
     uint256 public auctionStartTime;
     uint256 public auctionEndTime;
     uint256 public auctionStartPrice;
     uint256 public auctionEndPrice;
+    uint256 public auctionPriceSteps;
     uint256 public traitsSaleStartTime;
+
     TraitType[] private _traitTypes;
     Trait[] private _traits;
 
+    modifier onlyArtwork() {
+        if (msg.sender != address(artwork)) revert OnlyArtwork();
+        _;
+    }
+
+    modifier onlyProjectRegistry() {
+        if (msg.sender != address(projectRegistry))
+            revert OnlyProjectRegistry();
+        _;
+    }
+
     constructor(
-        uint96 _royaltyFeeNumerator,
-        string memory _uri,
-        address _artwork,
-        address _owner,
+        address _projectRegistry,
+        TraitsSetup memory _traitsSetup,
         address[] memory _primarySalesPayees,
-        uint256[] memory _primarySalesShares,
-        address[] memory _royaltyPayees,
-        uint256[] memory _royaltyShares
-    ) ERC1155(_uri) PaymentSplitter(_primarySalesPayees, _primarySalesShares) {
-        artwork = IArtwork(_artwork);
-        _transferOwnership(_owner);
-        address _royaltySplitter = address(
-            new PaymentSplitter(_royaltyPayees, _royaltyShares)
+        uint256[] memory _primarySalesShares
+    ) ERC1155("") PaymentSplitter(_primarySalesPayees, _primarySalesShares) {
+        projectRegistry = IProjectRegistry(_projectRegistry);
+
+        _createTraitsAndTypes(
+            _traitsSetup.traitTypeNames,
+            _traitsSetup.traitTypeValues,
+            _traitsSetup.traitNames,
+            _traitsSetup.traitValues,
+            _traitsSetup.traitTypeIndexes,
+            _traitsSetup.traitMaxSupplys
         );
-        _setDefaultRoyalty(_royaltySplitter, _royaltyFeeNumerator);
-        royaltySplitter = _royaltySplitter;
     }
 
     /** @inheritdoc ITraits*/
-    function createTraitsAndTypes(
-        string[] memory _traitTypeNames,
-        string[] memory _traitTypeValues,
-        string[] calldata _traitNames,
-        string[] calldata _traitValues,
-        uint256[] calldata _traitTypeIndexes,
-        uint256[] calldata _traitMaxSupplys
-    ) external onlyOwner {
-        if (artwork.locked()) revert Locked();
-        if (_traits.length != 0 || _traitTypes.length != 0)
-            revert TraitsAlreadyCreated();
-        if (
-            _traitTypeNames.length == 0 ||
-            _traitNames.length == 0 ||
-            _traitTypeNames.length != _traitTypeValues.length ||
-            _traitNames.length != _traitValues.length ||
-            _traitNames.length != _traitTypeIndexes.length ||
-            _traitNames.length != _traitMaxSupplys.length
-        ) revert InvalidArrayLengths();
+    function setup(bytes calldata _data) external onlyProjectRegistry {
+        if (address(artwork) != address(0)) revert AlreadySetup();
 
-        // Push trait types to array
-        for (uint256 i; i < _traitTypeNames.length; ) {
-            _traitTypes.push(
-                TraitType({
-                    name: _traitTypeNames[i],
-                    value: _traitTypeValues[i]
-                })
+        (
+            address _artwork,
+            bool _auctionExponential,
+            uint256 _auctionStartTime,
+            uint256 _auctionEndTime,
+            uint256 _auctionStartPrice,
+            uint256 _auctionEndPrice,
+            uint256 _auctionPriceSteps,
+            uint256 _traitsSaleStartTime
+        ) = abi.decode(
+                _data,
+                (
+                    address,
+                    bool,
+                    uint256,
+                    uint256,
+                    uint256,
+                    uint256,
+                    uint256,
+                    uint256
+                )
             );
-            unchecked {
-                ++i;
-            }
-        }
 
-        // Push traits to array
-        for (uint256 i; i < _traitNames.length; ) {
-            _traits.push(
-                Trait({
-                    name: _traitNames[i],
-                    value: _traitValues[i],
-                    typeIndex: _traitTypeIndexes[i],
-                    maxSupply: _traitMaxSupplys[i]
-                })
-            );
-            unchecked {
-                ++i;
-            }
-        }
+        artwork = IArtwork(_artwork);
+
+        _updateAuction(
+            _auctionStartTime,
+            _auctionEndTime,
+            _auctionStartPrice,
+            _auctionEndPrice,
+            _auctionPriceSteps,
+            _auctionExponential,
+            _traitsSaleStartTime
+        );
     }
 
     /** @inheritdoc ITraits*/
-    function scheduleAuction(
+    function updateAuction(
         uint256 _auctionStartTime,
         uint256 _auctionEndTime,
         uint256 _auctionStartPrice,
         uint256 _auctionEndPrice,
+        uint256 _auctionPriceSteps,
+        bool _auctionExponential,
         uint256 _traitsSaleStartTime
-    ) external onlyOwner {
-        if (!artwork.locked()) revert NotLocked();
-        if (
-            _auctionEndTime < _auctionStartTime ||
-            _auctionEndPrice > _auctionStartPrice ||
-            _traitsSaleStartTime < _auctionStartTime
-        ) revert InvalidAuction();
+    ) external onlyProjectRegistry {
+        if (auctionStartTime <= block.timestamp) revert AuctionIsLive();
 
-        auctionStartTime = _auctionStartTime;
-        auctionEndTime = _auctionEndTime;
-        auctionStartPrice = _auctionStartPrice;
-        auctionEndPrice = _auctionEndPrice;
-        traitsSaleStartTime = _traitsSaleStartTime;
+        _updateAuction(
+            _auctionStartTime,
+            _auctionEndTime,
+            _auctionStartPrice,
+            _auctionEndPrice,
+            _auctionPriceSteps,
+            _auctionExponential,
+            _traitsSaleStartTime
+        );
     }
 
     /** @inheritdoc ITraits*/
-    function updateURI(string memory _uri) external onlyOwner {
-        _setURI(_uri);
-    }
-
-    /** @inheritdoc ITraits*/
-    function buyTraits(
+    function mintTraits(
         address _recipient,
         uint256[] calldata _traitTokenIds,
         uint256[] calldata _traitAmounts
     ) external payable {
         if (_traitTokenIds.length != _traitAmounts.length)
             revert InvalidArrayLengths();
-        if (msg.sender != address(artwork) && block.timestamp < traitsSaleStartTime)
-            revert TraitsSaleStartTime();
+        if (
+            msg.sender != address(artwork) &&
+            block.timestamp < traitsSaleStartTime
+        ) revert TraitsSaleStartTime();
 
         uint256 _traitCount;
-        uint256 _traitPrice = traitPrice();
 
         for (uint256 i; i < _traitAmounts.length; ) {
             _traitCount += _traitAmounts[i];
@@ -157,19 +150,43 @@ contract Traits is
             }
         }
 
-        if (msg.value < _traitCount * _traitPrice) revert InvalidEthAmount();
+        if (msg.value < _traitCount * traitPrice()) revert InvalidEthAmount();
 
         _mintBatch(_recipient, _traitTokenIds, _traitAmounts, "");
-
-        emit TraitsBought(_recipient, _traitTokenIds, _traitAmounts);
     }
 
     /** @inheritdoc ITraits*/
-    function transferTraitsToCreateArtwork(
+    function mintTraitsWhitelistOrProof(
+        address _recipient,
+        uint256[] calldata _traitTokenIds
+    ) external onlyArtwork {
+        if (_traitTokenIds.length != _traitTypes.length)
+            revert InvalidArrayLengths();
+
+        uint256[] memory traitAmounts = new uint256[](_traitTokenIds.length);
+
+        for (uint256 i; i < _traitTokenIds.length; ) {
+            if (_traits[_traitTokenIds[i]].typeIndex != i)
+                revert InvalidTraits();
+            if (
+                totalSupply(_traitTokenIds[i]) + 1 >
+                _traits[_traitTokenIds[i]].maxSupply
+            ) revert MaxSupply();
+            traitAmounts[i] = 1;
+
+            unchecked {
+                ++i;
+            }
+        }
+
+        _mintBatch(_recipient, _traitTokenIds, traitAmounts, "");
+    }
+
+    /** @inheritdoc ITraits*/
+    function transferTraitsToMintArtwork(
         address _caller,
         uint256[] calldata _traitTokenIds
-    ) external {
-        if (msg.sender != address(artwork)) revert OnlyArtwork();
+    ) external onlyArtwork {
         if (_traitTokenIds.length != _traitTypes.length)
             revert InvalidArrayLengths();
 
@@ -276,33 +293,31 @@ contract Traits is
     }
 
     /** @inheritdoc ITraits*/
-    function traitPrice() public view returns (uint256 _price) {
+    function traitPriceStep() public view returns (uint256) {
         if (block.timestamp < auctionStartTime) revert AuctionNotLive();
-        if (block.timestamp > auctionEndTime) {
-            // Auction has ended
-            _price = auctionEndPrice;
-        } else {
-            // Auction is active
-            _price =
-                auctionStartPrice -
-                (
-                    (((block.timestamp - auctionStartTime) *
-                        (auctionStartPrice - auctionEndPrice)) /
-                        (auctionEndTime - auctionStartTime))
-                );
-        }
+        if (block.timestamp >= auctionEndTime) return auctionPriceSteps - 1;
+
+        return
+            (auctionPriceSteps * (block.timestamp - auctionStartTime)) /
+            (auctionEndTime - auctionStartTime);
     }
 
-    /** @inheritdoc ERC1155*/
-    function _beforeTokenTransfer(
-        address operator,
-        address from,
-        address to,
-        uint256[] memory ids,
-        uint256[] memory amounts,
-        bytes memory data
-    ) internal override(ERC1155, ERC1155Supply) {
-        super._beforeTokenTransfer(operator, from, to, ids, amounts, data);
+    /** @inheritdoc ITraits*/
+    function traitPrice() public view returns (uint256) {
+        // Auction is active
+        if (auctionExponential) {
+            // Exponential curve auction
+            return
+                (((auctionStartPrice - auctionEndPrice) *
+                    (auctionPriceSteps - traitPriceStep() - 1) ** 2) /
+                    (auctionPriceSteps - 1) ** 2) + auctionEndPrice;
+        }
+
+        // Linear curve auction
+        return
+            auctionStartPrice -
+            ((traitPriceStep() * (auctionStartPrice - auctionEndPrice)) /
+                (auctionPriceSteps - 1));
     }
 
     /** @inheritdoc ITraits*/
@@ -318,15 +333,19 @@ contract Traits is
     ) public view override(ERC1155, ITraits) returns (string memory) {
         if (_tokenId >= _traits.length) revert InvalidTokenId();
 
+        string memory baseURI = projectRegistry.baseURI();
+
         return
-            string(
-                abi.encodePacked(
-                    super.uri(_tokenId),
-                    address(this).toHexString(),
-                    "/",
-                    _tokenId.toString()
+            bytes(baseURI).length != 0
+                ? string(
+                    abi.encodePacked(
+                        baseURI,
+                        address(this).toHexString(),
+                        "/",
+                        _tokenId.toString()
+                    )
                 )
-            );
+                : "";
     }
 
     /** @inheritdoc ITraits*/
@@ -336,5 +355,129 @@ contract Traits is
         return
             interfaceId == type(ITraits).interfaceId ||
             super.supportsInterface(interfaceId);
+    }
+
+    /** @inheritdoc ERC2981*/
+    function royaltyInfo(
+        uint256 tokenId,
+        uint256 salePrice
+    ) public view override returns (address, uint256) {
+        return artwork.royaltyInfo(tokenId, salePrice);
+    }
+
+    /** @inheritdoc ERC1155*/
+    function _beforeTokenTransfer(
+        address operator,
+        address from,
+        address to,
+        uint256[] memory ids,
+        uint256[] memory amounts,
+        bytes memory data
+    ) internal override(ERC1155, ERC1155Supply) {
+        super._beforeTokenTransfer(operator, from, to, ids, amounts, data);
+    }
+
+    /**
+     * Sets up the traits and trait types
+     *
+     * @param _traitTypeNames human readable trait type names
+     * @param _traitTypeValues trait type values used in the generative scripts
+     * @param _traitNames human readable trait names
+     * @param _traitValues trait values used in the generative scripts
+     * @param _traitTypeIndexes trait type indexes each trait belongs to
+     * @param _traitMaxSupplys maximum number of mints for each trait
+     */
+    function _createTraitsAndTypes(
+        string[] memory _traitTypeNames,
+        string[] memory _traitTypeValues,
+        string[] memory _traitNames,
+        string[] memory _traitValues,
+        uint256[] memory _traitTypeIndexes,
+        uint256[] memory _traitMaxSupplys
+    ) private {
+        if (
+            _traitTypeNames.length == 0 ||
+            _traitNames.length == 0 ||
+            _traitTypeNames.length != _traitTypeValues.length ||
+            _traitNames.length != _traitValues.length ||
+            _traitNames.length != _traitTypeIndexes.length ||
+            _traitNames.length != _traitMaxSupplys.length
+        ) revert InvalidArrayLengths();
+
+        // Push trait types to array
+        for (uint256 i; i < _traitTypeNames.length; ) {
+            _traitTypes.push(
+                TraitType({
+                    name: _traitTypeNames[i],
+                    value: _traitTypeValues[i]
+                })
+            );
+            unchecked {
+                ++i;
+            }
+        }
+
+        // Push traits to array
+        for (uint256 i; i < _traitNames.length; ) {
+            _traits.push(
+                Trait({
+                    name: _traitNames[i],
+                    value: _traitValues[i],
+                    typeIndex: _traitTypeIndexes[i],
+                    maxSupply: _traitMaxSupplys[i]
+                })
+            );
+            unchecked {
+                ++i;
+            }
+        }
+    }
+
+    /**
+     * Updates auction data
+     *
+     * @param _auctionStartTime timestamp the auction begins at
+     * @param _auctionEndTime timestamp the auction ends at
+     * @param _auctionStartPrice trait price the auction begins at
+     * @param _auctionEndPrice trait price the auction ends at
+     * @param _auctionPriceSteps number of different prices auction steps through
+     * @param _auctionExponential true indicates auction curve is exponential, otherwise linear
+     * @param _traitsSaleStartTime timestamp at which traits can be bought individually
+
+     */
+    function _updateAuction(
+        uint256 _auctionStartTime,
+        uint256 _auctionEndTime,
+        uint256 _auctionStartPrice,
+        uint256 _auctionEndPrice,
+        uint256 _auctionPriceSteps,
+        bool _auctionExponential,
+        uint256 _traitsSaleStartTime
+    ) private {
+        if (
+            _auctionEndTime < _auctionStartTime ||
+            _auctionEndPrice > _auctionStartPrice ||
+            _traitsSaleStartTime < _auctionStartTime ||
+            _auctionStartTime < block.timestamp ||
+            _auctionPriceSteps < 2
+        ) revert InvalidAuction();
+
+        auctionStartTime = _auctionStartTime;
+        auctionEndTime = _auctionEndTime;
+        auctionStartPrice = _auctionStartPrice;
+        auctionEndPrice = _auctionEndPrice;
+        auctionPriceSteps = _auctionPriceSteps;
+        auctionExponential = _auctionExponential;
+        traitsSaleStartTime = _traitsSaleStartTime;
+
+        emit AuctionUpdated(
+            _auctionStartTime,
+            _auctionEndTime,
+            _auctionStartPrice,
+            _auctionEndPrice,
+            _auctionPriceSteps,
+            _auctionExponential,
+            _traitsSaleStartTime
+        );
     }
 }

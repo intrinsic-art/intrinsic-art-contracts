@@ -1,12 +1,17 @@
 [
   {
     "inputs": [],
-    "name": "AuctionNotLive",
+    "name": "AlreadySetup",
     "type": "error"
   },
   {
     "inputs": [],
-    "name": "InvalidArrayLengths",
+    "name": "AuctionIsLive",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "AuctionNotLive",
     "type": "error"
   },
   {
@@ -31,22 +36,7 @@
   },
   {
     "inputs": [],
-    "name": "Locked",
-    "type": "error"
-  },
-  {
-    "inputs": [],
     "name": "MaxSupply",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "NoRevenue",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "NotLocked",
     "type": "error"
   },
   {
@@ -56,12 +46,7 @@
   },
   {
     "inputs": [],
-    "name": "OnlyClaimer",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "TraitsAlreadyCreated",
+    "name": "OnlyProjectRegistry",
     "type": "error"
   },
   {
@@ -98,25 +83,49 @@
     "anonymous": false,
     "inputs": [
       {
-        "indexed": true,
-        "internalType": "address",
-        "name": "recipient",
-        "type": "address"
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "auctionStartTime",
+        "type": "uint256"
       },
       {
         "indexed": false,
-        "internalType": "uint256[]",
-        "name": "traitTokenIds",
-        "type": "uint256[]"
+        "internalType": "uint256",
+        "name": "auctionEndTime",
+        "type": "uint256"
       },
       {
         "indexed": false,
-        "internalType": "uint256[]",
-        "name": "traitAmounts",
-        "type": "uint256[]"
+        "internalType": "uint256",
+        "name": "auctionStartPrice",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "auctionEndPrice",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "auctionPriceSteps",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "bool",
+        "name": "auctionExponential",
+        "type": "bool"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "traitsSaleStartTime",
+        "type": "uint256"
       }
     ],
-    "name": "TraitsBought",
+    "name": "AuctionUpdated",
     "type": "event"
   },
   {
@@ -213,6 +222,19 @@
     "type": "event"
   },
   {
+    "inputs": [],
+    "name": "auctionStartTime",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "address",
@@ -264,67 +286,6 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "_recipient",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256[]",
-        "name": "_traitTokenIds",
-        "type": "uint256[]"
-      },
-      {
-        "internalType": "uint256[]",
-        "name": "_traitAmounts",
-        "type": "uint256[]"
-      }
-    ],
-    "name": "buyTraits",
-    "outputs": [],
-    "stateMutability": "payable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "string[]",
-        "name": "_traitTypeNames",
-        "type": "string[]"
-      },
-      {
-        "internalType": "string[]",
-        "name": "_traitTypeValues",
-        "type": "string[]"
-      },
-      {
-        "internalType": "string[]",
-        "name": "_traitNames",
-        "type": "string[]"
-      },
-      {
-        "internalType": "string[]",
-        "name": "_traitValues",
-        "type": "string[]"
-      },
-      {
-        "internalType": "uint256[]",
-        "name": "_traitTypeIndexes",
-        "type": "uint256[]"
-      },
-      {
-        "internalType": "uint256[]",
-        "name": "_traitMaxSupplys",
-        "type": "uint256[]"
-      }
-    ],
-    "name": "createTraitsAndTypes",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
         "name": "account",
         "type": "address"
       },
@@ -362,6 +323,47 @@
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_recipient",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "_traitTokenIds",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "_traitAmounts",
+        "type": "uint256[]"
+      }
+    ],
+    "name": "mintTraits",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_recipient",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "_traitTokenIds",
+        "type": "uint256[]"
+      }
+    ],
+    "name": "mintTraitsWhitelistOrProof",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -433,39 +435,6 @@
   {
     "inputs": [
       {
-        "internalType": "uint256",
-        "name": "_auctionStartTime",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_auctionEndTime",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_auctionStartPrice",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_auctionEndPrice",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_traitsSaleStartTime",
-        "type": "uint256"
-      }
-    ],
-    "name": "scheduleAuction",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
         "internalType": "address",
         "name": "operator",
         "type": "address"
@@ -477,6 +446,19 @@
       }
     ],
     "name": "setApprovalForAll",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes",
+        "name": "_data",
+        "type": "bytes"
+      }
+    ],
+    "name": "setup",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -541,6 +523,19 @@
       {
         "internalType": "uint256",
         "name": "_price",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "traitPriceStep",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
         "type": "uint256"
       }
     ],
@@ -626,7 +621,7 @@
         "type": "uint256[]"
       }
     ],
-    "name": "transferTraitsToCreateArtwork",
+    "name": "transferTraitsToMintArtwork",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -634,12 +629,42 @@
   {
     "inputs": [
       {
-        "internalType": "string",
-        "name": "_uri",
-        "type": "string"
+        "internalType": "uint256",
+        "name": "_auctionStartTime",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_auctionEndTime",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_auctionStartPrice",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_auctionEndPrice",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_auctionPriceSteps",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bool",
+        "name": "_auctionExponential",
+        "type": "bool"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_traitsSaleStartTime",
+        "type": "uint256"
       }
     ],
-    "name": "updateURI",
+    "name": "updateAuction",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

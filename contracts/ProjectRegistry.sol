@@ -2,14 +2,18 @@
 pragma solidity =0.8.19;
 
 import {IProjectRegistry} from "./interfaces/IProjectRegistry.sol";
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {IArtwork} from "./interfaces/IArtwork.sol";
+import {ITraits} from "./interfaces/ITraits.sol";
+import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
+import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 
 /**
  * Provides functionality for registering the Traits and Artwork
- * contract addresses for each intrinsic.art project
+ * contract addresses for each project
  */
-contract ProjectRegistry is IProjectRegistry, Ownable {
+contract ProjectRegistry is IProjectRegistry, Ownable2Step {
     uint256 public projectCount;
+    string public baseURI;
     mapping(address => bool) public admins;
     mapping(uint256 => Project) public projects;
 
@@ -18,22 +22,56 @@ contract ProjectRegistry is IProjectRegistry, Ownable {
         _;
     }
 
-    constructor(address _owner, address[] memory _admins) {
+    constructor(address _owner, address[] memory _admins, string memory _baseURI) {
         _transferOwnership(_owner);
         _addAdmins(_admins);
+        baseURI = _baseURI;
     }
 
     /** @inheritdoc IProjectRegistry*/
     function registerProject(
         address _artwork,
-        address _traits
+        bytes calldata _artworkData,
+        address _traits,
+        bytes calldata _traitsData
     ) external onlyAdmin {
+        if (_artwork == address(0) || _traits == address(0))
+            revert InvalidAddress();
         projectCount++;
 
         projects[projectCount].artwork = _artwork;
         projects[projectCount].traits = _traits;
 
+        IArtwork(_artwork).setup(_artworkData);
+        ITraits(_traits).setup(_traitsData);
+
         emit ProjectRegistered(projectCount, _artwork, _traits);
+    }
+
+    /** @inheritdoc IProjectRegistry*/
+    function execute(
+        address[] calldata _targets,
+        uint256[] calldata _values,
+        bytes[] calldata _calldatas
+    ) external onlyAdmin {
+        if (
+            _targets.length != _values.length ||
+            _targets.length != _calldatas.length
+        ) revert InvalidArrayLengths();
+
+        string memory errorMessage = "ProjectRegistry: call reverted";
+
+        for (uint256 i; i < _targets.length; ) {
+            (bool success, bytes memory returndata) = _targets[i].call{
+                value: _values[i]
+            }(_calldatas[i]);
+
+            Address.verifyCallResult(success, returndata, errorMessage);
+
+            unchecked {
+                ++i;
+            }
+        }
     }
 
     /** @inheritdoc IProjectRegistry*/
@@ -46,6 +84,12 @@ contract ProjectRegistry is IProjectRegistry, Ownable {
         _removeAdmins(_admins);
     }
 
+    /** @inheritdoc IProjectRegistry*/
+    function updateBaseURI(string memory _baseURI) external onlyAdmin {
+        baseURI = _baseURI;
+        emit BaseURIUpdated(_baseURI);
+    }
+
     /**
      * Adds multiple addresses to be made admins
      *
@@ -54,7 +98,9 @@ contract ProjectRegistry is IProjectRegistry, Ownable {
     function _addAdmins(address[] memory _admins) private {
         for (uint256 i; i < _admins.length; ) {
             admins[_admins[i]] = true;
+
             emit AdminAdded(_admins[i]);
+
             unchecked {
                 ++i;
             }
@@ -69,7 +115,9 @@ contract ProjectRegistry is IProjectRegistry, Ownable {
     function _removeAdmins(address[] memory _admins) private {
         for (uint256 i; i < _admins.length; ) {
             admins[_admins[i]] = false;
+
             emit AdminRemoved(_admins[i]);
+
             unchecked {
                 ++i;
             }

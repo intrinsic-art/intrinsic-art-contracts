@@ -1,6 +1,6 @@
 import * as dotenv from "dotenv";
 import { HardhatUserConfig, task } from "hardhat/config";
-import "@nomiclabs/hardhat-etherscan";
+import "@nomicfoundation/hardhat-verify";
 import "@openzeppelin/hardhat-upgrades";
 import "@nomiclabs/hardhat-waffle";
 import "@typechain/hardhat";
@@ -9,15 +9,20 @@ import "hardhat-gas-reporter";
 import "hardhat-contract-sizer";
 import "hardhat-abi-exporter";
 import "solidity-coverage";
-import CreateProject from "./scripts/CreateProject";
+import DeployMetta from "./scripts/DeployMetta";
+import DeployTackLineTorn from "./scripts/DeployTackLineTorn";
 
 dotenv.config();
 
-task("CreateProject", "Create a project")
-  .addParam("projectIndex", "Index of the project in the config file")
-  .setAction(async (taskArgs, hre) => {
-    await CreateProject(hre, taskArgs.projectIndex);
-  });
+task("DeployMetta", "Deploys the project").setAction(async (taskArgs, hre) => {
+  await DeployMetta(hre);
+});
+
+task("DeployTackLineTorn", "Deploys the project").setAction(
+  async (taskArgs, hre) => {
+    await DeployTackLineTorn(hre);
+  }
+);
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -49,7 +54,8 @@ const config: HardhatUserConfig = {
     deployer: {
       default: 0,
       mainnet: `privatekey://${process.env.MAINNET_DEPLOYER_PRIVATE_KEY}`,
-      goerli: `privatekey://${process.env.GOERLI_DEPLOYER_PRIVATE_KEY}`,
+      sepolia: `privatekey://${process.env.SEPOLIA_DEPLOYER_PRIVATE_KEY}`,
+      baseSepolia: `privatekey://${process.env.SEPOLIA_DEPLOYER_PRIVATE_KEY}`,
     },
   },
   networks: {
@@ -57,20 +63,37 @@ const config: HardhatUserConfig = {
       chainId: 1,
       url: process.env.MAINNET_PROVIDER,
       accounts: [process.env.MAINNET_DEPLOYER_PRIVATE_KEY || ""],
-      saveDeployments: false,
+      saveDeployments: true,
     },
-    goerli: {
-      chainId: 5,
-      url: process.env.GOERLI_PROVIDER,
-      accounts: [process.env.GOERLI_DEPLOYER_PRIVATE_KEY || ""],
+    baseSepolia: {
+      chainId: 84532,
+      url: process.env.BASE_SEPOLIA_PROVIDER,
+      accounts: [process.env.BASE_SEPOLIA_DEPLOYER_PRIVATE_KEY || ""],
+      saveDeployments: true,
+    },
+    sepolia: {
+      chainId: 11155111,
+      url: process.env.SEPOLIA_PROVIDER,
+      accounts: [process.env.SEPOLIA_DEPLOYER_PRIVATE_KEY || ""],
       saveDeployments: true,
     },
   },
   etherscan: {
     apiKey: {
-      mainnet: `${process.env.ETHERSCAN_ETHEREUM_API_KEY}`,
-      goerli: `${process.env.ETHERSCAN_ETHEREUM_API_KEY}`,
+      mainnet: `${process.env.ETHERSCAN_API_KEY}`,
+      sepolia: `${process.env.ETHERSCAN_API_KEY}`,
+      baseSepolia: `${process.env.BASESCAN_API_KEY}`,
     },
+    customChains: [
+      {
+        network: "baseSepolia",
+        chainId: 84532,
+        urls: {
+          apiURL: "https://api-sepolia.basescan.org/api",
+          browserURL: "https://sepolia.basescan.org/",
+        },
+      },
+    ],
   },
 };
 

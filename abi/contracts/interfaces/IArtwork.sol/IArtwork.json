@@ -1,7 +1,22 @@
 [
   {
     "inputs": [],
-    "name": "Locked",
+    "name": "AlreadySetup",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "AuctionIsLive",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "HashAlreadyUsed",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "NoWhitelistMints",
     "type": "error"
   },
   {
@@ -11,7 +26,22 @@
   },
   {
     "inputs": [],
+    "name": "OnlyArtistOrProjectRegistry",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "OnlyArtworkOwner",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "OnlyProjectRegistry",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "ProofAlreadyMinted",
     "type": "error"
   },
   {
@@ -22,6 +52,11 @@
   {
     "inputs": [],
     "name": "TraitsNotSet",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "WhitelistStartTime",
     "type": "error"
   },
   {
@@ -102,20 +137,26 @@
         "type": "address"
       }
     ],
-    "name": "ArtworkCreated",
+    "name": "ArtworkMinted",
     "type": "event"
   },
   {
     "anonymous": false,
     "inputs": [
       {
-        "indexed": false,
-        "internalType": "string",
-        "name": "baseURI",
-        "type": "string"
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "caller",
+        "type": "address"
       }
     ],
-    "name": "BaseURIUpdated",
+    "name": "ProofArtworkMinted",
     "type": "event"
   },
   {
@@ -160,6 +201,50 @@
       }
     ],
     "name": "Transfer",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "caller",
+        "type": "address"
+      }
+    ],
+    "name": "WhitelistArtworkMinted",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "whitelistStartTime",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "address[]",
+        "name": "whitelistAddresses",
+        "type": "address[]"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256[]",
+        "name": "whitelistAmounts",
+        "type": "uint256[]"
+      }
+    ],
+    "name": "WhitelistUpdated",
     "type": "event"
   },
   {
@@ -246,58 +331,6 @@
   {
     "inputs": [
       {
-        "internalType": "uint256[]",
-        "name": "_traitTokenIdsToBuy",
-        "type": "uint256[]"
-      },
-      {
-        "internalType": "uint256[]",
-        "name": "_traitAmountsToBuy",
-        "type": "uint256[]"
-      },
-      {
-        "internalType": "uint256[]",
-        "name": "_traitTokenIdsToCreateArtwork",
-        "type": "uint256[]"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_saltNonce",
-        "type": "uint256"
-      }
-    ],
-    "name": "buyTraitsCreateArtwork",
-    "outputs": [],
-    "stateMutability": "payable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256[]",
-        "name": "_traitTokenIds",
-        "type": "uint256[]"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_saltNonce",
-        "type": "uint256"
-      }
-    ],
-    "name": "createArtwork",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "_artworkTokenId",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
         "internalType": "uint256",
         "name": "tokenId",
         "type": "uint256"
@@ -339,15 +372,14 @@
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "lockProject",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "locked",
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "_hash",
+        "type": "bytes32"
+      }
+    ],
+    "name": "isHashUsed",
     "outputs": [
       {
         "internalType": "bool",
@@ -356,6 +388,107 @@
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "metadataJSON",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256[]",
+        "name": "_traitTokenIds",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_saltNonce",
+        "type": "uint256"
+      }
+    ],
+    "name": "mintArtwork",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "_artworkTokenId",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256[]",
+        "name": "_traitTokenIds",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_saltNonce",
+        "type": "uint256"
+      }
+    ],
+    "name": "mintArtworkProof",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256[]",
+        "name": "_traitTokenIds",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_saltNonce",
+        "type": "uint256"
+      }
+    ],
+    "name": "mintArtworkWhitelist",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256[]",
+        "name": "_traitTokenIdsToBuy",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "_traitAmountsToBuy",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "_traitTokenIdsToCreateArtwork",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_saltNonce",
+        "type": "uint256"
+      }
+    ],
+    "name": "mintTraitsAndArtwork",
+    "outputs": [],
+    "stateMutability": "payable",
     "type": "function"
   },
   {
@@ -378,32 +511,6 @@
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "projectScriptCount",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "projectScripts",
-    "outputs": [
-      {
-        "internalType": "string[]",
-        "name": "_scripts",
-        "type": "string[]"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
     "inputs": [
       {
         "internalType": "uint256",
@@ -414,6 +521,35 @@
     "name": "reclaimTraits",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "salePrice",
+        "type": "uint256"
+      }
+    ],
+    "name": "royaltyInfo",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "receiver",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "royaltyAmount",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -468,6 +604,19 @@
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "script",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "address",
@@ -488,12 +637,12 @@
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "_traits",
-        "type": "address"
+        "internalType": "bytes",
+        "name": "_data",
+        "type": "bytes"
       }
     ],
-    "name": "setTraits",
+    "name": "setup",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -562,30 +711,22 @@
   {
     "inputs": [
       {
-        "internalType": "string",
-        "name": "_baseURI",
-        "type": "string"
-      }
-    ],
-    "name": "updateBaseURI",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
         "internalType": "uint256",
-        "name": "_scriptIndex",
+        "name": "_whitelistStartTime",
         "type": "uint256"
       },
       {
-        "internalType": "string",
-        "name": "_script",
-        "type": "string"
+        "internalType": "address[]",
+        "name": "_whitelistAddresses",
+        "type": "address[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "_whitelistAmounts",
+        "type": "uint256[]"
       }
     ],
-    "name": "updateScript",
+    "name": "updateWhitelist",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -598,7 +739,7 @@
         "type": "address"
       }
     ],
-    "name": "userNonce",
+    "name": "whitelistMintsRemaining",
     "outputs": [
       {
         "internalType": "uint256",

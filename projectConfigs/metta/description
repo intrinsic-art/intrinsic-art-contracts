@@ -1,0 +1,16 @@
+DESCRIPTION:
+"Metta" is an exploration of the interconnected world, illustrated by Voronoi tessellations created with signed distance functions.
+The patterns created in this project reflect life's intricate web, showing how individual entities, distinct yet interconnected, form a cohesive whole. The artwork's animation, driven by interaction between the entities, brings these connections to life, illustrating the dynamic nature of relationships.
+In addition to the aesthetic display, the project is a metaphorical expression of the Metta philosophy. It invites viewers to contemplate the unseen connections in our lives and recognize the profound interconnectedness of all beings. "Metta" seeks to awaken a sense of unity and empathy in its mindful viewers, gently guiding them to appreciate the intricate web of relationships that form the fabric of our collective experience.
+Coded in vanilla JS with love, by Matto.
+
+INTERACTIVITY:
+By default, "Metta" will draw itself in, slow down, and pause. This initial paused state creates the canonical image for the token. The paused state can be toggled by double-clicking on the canvas or by pressing the spacebar. 
+Hotkeys to interact with the script:
+- " " toggles pause
+- "S" saves a frame
+- "<" and ">" change the background's brightness
+URL parameters to customize the experience:
+- portrait=true will run the script in a vertical aspect ratio (9x16)
+- continuous=true will bypass the initial automatic pausing mechanism
+- delay=<0-1000> will set the delay in milliseconds between draw cycles (default is 25)

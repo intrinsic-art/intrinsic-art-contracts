@@ -49,13 +49,28 @@ npx hardhat node
 ## Example Deployment & Project Creation Scripts
 Deploy the contracts
 ```shell
-npx hardhat deploy --network goerli
+npx hardhat deploy --network baseSepolia
 ```
-Deploy project contracts, verify on Etherscan, and setup configuration
+Deploy project contracts, verify on Etherscan, and register project on registry
 ```shell
-npx hardhat CreateProject --project-index 0 --network goerli
+npx hardhat DeployTackLineTorn --network baseSepolia
+npx hardhat DeployMetta --network baseSepolia
 ```
 
+## Escapify Project Scripts & Descriptions
+Project scripts and descriptions are stored in the bytecode of string storage smart contracts to save on deployment gas.
+The `escapify` script can be used to escape quotes, newlines, and backslashes:
+```shell
+npm run EscapifyJSON -- projectConfigs/metta/description
+```
+
+```shell
+npm run EscapifySolidity -- projectConfigs/metta/metadata.json
+```
+
+```shell
+npm run EscapifySolidity -- projectConfigs/metta/script
+```
 
 ## Test Coverage
 ```shell

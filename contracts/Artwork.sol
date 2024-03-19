@@ -3,94 +3,111 @@ pragma solidity =0.8.19;
 
 import {ITraits} from "./interfaces/ITraits.sol";
 import {IArtwork} from "./interfaces/IArtwork.sol";
+import {IStringStorage} from "./interfaces/IStringStorage.sol";
+import {IProjectRegistry} from "./interfaces/IProjectRegistry.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import {ERC2981} from "@openzeppelin/contracts/token/common/ERC2981.sol";
-import {PaymentSplitter} from "@openzeppelin/contracts/finance/PaymentSplitter.sol";
+import {PaymentSplitter} from "./PaymentSplitter.sol";
 import {IERC721Metadata} from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 import {ERC1155Holder, ERC1155Receiver, IERC165} from "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
 
 /**
- * Implements ERC-721 standard for artwork tokens,
- * and provides functions for creating and decomposing artwork
+ * Implements ERC-721 standard for artwork tokens, and
+ * functionality for minting artwork and reclaiming traits
  */
 contract Artwork is
     IArtwork,
     IERC721Metadata,
-    Ownable,
-    ERC721,
     ERC2981,
-    ERC1155Holder
+    ERC721,
+    ERC1155Holder,
+    PaymentSplitter
 {
     using Strings for uint256;
     using Strings for address;
 
-    bool public locked;
-    address public royaltySplitter;
+    bool public proofMinted;
+    string public constant VERSION = "1.0";
+    address public artistAddress;
+    IProjectRegistry public projectRegistry;
     ITraits public traits;
-    string public baseURI;
-    string public scriptJSON;
-    string public constant VERSION = "1.0.0";
     uint256 public nextTokenId;
-    mapping(uint256 => string) private scripts;
+    StringStorageData public metadataJSONStringStorage;
+    StringStorageData public scriptStringStorage;
+    uint256 public whitelistStartTime;
+
     mapping(uint256 => ArtworkData) private artworkData;
-    mapping(address => uint256) private userNonces;
+    mapping(bytes32 => bool) private hashUsed;
+    mapping(address => uint256) public whitelistMintsRemaining;
+
+    modifier onlyProjectRegistry() {
+        if (msg.sender != address(projectRegistry))
+            revert OnlyProjectRegistry();
+        _;
+    }
 
     constructor(
-        uint96 _royaltyFeeNumerator,
         string memory _name,
         string memory _symbol,
-        string memory _baseURI,
-        string memory _scriptJSON,
-        address _owner,
+        address _artistAddress,
+        address _projectRegistry,
+        uint96 _royaltyFeeNumerator,
         address[] memory _royaltyPayees,
-        uint256[] memory _royaltyShares
-    ) ERC721(_name, _symbol) {
-        baseURI = _baseURI;
-        scriptJSON = _scriptJSON;
-        _transferOwnership(_owner);
-        address _royaltySplitter = address(
-            new PaymentSplitter(_royaltyPayees, _royaltyShares)
-        );
-        _setDefaultRoyalty(_royaltySplitter, _royaltyFeeNumerator);
-        royaltySplitter = _royaltySplitter;
+        uint256[] memory _royaltyShares,
+        StringStorageData memory _metadataJSONStringStorage,
+        StringStorageData memory _scriptStringStorage
+    ) ERC721(_name, _symbol) PaymentSplitter(_royaltyPayees, _royaltyShares) {
+        artistAddress = _artistAddress;
+        projectRegistry = IProjectRegistry(_projectRegistry);
+
+        // Set EIP-2981 royalties to be sent to this contract
+        _setDefaultRoyalty(address(this), _royaltyFeeNumerator);
+
+        metadataJSONStringStorage = _metadataJSONStringStorage;
+        scriptStringStorage = _scriptStringStorage;
     }
 
     /** @inheritdoc IArtwork*/
-    function setTraits(address _traits) external onlyOwner {
-        if (address(traits) != address(0)) revert TraitsAlreadySet();
+    function setup(bytes calldata _data) external {
+        if (msg.sender != address(projectRegistry))
+            revert OnlyProjectRegistry();
+        if (address(traits) != address(0)) revert AlreadySetup();
+
+        (
+            address _traits,
+            uint256 _whitelistStartTime,
+            address[] memory _whitelistAddresses,
+            uint256[] memory _whitelistAmounts
+        ) = abi.decode(_data, (address, uint256, address[], uint256[]));
 
         traits = ITraits(_traits);
+
+        _updateWhitelist(
+            _whitelistStartTime,
+            _whitelistAddresses,
+            _whitelistAmounts
+        );
     }
 
     /** @inheritdoc IArtwork*/
-    function updateScript(
-        uint256 _scriptIndex,
-        string calldata _script
-    ) external onlyOwner {
-        if (locked) revert Locked();
+    function updateWhitelist(
+        uint256 _whitelistStartTime,
+        address[] memory _whitelistAddresses,
+        uint256[] memory _whitelistAmounts
+    ) external onlyProjectRegistry {
+        if (traits.auctionStartTime() <= block.timestamp)
+            revert AuctionIsLive();
 
-        scripts[_scriptIndex] = (_script);
+        _updateWhitelist(
+            _whitelistStartTime,
+            _whitelistAddresses,
+            _whitelistAmounts
+        );
     }
 
     /** @inheritdoc IArtwork*/
-    function updateBaseURI(string memory _baseURI) external onlyOwner {
-        baseURI = _baseURI;
-
-        emit BaseURIUpdated(_baseURI);
-    }
-
-    /** @inheritdoc IArtwork*/
-    function lockProject() external onlyOwner {
-        if (locked) revert Locked();
-        if (address(traits) == address(0)) revert TraitsNotSet();
-
-        locked = true;
-    }
-
-    /** @inheritdoc IArtwork*/
-    function createArtwork(
+    function mintArtwork(
         uint256[] calldata _traitTokenIds,
         uint256 _saltNonce
     ) public returns (uint256 _artworkTokenId) {
@@ -98,19 +115,75 @@ contract Artwork is
             abi.encodePacked(
                 address(this),
                 msg.sender,
-                userNonces[msg.sender],
                 _saltNonce
             )
         );
+
+        if (hashUsed[_hash]) revert HashAlreadyUsed();
+
         _artworkTokenId = nextTokenId++;
         artworkData[_artworkTokenId].hash = _hash;
         artworkData[_artworkTokenId].traitTokenIds = _traitTokenIds;
-        userNonces[msg.sender]++;
+        hashUsed[_hash] = true;
 
-        traits.transferTraitsToCreateArtwork(msg.sender, _traitTokenIds);
+        traits.transferTraitsToMintArtwork(msg.sender, _traitTokenIds);
         _safeMint(msg.sender, _artworkTokenId);
 
-        emit ArtworkCreated(_artworkTokenId, _traitTokenIds, _hash, msg.sender);
+        emit ArtworkMinted(_artworkTokenId, _traitTokenIds, _hash, msg.sender);
+    }
+
+    /** @inheritdoc IArtwork*/
+    function mintArtworkProof(
+        uint256[] calldata _traitTokenIds,
+        uint256 _saltNonce
+    ) external {
+        if (proofMinted) revert ProofAlreadyMinted();
+        if (
+            msg.sender != artistAddress &&
+            msg.sender != address(projectRegistry)
+        ) revert OnlyArtistOrProjectRegistry();
+
+        proofMinted = true;
+
+        traits.mintTraitsWhitelistOrProof(msg.sender, _traitTokenIds);
+
+        uint256 tokenId = mintArtwork(_traitTokenIds, _saltNonce);
+
+        emit ProofArtworkMinted(tokenId, msg.sender);
+    }
+
+    /** @inheritdoc IArtwork*/
+    function mintArtworkWhitelist(
+        uint256[] calldata _traitTokenIds,
+        uint256 _saltNonce
+    ) external {
+        if (block.timestamp < whitelistStartTime) revert WhitelistStartTime();
+        if (whitelistMintsRemaining[msg.sender] == 0)
+            revert NoWhitelistMints();
+
+        whitelistMintsRemaining[msg.sender]--;
+
+        traits.mintTraitsWhitelistOrProof(msg.sender, _traitTokenIds);
+
+        uint256 tokenId = mintArtwork(_traitTokenIds, _saltNonce);
+
+        emit WhitelistArtworkMinted(tokenId, msg.sender);
+    }
+
+    /** @inheritdoc IArtwork*/
+    function mintTraitsAndArtwork(
+        uint256[] calldata _traitTokenIdsToBuy,
+        uint256[] calldata _traitAmountsToBuy,
+        uint256[] calldata _traitTokenIdsToCreateArtwork,
+        uint256 _saltNonce
+    ) external payable {
+        traits.mintTraits{value: msg.value}(
+            msg.sender,
+            _traitTokenIdsToBuy,
+            _traitAmountsToBuy
+        );
+
+        mintArtwork(_traitTokenIdsToCreateArtwork, _saltNonce);
     }
 
     /** @inheritdoc IArtwork*/
@@ -144,22 +217,6 @@ contract Artwork is
     }
 
     /** @inheritdoc IArtwork*/
-    function buyTraitsCreateArtwork(
-        uint256[] calldata _traitTokenIdsToBuy,
-        uint256[] calldata _traitAmountsToBuy,
-        uint256[] calldata _traitTokenIdsToCreateArtwork,
-        uint256 _saltNonce
-    ) external payable {
-        traits.buyTraits{value: msg.value}(
-            msg.sender,
-            _traitTokenIdsToBuy,
-            _traitAmountsToBuy
-        );
-
-        createArtwork(_traitTokenIdsToCreateArtwork, _saltNonce);
-    }
-
-    /** @inheritdoc IArtwork*/
     function tokenURI(
         uint256 _tokenId
     )
@@ -168,7 +225,7 @@ contract Artwork is
         override(ERC721, IERC721Metadata, IArtwork)
         returns (string memory)
     {
-        _requireMinted(_tokenId);
+        string memory baseURI = projectRegistry.baseURI();
 
         return
             bytes(baseURI).length != 0
@@ -224,36 +281,22 @@ contract Artwork is
     }
 
     /** @inheritdoc IArtwork*/
-    function projectScripts() external view returns (string[] memory _scripts) {
-        uint256 scriptCount = projectScriptCount();
-        _scripts = new string[](scriptCount);
-
-        for (uint256 i; i < scriptCount; ) {
-            _scripts[i] = scripts[i];
-
-            unchecked {
-                ++i;
-            }
-        }
+    function metadataJSON() external view returns (string memory) {
+        return
+            IStringStorage(metadataJSONStringStorage.stringStorageAddress)
+                .stringAtSlot(metadataJSONStringStorage.stringStorageSlot);
     }
 
     /** @inheritdoc IArtwork*/
-    function projectScriptCount() public view returns (uint256) {
-        uint256 scriptIndex;
-
-        while (
-            keccak256(abi.encodePacked(scripts[scriptIndex])) !=
-            keccak256(abi.encodePacked(""))
-        ) {
-            scriptIndex++;
-        }
-
-        return scriptIndex;
+    function script() external view returns (string memory) {
+        return
+            IStringStorage(scriptStringStorage.stringStorageAddress)
+                .stringAtSlot(scriptStringStorage.stringStorageSlot);
     }
 
     /** @inheritdoc IArtwork*/
-    function userNonce(address _user) external view returns (uint256) {
-        return userNonces[_user];
+    function isHashUsed(bytes32 _hash) external view returns (bool) {
+        return hashUsed[_hash];
     }
 
     /** @inheritdoc IArtwork*/
@@ -268,5 +311,39 @@ contract Artwork is
         return
             interfaceId == type(IArtwork).interfaceId ||
             super.supportsInterface(interfaceId);
+    }
+
+    /**
+     * Updates whitelist data
+     *
+     * @param _whitelistStartTime timestamp at which whitelisted users can start minting
+     * @param _whitelistAddresses the addresses to whitelist
+     * @param _whitelistAmounts the amounts each address can whitelist mint
+     */
+    function _updateWhitelist(
+        uint256 _whitelistStartTime,
+        address[] memory _whitelistAddresses,
+        uint256[] memory _whitelistAmounts
+    ) private {
+        if (_whitelistAddresses.length != _whitelistAmounts.length)
+            revert InvalidArrayLengths();
+
+        whitelistStartTime = _whitelistStartTime;
+
+        for (uint256 i; i < _whitelistAddresses.length; ) {
+            whitelistMintsRemaining[
+                _whitelistAddresses[i]
+            ] = _whitelistAmounts[i];
+
+            unchecked {
+                ++i;
+            }
+        }
+
+        emit WhitelistUpdated(
+            _whitelistStartTime,
+            _whitelistAddresses,
+            _whitelistAmounts
+        );
     }
 }

@@ -1,6 +1,8 @@
 import {
   Artwork,
   Artwork__factory,
+  MockStringStorage,
+  MockStringStorage__factory,
   ProjectRegistry,
   ProjectRegistry__factory,
   Traits,
@@ -9,623 +11,426 @@ import {
 import { expect } from "chai";
 import { ethers } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { BigNumber } from "ethers";
 
 describe("Deployment and setup", function () {
-  let traits: Traits;
-  let artwork: Artwork;
   let projectRegistry: ProjectRegistry;
+  let stringStorage: MockStringStorage;
+  let artwork: Artwork;
+  let traits: Traits;
 
   let deployer: SignerWithAddress;
-  let owner: SignerWithAddress;
+  let artist: SignerWithAddress;
   let user1: SignerWithAddress;
-  let admin1: SignerWithAddress;
-  let admin2: SignerWithAddress;
+  let whitelistedUser1: SignerWithAddress;
+  let whitelistedUser2: SignerWithAddress;
   let artistRevenueClaimer: SignerWithAddress;
   let platformRevenueClaimer: SignerWithAddress;
+  let projectRegistryOwner: SignerWithAddress;
+  let projectRegistryAdmin1: SignerWithAddress;
+  let projectRegistryAdmin2: SignerWithAddress;
+
+  let currentTime;
+  let auctionStartTime: number;
+  let auctionEndTime: number;
+  let auctionStartPrice: BigNumber;
+  let auctionEndPrice: BigNumber;
+  let auctionPriceSteps: number;
+  let traitsSaleStartTime: number;
+  let whitelistStartTime: number;
+
+  const abiCoder = ethers.utils.defaultAbiCoder;
 
   beforeEach(async function () {
     [
       deployer,
-      owner,
+      artist,
+      whitelistedUser1,
+      whitelistedUser2,
       user1,
-      admin1,
-      admin2,
       artistRevenueClaimer,
       platformRevenueClaimer,
+      projectRegistryOwner,
+      projectRegistryAdmin1,
+      projectRegistryAdmin2,
     ] = await ethers.getSigners();
+
+    projectRegistry = await new ProjectRegistry__factory(deployer).deploy(
+      projectRegistryOwner.address,
+      [projectRegistryAdmin1.address],
+      "https://intrinsic.art/"
+    );
+
+    stringStorage = await new MockStringStorage__factory(deployer).deploy();
   });
 
   it("Artwork contract can't be deployed with invalid array lengths", async () => {
     await expect(
       new Artwork__factory(deployer).deploy(
-        1000,
         "Intrinsic.art Disentanglement",
         "INSC",
-        "https://artwork.intrinsic.art/",
-        "testJSON",
-        owner.address,
+        artist.address,
+        projectRegistry.address,
+        1000,
         [artistRevenueClaimer.address],
-        [90, 10]
+        [90, 10],
+        { stringStorageSlot: 0, stringStorageAddress: stringStorage.address },
+        { stringStorageSlot: 1, stringStorageAddress: stringStorage.address }
       )
-    ).to.be.revertedWith("PaymentSplitter: payees and shares length mismatch");
+    ).to.be.revertedWith("InvalidArrayLengths()");
 
     await expect(
       new Artwork__factory(deployer).deploy(
-        1000,
         "Intrinsic.art Disentanglement",
         "INSC",
-        "https://artwork.intrinsic.art/",
-        "testJSON",
-        owner.address,
+        artist.address,
+        projectRegistry.address,
+        1000,
         [artistRevenueClaimer.address, platformRevenueClaimer.address],
-        [90]
+        [90],
+        { stringStorageSlot: 0, stringStorageAddress: stringStorage.address },
+        { stringStorageSlot: 1, stringStorageAddress: stringStorage.address }
       )
-    ).to.be.revertedWith("PaymentSplitter: payees and shares length mismatch");
+    ).to.be.revertedWith("InvalidArrayLengths()");
 
     await expect(
       new Artwork__factory(deployer).deploy(
-        1000,
         "Intrinsic.art Disentanglement",
         "INSC",
-        "https://artwork.intrinsic.art/",
-        "testJSON",
-        owner.address,
+        artist.address,
+        projectRegistry.address,
+        1000,
         [],
-        []
+        [],
+        { stringStorageSlot: 0, stringStorageAddress: stringStorage.address },
+        { stringStorageSlot: 1, stringStorageAddress: stringStorage.address }
       )
-    ).to.be.revertedWith("PaymentSplitter: no payees");
+    ).to.be.revertedWith("NoPayees()");
   });
 
-  it("Only the owner can set the traits on the Artwork contract", async () => {
-    artwork = await new Artwork__factory(deployer).deploy(
-      1000,
-      "Intrinsic.art Disentanglement",
-      "INSC",
-      "https://artwork.intrinsic.art/",
-      "testJSON",
-      owner.address,
-      [artistRevenueClaimer.address, platformRevenueClaimer.address],
-      [90, 10]
-    );
-
-    expect(await artwork.traits()).to.eq(ethers.constants.AddressZero);
+  it("Only an admin can update the base URI on the project registry", async () => {
+    expect(await projectRegistry.baseURI()).to.eq("https://intrinsic.art/");
 
     await expect(
-      artwork.connect(user1).setTraits(user1.address)
-    ).to.be.revertedWith("Ownable: caller is not the owner");
+      projectRegistry.connect(user1).updateBaseURI("new URI")
+    ).to.be.revertedWith("OnlyAdmin()");
 
-    await artwork.connect(owner).setTraits(user1.address);
+    await projectRegistry
+      .connect(projectRegistryAdmin1)
+      .updateBaseURI("new URI 2");
 
-    expect(await artwork.traits()).to.eq(user1.address);
-  });
-
-  it("Only the owner can update scripts on the Artwork contract", async () => {
-    artwork = await new Artwork__factory(deployer).deploy(
-      1000,
-      "Intrinsic.art Disentanglement",
-      "INSC",
-      "https://artwork.intrinsic.art/",
-      "testJSON",
-      owner.address,
-      [artistRevenueClaimer.address, platformRevenueClaimer.address],
-      [90, 10]
-    );
-
-    expect(await artwork.projectScripts()).to.deep.eq([]);
-
-    await expect(
-      artwork.connect(user1).updateScript(0, "test script")
-    ).to.be.revertedWith("Ownable: caller is not the owner");
-
-    await artwork.connect(owner).updateScript(0, "test script 2");
-
-    expect(await artwork.projectScripts()).to.deep.eq(["test script 2"]);
-  });
-
-  it("Only the owner can update the base URI on the Artwork contract", async () => {
-    artwork = await new Artwork__factory(deployer).deploy(
-      1000,
-      "Intrinsic.art Disentanglement",
-      "INSC",
-      "https://artwork.intrinsic.art/",
-      "testJSON",
-      owner.address,
-      [artistRevenueClaimer.address, platformRevenueClaimer.address],
-      [90, 10]
-    );
-
-    expect(await artwork.baseURI()).to.eq("https://artwork.intrinsic.art/");
-
-    await expect(
-      artwork.connect(user1).updateBaseURI("new URI")
-    ).to.be.revertedWith("Ownable: caller is not the owner");
-
-    await artwork.connect(owner).updateBaseURI("new URI 2");
-
-    expect(await artwork.baseURI()).to.eq("new URI 2");
-  });
-
-  it("Artwork contract can only be locked by the owner", async () => {
-    artwork = await new Artwork__factory(deployer).deploy(
-      1000,
-      "Intrinsic.art Disentanglement",
-      "INSC",
-      "https://artwork.intrinsic.art/",
-      "testJSON",
-      owner.address,
-      [artistRevenueClaimer.address, platformRevenueClaimer.address],
-      [90, 10]
-    );
-
-    artwork.connect(owner).setTraits(user1.address);
-
-    expect(await artwork.locked()).to.eq(false);
-
-    await artwork.connect(owner).lockProject();
-
-    expect(await artwork.locked()).to.eq(true);
-  });
-
-  it("Artwork contract can't be locked if the Traits conract hasn't been set", async () => {
-    artwork = await new Artwork__factory(deployer).deploy(
-      1000,
-      "Intrinsic.art Disentanglement",
-      "INSC",
-      "https://artwork.intrinsic.art/",
-      "testJSON",
-      owner.address,
-      [artistRevenueClaimer.address, platformRevenueClaimer.address],
-      [90, 10]
-    );
-
-    await expect(artwork.connect(owner).lockProject()).to.be.revertedWith(
-      "TraitsNotSet()"
-    );
-  });
-
-  it("Artwork contract can't be locked twice", async () => {
-    artwork = await new Artwork__factory(deployer).deploy(
-      1000,
-      "Intrinsic.art Disentanglement",
-      "INSC",
-      "https://artwork.intrinsic.art/",
-      "testJSON",
-      owner.address,
-      [artistRevenueClaimer.address, platformRevenueClaimer.address],
-      [90, 10]
-    );
-
-    await artwork.connect(owner).setTraits(user1.address);
-
-    await artwork.connect(owner).lockProject();
-
-    await expect(artwork.connect(owner).lockProject()).to.be.revertedWith(
-      "Locked()"
-    );
+    expect(await projectRegistry.baseURI()).to.eq("new URI 2");
   });
 
   it("Traits contract can't be deployed with invalid array lengths", async () => {
     await expect(
       new Traits__factory(deployer).deploy(
-        1000,
-        "https://trait.intrinsic.art/",
-        owner.address,
-        owner.address,
-        [],
-        [90, 10],
-        [artistRevenueClaimer.address, platformRevenueClaimer.address],
+        projectRegistry.address,
+        {
+          traitTypeNames: ["Hair Color", "Eye Color"],
+          traitTypeValues: ["hairColor", "eyeColor"],
+          traitNames: ["Blonde", "Brown", "Black", "Green", "Blue"],
+          traitValues: ["blonde", "brown", "black", "green", "blue"],
+          traitTypeIndexes: [0, 0, 0, 1, 1],
+          traitMaxSupplys: [10, 20, 30, 40, 50],
+        },
+        [artistRevenueClaimer.address],
         [90, 10]
       )
-    ).to.be.revertedWith("PaymentSplitter: payees and shares length mismatch");
+    ).to.be.revertedWith("InvalidArrayLengths()");
 
     await expect(
       new Traits__factory(deployer).deploy(
-        1000,
-        "https://trait.intrinsic.art/",
-        owner.address,
-        owner.address,
+        projectRegistry.address,
+        {
+          traitTypeNames: ["Hair Color", "Eye Color"],
+          traitTypeValues: ["hairColor", "eyeColor"],
+          traitNames: ["Blonde", "Brown", "Black", "Green", "Blue"],
+          traitValues: ["blonde", "brown", "black", "green", "blue"],
+          traitTypeIndexes: [0, 0, 0, 1, 1],
+          traitMaxSupplys: [10, 20, 30, 40, 50],
+        },
         [artistRevenueClaimer.address, platformRevenueClaimer.address],
-        [90, 10],
-        [artistRevenueClaimer.address, platformRevenueClaimer.address],
-        [90, 10, 20]
+        [90]
       )
-    ).to.be.revertedWith("PaymentSplitter: payees and shares length mismatch");
-  });
-
-  it("Traits and trait types can't be set by non-owner", async () => {
-    traits = await new Traits__factory(deployer).deploy(
-      1000,
-      "https://trait.intrinsic.art/",
-      artwork.address,
-      owner.address,
-      [artistRevenueClaimer.address, platformRevenueClaimer.address],
-      [90, 10],
-      [artistRevenueClaimer.address, platformRevenueClaimer.address],
-      [90, 10]
-    );
-
-    await expect(
-      traits
-        .connect(user1)
-        .createTraitsAndTypes(
-          ["Hair Color", "Eye Color"],
-          ["hairColor", "eyeColor"],
-          ["Blonde", "Brown", "Black", "Green", "Blue"],
-          ["blonde", "brown", "black", "green", "blue"],
-          [0, 0, 0, 1, 1],
-          [10, 20, 30, 40, 50]
-        )
-    ).to.be.revertedWith("Ownable: caller is not the owner");
-  });
-
-  it("Traits and trait types can't be set with invalid array lengths", async () => {
-    artwork = await new Artwork__factory(deployer).deploy(
-      1000,
-      "Intrinsic.art Disentanglement",
-      "INSC",
-      "https://artwork.intrinsic.art/",
-      "testJSON",
-      owner.address,
-      [artistRevenueClaimer.address, platformRevenueClaimer.address],
-      [90, 10]
-    );
-
-    traits = await new Traits__factory(deployer).deploy(
-      1000,
-      "https://trait.intrinsic.art/",
-      artwork.address,
-      owner.address,
-      [artistRevenueClaimer.address, platformRevenueClaimer.address],
-      [90, 10],
-      [artistRevenueClaimer.address, platformRevenueClaimer.address],
-      [90, 10]
-    );
-
-    await expect(
-      traits
-        .connect(owner)
-        .createTraitsAndTypes(
-          ["Hair Color", "Eye Color"],
-          ["hairColor"],
-          ["Blonde", "Brown", "Black", "Green", "Blue"],
-          ["blonde", "brown", "black", "green", "blue"],
-          [0, 0, 0, 1, 1],
-          [10, 20, 30, 40, 50]
-        )
     ).to.be.revertedWith("InvalidArrayLengths()");
 
     await expect(
-      traits
-        .connect(owner)
-        .createTraitsAndTypes(
-          ["Hair Color", "Eye Color"],
-          ["hairColor", "eyeColor"],
-          ["Blonde", "Brown", "Black", "Green", "Blue"],
-          ["blonde", "brown", "black", "green"],
-          [0, 0, 0, 1, 1],
-          [10, 20, 30, 40, 50]
-        )
+      new Traits__factory(deployer).deploy(
+        projectRegistry.address,
+        {
+          traitTypeNames: ["Hair Color"],
+          traitTypeValues: ["hairColor", "eyeColor"],
+          traitNames: ["Blonde", "Brown", "Black", "Green", "Blue"],
+          traitValues: ["blonde", "brown", "black", "green", "blue"],
+          traitTypeIndexes: [0, 0, 0, 1, 1],
+          traitMaxSupplys: [10, 20, 30, 40, 50],
+        },
+        [artistRevenueClaimer.address, platformRevenueClaimer.address],
+        [90, 10]
+      )
     ).to.be.revertedWith("InvalidArrayLengths()");
 
     await expect(
-      traits
-        .connect(owner)
-        .createTraitsAndTypes(
-          ["Hair Color", "Eye Color"],
-          ["hairColor", "eyeColor"],
-          ["Blonde", "Brown", "Black", "Green", "Blue"],
-          ["blonde", "brown", "black", "green", "blue"],
-          [0, 0, 0, 1, 1],
-          [10, 20, 30, 40]
-        )
+      new Traits__factory(deployer).deploy(
+        projectRegistry.address,
+        {
+          traitTypeNames: ["Hair Color", "Eye Color"],
+          traitTypeValues: ["hairColor", "eyeColor"],
+          traitNames: ["Blonde", "Brown", "Black", "Green"],
+          traitValues: ["blonde", "brown", "black", "green", "blue"],
+          traitTypeIndexes: [0, 0, 0, 1, 1],
+          traitMaxSupplys: [10, 20, 30, 40, 50],
+        },
+        [artistRevenueClaimer.address, platformRevenueClaimer.address],
+        [90, 10]
+      )
     ).to.be.revertedWith("InvalidArrayLengths()");
 
     await expect(
-      traits
-        .connect(owner)
-        .createTraitsAndTypes(
-          [],
-          [],
-          ["Blonde", "Brown", "Black", "Green", "Blue"],
-          ["blonde", "brown", "black", "green", "blue"],
-          [0, 0, 0, 1, 1],
-          [10, 20, 30, 40, 50]
-        )
+      new Traits__factory(deployer).deploy(
+        projectRegistry.address,
+        {
+          traitTypeNames: ["Hair Color", "Eye Color"],
+          traitTypeValues: ["hairColor", "eyeColor"],
+          traitNames: ["Blonde", "Brown", "Black", "Green", "Blue"],
+          traitValues: ["blonde", "brown", "black", "green"],
+          traitTypeIndexes: [0, 0, 0, 1, 1],
+          traitMaxSupplys: [10, 20, 30, 40, 50],
+        },
+        [artistRevenueClaimer.address, platformRevenueClaimer.address],
+        [90, 10]
+      )
     ).to.be.revertedWith("InvalidArrayLengths()");
 
     await expect(
-      traits
-        .connect(owner)
-        .createTraitsAndTypes(
-          ["Hair Color", "Eye Color"],
-          ["hairColor", "eyeColor"],
-          [],
-          [],
-          [],
-          []
-        )
+      new Traits__factory(deployer).deploy(
+        projectRegistry.address,
+        {
+          traitTypeNames: ["Hair Color", "Eye Color"],
+          traitTypeValues: ["hairColor", "eyeColor"],
+          traitNames: ["Blonde", "Brown", "Black", "Green", "Blue"],
+          traitValues: ["blonde", "brown", "black", "green", "blue"],
+          traitTypeIndexes: [0, 0, 0, 1],
+          traitMaxSupplys: [10, 20, 30, 40, 50],
+        },
+        [artistRevenueClaimer.address, platformRevenueClaimer.address],
+        [90, 10]
+      )
     ).to.be.revertedWith("InvalidArrayLengths()");
-  });
-
-  it("Auction can't be scheduled by non-owner", async () => {
-    artwork = await new Artwork__factory(deployer).deploy(
-      1000,
-      "Intrinsic.art Disentanglement",
-      "INSC",
-      "https://artwork.intrinsic.art/",
-      "testJSON",
-      owner.address,
-      [artistRevenueClaimer.address, platformRevenueClaimer.address],
-      [90, 10]
-    );
-
-    traits = await new Traits__factory(deployer).deploy(
-      1000,
-      "https://trait.intrinsic.art/",
-      artwork.address,
-      owner.address,
-      [artistRevenueClaimer.address, platformRevenueClaimer.address],
-      [90, 10],
-      [artistRevenueClaimer.address, platformRevenueClaimer.address],
-      [90, 10]
-    );
-
-    await artwork.connect(owner).setTraits(traits.address);
-
-    await artwork.connect(owner).lockProject();
-
-    const currentTime = (await ethers.provider.getBlock("latest")).timestamp;
-    const auctionStartTime = currentTime + 110;
-    const auctionEndTime = currentTime + 210;
-    const auctionStartPrice = ethers.utils.parseEther("1");
-    const auctionEndPrice = ethers.utils.parseEther("0.1");
-    const traitsSaleStartTime = currentTime + 300;
 
     await expect(
-      traits
-        .connect(user1)
-        .scheduleAuction(
-          auctionStartTime,
-          auctionEndTime,
-          auctionStartPrice,
-          auctionEndPrice,
-          traitsSaleStartTime
-        )
-    ).to.be.revertedWith("Ownable: caller is not the owner");
-  });
-
-  it("Auction can't be scheduled if project isn't locked yet", async () => {
-    artwork = await new Artwork__factory(deployer).deploy(
-      1000,
-      "Intrinsic.art Disentanglement",
-      "INSC",
-      "https://artwork.intrinsic.art/",
-      "testJSON",
-      owner.address,
-      [artistRevenueClaimer.address, platformRevenueClaimer.address],
-      [90, 10]
-    );
-
-    traits = await new Traits__factory(deployer).deploy(
-      1000,
-      "https://trait.intrinsic.art/",
-      artwork.address,
-      owner.address,
-      [artistRevenueClaimer.address, platformRevenueClaimer.address],
-      [90, 10],
-      [artistRevenueClaimer.address, platformRevenueClaimer.address],
-      [90, 10]
-    );
-
-    await artwork.connect(owner).setTraits(traits.address);
-
-    const currentTime = (await ethers.provider.getBlock("latest")).timestamp;
-    const auctionStartTime = currentTime + 110;
-    const auctionEndTime = currentTime + 210;
-    const auctionStartPrice = ethers.utils.parseEther("1");
-    const auctionEndPrice = ethers.utils.parseEther("0.1");
-    const traitsSaleStartTime = currentTime + 300;
-
-    await expect(
-      traits
-        .connect(owner)
-        .scheduleAuction(
-          auctionStartTime,
-          auctionEndTime,
-          auctionStartPrice,
-          auctionEndPrice,
-          traitsSaleStartTime
-        )
-    ).to.be.revertedWith("NotLocked()");
+      new Traits__factory(deployer).deploy(
+        projectRegistry.address,
+        {
+          traitTypeNames: ["Hair Color", "Eye Color"],
+          traitTypeValues: ["hairColor", "eyeColor"],
+          traitNames: ["Blonde", "Brown", "Black", "Green", "Blue"],
+          traitValues: ["blonde", "brown", "black", "green", "blue"],
+          traitTypeIndexes: [0, 0, 0, 1, 1],
+          traitMaxSupplys: [10, 20, 30, 40],
+        },
+        [artistRevenueClaimer.address, platformRevenueClaimer.address],
+        [90, 10]
+      )
+    ).to.be.revertedWith("InvalidArrayLengths()");
   });
 
   it("Auction can't be scheduled with invalid times or prices", async () => {
     artwork = await new Artwork__factory(deployer).deploy(
-      1000,
       "Intrinsic.art Disentanglement",
       "INSC",
-      "https://artwork.intrinsic.art/",
-      "testJSON",
-      owner.address,
+      artist.address,
+      projectRegistry.address,
+      1000,
       [artistRevenueClaimer.address, platformRevenueClaimer.address],
-      [90, 10]
+      [90, 10],
+      { stringStorageSlot: 0, stringStorageAddress: stringStorage.address },
+      { stringStorageSlot: 1, stringStorageAddress: stringStorage.address }
     );
 
     traits = await new Traits__factory(deployer).deploy(
-      1000,
-      "https://trait.intrinsic.art/",
-      artwork.address,
-      owner.address,
-      [artistRevenueClaimer.address, platformRevenueClaimer.address],
-      [90, 10],
+      projectRegistry.address,
+      {
+        traitTypeNames: ["Hair Color", "Eye Color"],
+        traitTypeValues: ["hairColor", "eyeColor"],
+        traitNames: ["Blonde", "Brown", "Black", "Green", "Blue"],
+        traitValues: ["blonde", "brown", "black", "green", "blue"],
+        traitTypeIndexes: [0, 0, 0, 1, 1],
+        traitMaxSupplys: [10, 20, 30, 40, 50],
+      },
       [artistRevenueClaimer.address, platformRevenueClaimer.address],
       [90, 10]
     );
 
-    await artwork.connect(owner).setTraits(traits.address);
+    // should be invalid since auction start time is after end time
+    currentTime = (await ethers.provider.getBlock("latest")).timestamp;
+    auctionStartTime = currentTime + 110;
+    auctionEndTime = auctionStartTime - 1;
+    auctionStartPrice = ethers.utils.parseEther("1");
+    auctionEndPrice = ethers.utils.parseEther("0.1");
+    auctionPriceSteps = 4;
+    traitsSaleStartTime = currentTime + 300;
+    whitelistStartTime = currentTime + 110;
 
-    await artwork.connect(owner).lockProject();
+    const encodedArtworkData = abiCoder.encode(
+      ["address", "uint256", "address[]", "uint256[]"],
+      [
+        traits.address,
+        whitelistStartTime,
+        [whitelistedUser1.address, whitelistedUser2.address],
+        [1, 1],
+      ]
+    );
+    const encodedTraitsData = abiCoder.encode(
+      [
+        "address",
+        "bool",
+        "uint256",
+        "uint256",
+        "uint256",
+        "uint256",
+        "uint256",
+        "uint256",
+      ],
+      [
+        artwork.address,
+        false,
+        auctionStartTime,
+        auctionEndTime,
+        auctionStartPrice,
+        auctionEndPrice,
+        auctionPriceSteps,
+        traitsSaleStartTime,
+      ]
+    );
 
-    const currentTime = (await ethers.provider.getBlock("latest")).timestamp;
-    const auctionStartTime = currentTime + 110;
-    const auctionEndTime = currentTime + 210;
-    const auctionStartPrice = ethers.utils.parseEther("1");
-    const auctionEndPrice = ethers.utils.parseEther("0.1");
-    const traitsSaleStartTime = currentTime + 300;
-
-    // Flip the start time and end time to make auction invalid
     await expect(
-      traits
-        .connect(owner)
-        .scheduleAuction(
-          auctionEndTime,
-          auctionStartTime,
-          auctionStartPrice,
-          auctionEndPrice,
-          traitsSaleStartTime
+      projectRegistry
+        .connect(projectRegistryAdmin1)
+        .registerProject(
+          artwork.address,
+          encodedArtworkData,
+          traits.address,
+          encodedTraitsData
         )
     ).to.be.revertedWith("InvalidAuction()");
-
-    // Flip the start price and end price to make auction invalid
-    await expect(
-      traits
-        .connect(owner)
-        .scheduleAuction(
-          auctionStartTime,
-          auctionEndTime,
-          auctionEndPrice,
-          auctionStartPrice,
-          traitsSaleStartTime
-        )
-    ).to.be.revertedWith("InvalidAuction()");
-  });
-
-  it("Traits URI can only be updated by the owner", async () => {
-    artwork = await new Artwork__factory(deployer).deploy(
-      1000,
-      "Intrinsic.art Disentanglement",
-      "INSC",
-      "https://artwork.intrinsic.art/",
-      "testJSON",
-      owner.address,
-      [artistRevenueClaimer.address, platformRevenueClaimer.address],
-      [90, 10]
-    );
-
-    traits = await new Traits__factory(deployer).deploy(
-      1000,
-      "https://trait.intrinsic.art/",
-      artwork.address,
-      owner.address,
-      [artistRevenueClaimer.address, platformRevenueClaimer.address],
-      [90, 10],
-      [artistRevenueClaimer.address, platformRevenueClaimer.address],
-      [90, 10]
-    );
-
-    await traits
-      .connect(owner)
-      .createTraitsAndTypes(
-        ["Hair Color", "Eye Color"],
-        ["hairColor", "eyeColor"],
-        ["Blonde", "Brown", "Black", "Green", "Blue"],
-        ["blonde", "brown", "black", "green", "blue"],
-        [0, 0, 0, 1, 1],
-        [10, 20, 30, 40, 50]
-      );
-
-    expect(await traits.uri(0)).to.eq(
-      `https://trait.intrinsic.art/${traits.address.toLowerCase()}/0`
-    );
-
-    await expect(traits.connect(user1).updateURI("newURI")).to.be.revertedWith(
-      "Ownable: caller is not the owner"
-    );
-
-    await traits.connect(owner).updateURI("https://newURI2/");
-
-    expect(await traits.uri(0)).to.eq(
-      `https://newURI2/${traits.address.toLowerCase()}/0`
-    );
-  });
-
-  it("Traits and trait types can only be created once", async () => {
-    artwork = await new Artwork__factory(deployer).deploy(
-      1000,
-      "Intrinsic.art Disentanglement",
-      "INSC",
-      "https://artwork.intrinsic.art/",
-      "testJSON",
-      owner.address,
-      [artistRevenueClaimer.address, platformRevenueClaimer.address],
-      [90, 10]
-    );
-
-    traits = await new Traits__factory(deployer).deploy(
-      1000,
-      "https://trait.intrinsic.art/",
-      artwork.address,
-      owner.address,
-      [artistRevenueClaimer.address, platformRevenueClaimer.address],
-      [90, 10],
-      [artistRevenueClaimer.address, platformRevenueClaimer.address],
-      [90, 10]
-    );
-
-    await traits
-      .connect(owner)
-      .createTraitsAndTypes(
-        ["Hair Color", "Eye Color"],
-        ["hairColor", "eyeColor"],
-        ["Blonde", "Brown", "Black", "Green", "Blue"],
-        ["blonde", "brown", "black", "green", "blue"],
-        [0, 0, 0, 1, 1],
-        [10, 20, 30, 40, 50]
-      );
-
-    await expect(
-      traits
-        .connect(owner)
-        .createTraitsAndTypes(
-          ["Hair Color", "Eye Color"],
-          ["hairColor", "eyeColor"],
-          ["Blonde", "Brown", "Black", "Green", "Blue"],
-          ["blonde", "brown", "black", "green", "blue"],
-          [0, 0, 0, 1, 1],
-          [10, 20, 30, 40, 50]
-        )
-    ).to.be.revertedWith("TraitsAlreadyCreated()");
   });
 
   it("Project Registry correctly handles access control", async () => {
     projectRegistry = await new ProjectRegistry__factory(deployer).deploy(
-      owner.address,
-      [admin1.address, admin2.address]
+      projectRegistryOwner.address,
+      [projectRegistryAdmin1.address, projectRegistryAdmin2.address],
+      "test URI"
     );
 
-    expect(await projectRegistry.owner()).to.eq(owner.address);
-    expect(await projectRegistry.admins(admin1.address)).to.eq(true);
-    expect(await projectRegistry.admins(admin2.address)).to.eq(true);
-    expect(await projectRegistry.admins(owner.address)).to.eq(false);
+    expect(await projectRegistry.owner()).to.eq(projectRegistryOwner.address);
+    expect(await projectRegistry.admins(projectRegistryAdmin1.address)).to.eq(
+      true
+    );
+    expect(await projectRegistry.admins(projectRegistryAdmin2.address)).to.eq(
+      true
+    );
+    expect(await projectRegistry.admins(projectRegistryOwner.address)).to.eq(
+      false
+    );
     expect(await projectRegistry.admins(deployer.address)).to.eq(false);
 
+    artwork = await new Artwork__factory(deployer).deploy(
+      "Intrinsic.art Disentanglement",
+      "INSC",
+      artist.address,
+      projectRegistry.address,
+      1000,
+      [artistRevenueClaimer.address, platformRevenueClaimer.address],
+      [90, 10],
+      { stringStorageSlot: 0, stringStorageAddress: stringStorage.address },
+      { stringStorageSlot: 1, stringStorageAddress: stringStorage.address }
+    );
+
+    traits = await new Traits__factory(deployer).deploy(
+      projectRegistry.address,
+      {
+        traitTypeNames: ["Hair Color", "Eye Color"],
+        traitTypeValues: ["hairColor", "eyeColor"],
+        traitNames: ["Blonde", "Brown", "Black", "Green", "Blue"],
+        traitValues: ["blonde", "brown", "black", "green", "blue"],
+        traitTypeIndexes: [0, 0, 0, 1, 1],
+        traitMaxSupplys: [10, 20, 30, 40, 50],
+      },
+      [artistRevenueClaimer.address, platformRevenueClaimer.address],
+      [90, 10]
+    );
+
+    // should be invalid since auction start time is after end time
+    currentTime = (await ethers.provider.getBlock("latest")).timestamp;
+    auctionStartTime = currentTime + 110;
+    auctionEndTime = auctionStartTime + 210;
+    auctionStartPrice = ethers.utils.parseEther("1");
+    auctionEndPrice = ethers.utils.parseEther("0.1");
+    auctionPriceSteps = 4;
+    traitsSaleStartTime = currentTime + 300;
+    whitelistStartTime = currentTime + 110;
+
+    const encodedArtworkData = abiCoder.encode(
+      ["address", "uint256", "address[]", "uint256[]"],
+      [
+        traits.address,
+        whitelistStartTime,
+        [whitelistedUser1.address, whitelistedUser2.address],
+        [1, 1],
+      ]
+    );
+    const encodedTraitsData = abiCoder.encode(
+      [
+        "address",
+        "bool",
+        "uint256",
+        "uint256",
+        "uint256",
+        "uint256",
+        "uint256",
+        "uint256",
+      ],
+      [
+        artwork.address,
+        false,
+        auctionStartTime,
+        auctionEndTime,
+        auctionStartPrice,
+        auctionEndPrice,
+        auctionPriceSteps,
+        traitsSaleStartTime,
+      ]
+    );
+
     await projectRegistry
-      .connect(admin1)
-      .registerProject(user1.address, deployer.address);
+      .connect(projectRegistryAdmin1)
+      .registerProject(
+        artwork.address,
+        encodedArtworkData,
+        traits.address,
+        encodedTraitsData
+      );
 
     await expect(
       projectRegistry
         .connect(user1)
-        .registerProject(user1.address, deployer.address)
+        .registerProject(
+          artwork.address,
+          encodedArtworkData,
+          traits.address,
+          encodedTraitsData
+        )
     ).to.be.revertedWith("OnlyAdmin()");
 
     expect(await projectRegistry.projects(1)).to.deep.eq([
-      user1.address,
-      deployer.address,
+      artwork.address,
+      traits.address,
     ]);
 
     await expect(
-      projectRegistry.connect(admin1).addAdmins([user1.address])
+      projectRegistry.connect(projectRegistryAdmin1).addAdmins([user1.address])
     ).to.be.revertedWith("Ownable: caller is not the owner");
 
     await expect(
@@ -633,34 +438,223 @@ describe("Deployment and setup", function () {
     ).to.be.revertedWith("Ownable: caller is not the owner");
 
     await expect(
-      projectRegistry.connect(admin1).removeAdmins([admin2.address])
+      projectRegistry
+        .connect(projectRegistryAdmin1)
+        .removeAdmins([projectRegistryAdmin2.address])
     ).to.be.revertedWith("Ownable: caller is not the owner");
 
     await expect(
-      projectRegistry.connect(user1).addAdmins([admin1.address])
+      projectRegistry.connect(user1).addAdmins([projectRegistryAdmin1.address])
     ).to.be.revertedWith("Ownable: caller is not the owner");
 
-    await projectRegistry.connect(owner).addAdmins([user1.address]);
+    await projectRegistry
+      .connect(projectRegistryOwner)
+      .addAdmins([user1.address]);
 
-    expect(await projectRegistry.admins(admin1.address)).to.eq(true);
-    expect(await projectRegistry.admins(admin2.address)).to.eq(true);
+    expect(await projectRegistry.admins(projectRegistryAdmin1.address)).to.eq(
+      true
+    );
+    expect(await projectRegistry.admins(projectRegistryAdmin2.address)).to.eq(
+      true
+    );
     expect(await projectRegistry.admins(user1.address)).to.eq(true);
 
     await projectRegistry
-      .connect(user1)
-      .registerProject(admin1.address, admin2.address);
+      .connect(projectRegistryOwner)
+      .removeAdmins([
+        projectRegistryAdmin1.address,
+        projectRegistryAdmin2.address,
+        user1.address,
+      ]);
 
-    expect(await projectRegistry.projects(2)).to.deep.eq([
-      admin1.address,
-      admin2.address,
-    ]);
+    expect(await projectRegistry.admins(projectRegistryAdmin1.address)).to.eq(
+      false
+    );
+    expect(await projectRegistry.admins(projectRegistryAdmin2.address)).to.eq(
+      false
+    );
+    expect(await projectRegistry.admins(user1.address)).to.eq(false);
+  });
+
+  it("Project Registry ownership transfer is two steps", async () => {
+    expect(await projectRegistry.owner()).to.eq(projectRegistryOwner.address);
+
+    await expect(
+      projectRegistry.connect(user1).transferOwnership(user1.address)
+    ).to.be.revertedWith("Ownable: caller is not the owner");
 
     await projectRegistry
-      .connect(owner)
-      .removeAdmins([admin1.address, admin2.address, user1.address]);
+      .connect(projectRegistryOwner)
+      .transferOwnership(user1.address);
 
-    expect(await projectRegistry.admins(admin1.address)).to.eq(false);
-    expect(await projectRegistry.admins(admin2.address)).to.eq(false);
-    expect(await projectRegistry.admins(user1.address)).to.eq(false);
+    expect(await projectRegistry.owner()).to.eq(projectRegistryOwner.address);
+
+    expect(await projectRegistry.pendingOwner()).to.eq(user1.address);
+
+    await projectRegistry.connect(user1).acceptOwnership();
+
+    expect(await projectRegistry.owner()).to.eq(user1.address);
+  });
+
+  it("Address that isn't project registry can't setup artwork contract", async () => {
+    artwork = await new Artwork__factory(deployer).deploy(
+      "Intrinsic.art Disentanglement",
+      "INSC",
+      artist.address,
+      projectRegistry.address,
+      1000,
+      [artistRevenueClaimer.address, platformRevenueClaimer.address],
+      [90, 10],
+      { stringStorageSlot: 0, stringStorageAddress: stringStorage.address },
+      { stringStorageSlot: 1, stringStorageAddress: stringStorage.address }
+    );
+
+    const encodedArtworkData = abiCoder.encode(["address"], [user1.address]);
+    await expect(
+      artwork.connect(user1).setup(encodedArtworkData)
+    ).to.be.revertedWith("OnlyProjectRegistry()");
+  });
+
+  it("Address that isn't project registry can't setup traits contract", async () => {
+    currentTime = (await ethers.provider.getBlock("latest")).timestamp;
+    auctionStartTime = currentTime + 110;
+    auctionEndTime = auctionStartTime - 1;
+    auctionStartPrice = ethers.utils.parseEther("1");
+    auctionEndPrice = ethers.utils.parseEther("0.1");
+    auctionPriceSteps = 4;
+    traitsSaleStartTime = currentTime + 300;
+    whitelistStartTime = currentTime + 110;
+
+    const encodedTraitsData = abiCoder.encode(
+      [
+        "address",
+        "bool",
+        "uint256",
+        "uint256",
+        "uint256",
+        "uint256",
+        "uint256",
+        "uint256",
+      ],
+      [
+        artwork.address,
+        false,
+        auctionStartTime,
+        auctionEndTime,
+        auctionStartPrice,
+        auctionEndPrice,
+        auctionPriceSteps,
+        traitsSaleStartTime,
+      ]
+    );
+
+    traits = await new Traits__factory(deployer).deploy(
+      projectRegistry.address,
+      {
+        traitTypeNames: ["Hair Color", "Eye Color"],
+        traitTypeValues: ["hairColor", "eyeColor"],
+        traitNames: ["Blonde", "Brown", "Black", "Green", "Blue"],
+        traitValues: ["blonde", "brown", "black", "green", "blue"],
+        traitTypeIndexes: [0, 0, 0, 1, 1],
+        traitMaxSupplys: [10, 20, 30, 40, 50],
+      },
+      [artistRevenueClaimer.address, platformRevenueClaimer.address],
+      [90, 10]
+    );
+
+    await expect(
+      traits.connect(user1).setup(encodedTraitsData)
+    ).to.be.revertedWith("OnlyProjectRegistry()");
+  });
+
+  it("Project can't be registered if either contract address is address zero", async () => {
+    artwork = await new Artwork__factory(deployer).deploy(
+      "Intrinsic.art Disentanglement",
+      "INSC",
+      artist.address,
+      projectRegistry.address,
+      1000,
+      [artistRevenueClaimer.address, platformRevenueClaimer.address],
+      [90, 10],
+      { stringStorageSlot: 0, stringStorageAddress: stringStorage.address },
+      { stringStorageSlot: 1, stringStorageAddress: stringStorage.address }
+    );
+
+    traits = await new Traits__factory(deployer).deploy(
+      projectRegistry.address,
+      {
+        traitTypeNames: ["Hair Color", "Eye Color"],
+        traitTypeValues: ["hairColor", "eyeColor"],
+        traitNames: ["Blonde", "Brown", "Black", "Green", "Blue"],
+        traitValues: ["blonde", "brown", "black", "green", "blue"],
+        traitTypeIndexes: [0, 0, 0, 1, 1],
+        traitMaxSupplys: [10, 20, 30, 40, 50],
+      },
+      [artistRevenueClaimer.address, platformRevenueClaimer.address],
+      [90, 10]
+    );
+
+    currentTime = (await ethers.provider.getBlock("latest")).timestamp;
+    auctionStartTime = currentTime + 110;
+    auctionEndTime = currentTime + 210;
+    auctionStartPrice = ethers.utils.parseEther("1");
+    auctionEndPrice = ethers.utils.parseEther("0.1");
+    auctionPriceSteps = 4;
+    traitsSaleStartTime = currentTime + 300;
+    whitelistStartTime = currentTime + 110;
+
+    const encodedArtworkData = abiCoder.encode(
+      ["address", "uint256", "address[]", "uint256[]"],
+      [
+        traits.address,
+        whitelistStartTime,
+        [whitelistedUser1.address, whitelistedUser2.address],
+        [1, 1],
+      ]
+    );
+    const encodedTraitsData = abiCoder.encode(
+      [
+        "address",
+        "bool",
+        "uint256",
+        "uint256",
+        "uint256",
+        "uint256",
+        "uint256",
+        "uint256",
+      ],
+      [
+        artwork.address,
+        false,
+        auctionStartTime,
+        auctionEndTime,
+        auctionStartPrice,
+        auctionEndPrice,
+        auctionPriceSteps,
+        traitsSaleStartTime,
+      ]
+    );
+
+    await expect(
+      projectRegistry
+        .connect(projectRegistryAdmin1)
+        .registerProject(
+          artwork.address,
+          encodedArtworkData,
+          ethers.constants.AddressZero,
+          encodedTraitsData
+        )
+    ).to.be.revertedWith("InvalidAddress()");
+
+    await expect(
+      projectRegistry
+        .connect(projectRegistryAdmin1)
+        .registerProject(
+          ethers.constants.AddressZero,
+          encodedArtworkData,
+          traits.address,
+          encodedTraitsData
+        )
+    ).to.be.revertedWith("InvalidAddress()");
   });
 });
