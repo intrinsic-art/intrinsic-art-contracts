@@ -11,6 +11,7 @@ import "hardhat-abi-exporter";
 import "solidity-coverage";
 import DeployMetta from "./scripts/DeployMetta";
 import DeployTackLineTorn from "./scripts/DeployTackLineTorn";
+import DeployOneRing from "./scripts/DeployOneRing";
 
 dotenv.config();
 
@@ -21,6 +22,12 @@ task("DeployMetta", "Deploys the project").setAction(async (taskArgs, hre) => {
 task("DeployTackLineTorn", "Deploys the project").setAction(
   async (taskArgs, hre) => {
     await DeployTackLineTorn(hre);
+  }
+);
+
+task("DeployOneRing", "Deploys the project").setAction(
+  async (taskArgs, hre) => {
+    await DeployOneRing(hre);
   }
 );
 
