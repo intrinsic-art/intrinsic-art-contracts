@@ -20,8 +20,6 @@ interface ProjectConfig {
     };
     primarySalesPayees: string[];
     primarySalesShares: BigNumber[];
-    royaltyPayees: string[];
-    royaltyShares: BigNumber[];
   };
   setupData: {
     auctionExponential: boolean;
