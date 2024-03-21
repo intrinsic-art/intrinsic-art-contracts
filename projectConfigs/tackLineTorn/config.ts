@@ -4,7 +4,7 @@ import ProjectConfig from "../ProjectConfigType";
 const projectConfig: ProjectConfig = {
   artworkConstructorData: {
     name: "Tack Line Torn",
-    symbol: "TLT",
+    symbol: "TACK LINE TORN",
     artistAddress: "0x96D96D8Aea29bB81aBa09EeBF9fdE02542350354",
     royaltyFeeNumerator: BigNumber.from(750),
     royaltyPayees: ["0x96D96D8Aea29bB81aBa09EeBF9fdE02542350354", "0xAa9D46AE079851116967c6573f961B304095C34a"],
@@ -54,8 +54,6 @@ const projectConfig: ProjectConfig = {
     },
     primarySalesPayees: ["0xAa9D46AE079851116967c6573f961B304095C34a"],
     primarySalesShares: [BigNumber.from(100)],
-    royaltyPayees: ["0xAa9D46AE079851116967c6573f961B304095C34a"],
-    royaltyShares: [BigNumber.from(100)],
   },
   setupData: {
     auctionExponential: true,

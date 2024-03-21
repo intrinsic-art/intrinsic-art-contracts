@@ -101,8 +101,6 @@ const projectConfig: ProjectConfig = {
     },
     primarySalesPayees: ["0xAa9D46AE079851116967c6573f961B304095C34a"],
     primarySalesShares: [BigNumber.from(100)],
-    royaltyPayees: ["0xAa9D46AE079851116967c6573f961B304095C34a"],
-    royaltyShares: [BigNumber.from(100)],
   },
   setupData: {
     auctionExponential: true,
