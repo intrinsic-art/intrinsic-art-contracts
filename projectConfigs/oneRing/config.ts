@@ -24,7 +24,7 @@ const projectConfig: ProjectConfig = {
         "bT",
         "pH",
         "pT",
-        "oT",
+        "p0",
       ],
       traitNames: [
         "Red",
