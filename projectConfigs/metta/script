@@ -1,18 +1,8 @@
-const project = "Metta";
-console.log(`${project} v5.5 © 2023 Matto`);
-console.log(`TOKEN ID: ${artwork.tokenID}. TOKEN ENTROPY: ${artwork.seed}. TRAITS:`);
-console.log(artwork.traits);
-let tokenEntropy = artwork.seed;
-let tokenEntropyPairs = createPairs(tokenEntropy);
+console.log("Metta v5.6 Matto 2024");
+let tokenEntropyPairs = createPairs(artwork.seed);
 let seed =
   getValue(0, 255) * getValue(0, 255) * getValue(0, 255) * getValue(0, 255);
-let R = (upperBound = 1) => Math.floor(mRando() * upperBound);
-
-function mRando() {
-  seed = (1664525 * seed + 1013904223) % 4294967296;
-  return seed / 4294967296;
-}
-
+let R = (upperBound = 1) => mRando() * upperBound;
 const urlParams = new URLSearchParams(window.location.search);
 const portrait = urlParams.get("portrait");
 const delaySetting = urlParams.get("delay");
@@ -47,8 +37,14 @@ let lastTime = 0;
 setup();
 requestAnimationFrame(draw);
 
+function mRando() {
+  seed = (1664525 * seed + 1013904223) % 4294967296;
+  return seed / 4294967296;
+}
+
 function setup() {
   if (portrait == "true") {
+    console.log("Portrait mode enabled.");
     height = window.innerHeight;
     width = height * 0.5625;
     if (width > window.innerWidth) {
@@ -66,15 +62,15 @@ function setup() {
   if (delaySetting && Number.isInteger(parseInt(delaySetting))) {
     delayMS = parseInt(delaySetting);
     delayMS = delayMS < 0 ? 0 : delayMS > 1000 ? 1000 : delayMS;
-    console.log(`Delay between cycles set to ${delayMS}ms.`);
   } else {
     delayMS = 25;
-    console.log("URL parameter for delay is not recognized, defaulting to 25ms.");
   }
+  console.log(`Delay between cycles is set to ${delayMS}ms.`);
   if (contSetting == "true") {
+    console.log("Continuous mode enabled.");
     continuous = true;
     paused = false;
-  } 
+  }
   canvas = document.createElement("canvas");
   canvas.width = width;
   canvas.height = height;
@@ -84,9 +80,7 @@ function setup() {
   rando = getValue(0, 255) * getValue(0, 255);
   nodes = parseInt(artwork.traits.nodes, 10);
   connections = getValue(0, 255) % 3;
-  connections = connections == 0 ? 2 : 
-    connections == 1 ? 4 :
-    10;
+  connections = connections == 0 ? 2 : connections == 1 ? 4 : 10;
   if (connections > nodes) {
     connections = nodes - 1;
   }
@@ -98,14 +92,13 @@ function setup() {
   cellDesign = parseInt(artwork.traits.cellDesign, 10);
   colorMode = parseInt(artwork.traits.colorMode, 10);
   cellDynamic = parseInt(artwork.traits.cellDynamic, 10);
+  readOutAttributes();
   gradientShift = getValue(0, 360);
   freeze = 95;
-  seekerNodeMod = chaos == true ? 1 :
-    nodes == 5 ? 3 : 
-    Math.floor(nodes / 2);
-  u = ((thickness + 1) * (window.innerHeight + window.innerWidth)) / 2000;
-  ctx.fillStyle = `hsl(0, 0%, 10%)`; 
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  seekerNodeMod = chaos == true ? 1 : nodes == 5 ? 3 : Math.floor(nodes / 2);
+  u = ((thickness + 1) * Math.max(height, width)) / 2000;
+  ctx.fillStyle = `hsl(0, 0%, 10%)`;
+  ctx.fillRect(0, 0, width, height);
   for (let i = 0; i < nodes; i++) {
     p.push({
       x: R(width * 1.5) - width / 4,
@@ -126,16 +119,18 @@ function setup() {
 
 function draw(timestamp) {
   let elapsedTime = timestamp - lastTime;
-  let targetDelay = continuous ? delayMS : 
-    count < freeze ? 1000 / (freeze - count + 3) : 
-    delayMS;
+  let targetDelay = continuous
+    ? delayMS
+    : count < freeze
+    ? 1000 / (freeze - count + 3)
+    : delayMS;
   if (elapsedTime > targetDelay) {
     lastTime = timestamp;
     if (!paused || count < freeze) {
       count++;
       if (fade) {
         ctx.fillStyle = `hsla(0, 0%, 0%, 2%)`;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillRect(0, 0, width, height);
       }
       for (let i = 0; i < 1000; i++) {
         let x = R(width);
@@ -167,6 +162,7 @@ function draw(timestamp) {
             drawHue = (p[c].y / height) * 360 + gradientShift;
           }
         }
+
         ctx.strokeStyle = `hsl(${drawHue}, ${drawSat}%, ${p[c].c[1]}%)`;
         ctx.fillStyle = `hsl(${drawHue}, ${drawSat}%, ${p[c].c[1]}%)`;
         let dx = p[c].x - x;
@@ -177,15 +173,13 @@ function draw(timestamp) {
         let extX = p[c].x + 1.1 * (x - p[c].x);
         let extY = p[c].y + 1.1 * (y - p[c].y);
         let offset =
-          cellDesign == 1
-            ? mag / 20
-            : cellDesign == 0
-            ? mag / 30
-            : mag / 40;
+          cellDesign == 1 ? mag / 20 : cellDesign == 0 ? mag / 30 : mag / 40;
+
         let triX1 = x + (-dy / mag) * offset;
         let triY1 = y + (dx / mag) * offset;
         let triX2 = x + (dy / mag) * offset;
         let triY2 = y + (-dx / mag) * offset;
+
         if (cellDesign == 0) {
           ctx.beginPath();
           ctx.moveTo(p[c].x, p[c].y);
@@ -263,7 +257,7 @@ function draw(timestamp) {
               ctx.strokeStyle = `hsl(${hue}, ${p[c].c[0]}%, ${p[c].c[1]}%)`;
             }
             C(p[c].x, p[c].y, p[c].r, 0);
-          } else if (cellDesign == 4 && mode == 2) { 
+          } else if (cellDesign == 4 && mode == 2) {
             C(p[c].x, p[c].y, p[c].r, 0);
           }
         }
@@ -286,9 +280,10 @@ function moveTowardNClosest(n) {
     distances.sort((a, b) => a.dist - b.dist);
     let closestDist = distances[0].dist;
     if (!veiled) {
-      ctx.lineWidth = .5 * u;
+      ctx.lineWidth = 0.5 * u;
       C(p[i].x, p[i].y, 2 * u);
     }
+
     for (let k = 0; k < n && k < distances.length; k++) {
       let fraction = u / (3 * Math.pow(1.5, k));
       if (!veiled) {
@@ -305,7 +300,7 @@ function moveTowardNClosest(n) {
       p[i].x += (distances[k].point.x - p[i].x) * moveFraction;
       p[i].y += (distances[k].point.y - p[i].y) * moveFraction;
     }
-    if (closestDist <= 5) {
+    if (closestDist <= 4 * u) {
       p[i].x = R(width * 1.5) - width / 4;
       p[i].y = R(height * 1.5) - height / 4;
       p[i].r = 0;
@@ -378,7 +373,7 @@ document.addEventListener("keydown", function (event) {
     paused = !paused;
   } else if (event.key === "s" || event.key === "S") {
     let link = document.createElement("a");
-    link.download = `Metta-${artwork.tokenID}.png`;
+    link.download = `Metta.png`;
     link.href = canvas.toDataURL();
     link.click();
   } else if (event.key === "<") {
@@ -397,3 +392,80 @@ document.addEventListener("keydown", function (event) {
     updateMatte();
   }
 });
+
+function readOutAttributes() {
+  addAttribute(
+    "Color Mode",
+    colorMode == 0
+      ? "Tri-X"
+      : colorMode == 1
+      ? "Synchonized"
+      : colorMode == 2
+      ? "Agree to Disaggree"
+      : "Gradient"
+  );
+  addAttribute(
+    "Cell Design",
+    cellDesign == 0
+      ? "Lines & walls"
+      : cellDesign == 1
+      ? "Startrail"
+      : cellDesign == 2
+      ? "Popcorn"
+      : cellDesign == 3
+      ? "Shards"
+      : "Invisible"
+  );
+  addAttribute(
+    "Mode",
+    mode == 0
+      ? "Ephemeral"
+      : mode == 1
+      ? "Enduring"
+      : mode == 2
+      ? "Veiled"
+      : mode == 3
+      ? "Ephemeral Frenzy"
+      : "Enduring Frenzy"
+  );
+  addAttribute(
+    "View",
+    nodes == 5
+      ? "Macro"
+      : nodes == 20
+      ? "Medium"
+      : nodes == 60
+      ? "Full"
+      : "Wide"
+  );
+  addAttribute(
+    "cellDynamic",
+    cellDynamic == 0 ? "Discreet" : cellDynamic == 1 ? "Adjacent" : "Interwoven"
+  );
+  addAttribute("Hash", artwork.seed);
+  addAttribute(
+    "Hash-Determined Connections",
+    connections == 2
+      ? "Minimal"
+      : connections == 4
+      ? "Intermediate"
+      : "Abundant"
+  );
+  addAttribute(
+    "Hash-Determined Stroke",
+    thickness == 0 ? "Light" : thickness == 1 ? "Regular" : "Bold"
+  );
+  console.log("");
+  console.log("ATTRIBUTES:");
+  for (i = 0; i < attributes.length; i++) {
+    console.log(attributes[i].trait_type + ": " + attributes[i].value);
+  }
+  console.log("");
+  sessionStorage.setItem("attributes", JSON.stringify(attributes));
+  function addAttribute(trait_type, value) {
+    if (typeof value == "boolean") {
+      value = value.toString();
+    }
+    attributes.push({ trait_type, value });
+  }
+}
