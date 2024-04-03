@@ -11,7 +11,17 @@
   },
   {
     "inputs": [],
+    "name": "Cancelled",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "HashAlreadyUsed",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InvalidArrayLengths",
     "type": "error"
   },
   {
@@ -326,6 +336,13 @@
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "cancel",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {

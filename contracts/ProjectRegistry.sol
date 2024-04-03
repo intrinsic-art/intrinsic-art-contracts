@@ -49,6 +49,21 @@ contract ProjectRegistry is IProjectRegistry, Ownable2Step {
     }
 
     /** @inheritdoc IProjectRegistry*/
+    function deregisterProject(uint256 _projectId) external onlyAdmin {
+        if (_projectId != projectCount) revert OnlyDeregisterLastProject();
+
+        IArtwork(projects[_projectId].artwork).cancel();
+        ITraits(projects[_projectId].traits).cancel();
+
+        projects[_projectId].artwork = address(0);
+        projects[_projectId].traits = address(0);
+
+        emit ProjectDeregistered(_projectId);
+
+        projectCount--;
+    }
+
+    /** @inheritdoc IProjectRegistry*/
     function execute(
         address[] calldata _targets,
         uint256[] calldata _values,

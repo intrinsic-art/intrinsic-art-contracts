@@ -1,14 +1,13 @@
 // SPDX-License-Identifier: GNU GPLv3
 pragma solidity =0.8.19;
 
-import {ITraits} from "./interfaces/ITraits.sol";
+import {ITraits, IBaseSetup} from "./interfaces/ITraits.sol";
 import {IArtwork} from "./interfaces/IArtwork.sol";
 import {IStringStorage} from "./interfaces/IStringStorage.sol";
 import {IProjectRegistry} from "./interfaces/IProjectRegistry.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import {ERC2981} from "@openzeppelin/contracts/token/common/ERC2981.sol";
-import {PaymentSplitter} from "./PaymentSplitter.sol";
 import {IERC721Metadata} from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 import {ERC1155Holder, ERC1155Receiver, IERC165} from "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
 
@@ -21,13 +20,13 @@ contract Artwork is
     IERC721Metadata,
     ERC2981,
     ERC721,
-    ERC1155Holder,
-    PaymentSplitter
+    ERC1155Holder
 {
     using Strings for uint256;
     using Strings for address;
 
     bool public proofMinted;
+    bool public cancelled;
     string public constant VERSION = "1.0";
     address public artistAddress;
     IProjectRegistry public projectRegistry;
@@ -52,26 +51,22 @@ contract Artwork is
         string memory _symbol,
         address _artistAddress,
         address _projectRegistry,
-        uint96 _royaltyFeeNumerator,
-        address[] memory _royaltyPayees,
-        uint256[] memory _royaltyShares,
+        address _royaltyReceiver,
         StringStorageData memory _metadataJSONStringStorage,
         StringStorageData memory _scriptStringStorage
-    ) ERC721(_name, _symbol) PaymentSplitter(_royaltyPayees, _royaltyShares) {
+    ) ERC721(_name, _symbol)  {
         artistAddress = _artistAddress;
         projectRegistry = IProjectRegistry(_projectRegistry);
 
-        // Set EIP-2981 royalties to be sent to this contract
-        _setDefaultRoyalty(address(this), _royaltyFeeNumerator);
+        // Set EIP-2981 royalties to be sent to royaltyReceiver at 7.5%
+        _setDefaultRoyalty(_royaltyReceiver, 750);
 
         metadataJSONStringStorage = _metadataJSONStringStorage;
         scriptStringStorage = _scriptStringStorage;
     }
 
-    /** @inheritdoc IArtwork*/
-    function setup(bytes calldata _data) external {
-        if (msg.sender != address(projectRegistry))
-            revert OnlyProjectRegistry();
+    /** @inheritdoc IBaseSetup*/
+    function setup(bytes calldata _data) external onlyProjectRegistry() {
         if (address(traits) != address(0)) revert AlreadySetup();
 
         (
@@ -88,6 +83,11 @@ contract Artwork is
             _whitelistAddresses,
             _whitelistAmounts
         );
+    }
+
+    /** @inheritdoc IBaseSetup*/
+    function cancel() external onlyProjectRegistry {
+        cancelled = true;
     }
 
     /** @inheritdoc IArtwork*/
@@ -111,6 +111,8 @@ contract Artwork is
         uint256[] calldata _traitTokenIds,
         uint256 _saltNonce
     ) public returns (uint256 _artworkTokenId) {
+        if (cancelled) revert Cancelled();
+
         bytes32 _hash = keccak256(
             abi.encodePacked(
                 address(this),
