@@ -60,7 +60,7 @@ const projectConfig: ProjectConfig = {
     // auctionEndTime: 1711468800,
     auctionStartPrice: ethers.utils.parseEther("0.01"),
     auctionEndPrice: ethers.utils.parseEther("0.001"),
-    auctionPriceSteps: 0,
+    auctionPriceSteps: 2,
     traitsSaleStartTime: Math.trunc(Date.now() / 1000) + 600,
     whitelistStartTime: Math.trunc(Date.now() / 1000) + 600,
     // traitsSaleStartTime: 1711465200,
