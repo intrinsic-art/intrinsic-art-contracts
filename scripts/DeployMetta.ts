@@ -47,8 +47,8 @@ const CreateProject = async (hre: HardhatRuntimeEnvironment): Promise<void> => {
 
   const traitsConstructorArgs = [
     projectRegistry.address,
-    config.traitsConstructorData.traitsSetupData,
     config.traitsConstructorData.primarySalesReceiver,
+    config.traitsConstructorData.traitsSetupData,
   ];
 
   const traitsDeployResult = await deploy("MettaTraits", {

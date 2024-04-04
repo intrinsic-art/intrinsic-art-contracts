@@ -9,6 +9,7 @@ const projectConfig: ProjectConfig = {
     royaltySalesReceiver: "0x6bd62FeB486Bf699Ac04eD6DC09dE36D11720509"
   },
   traitsConstructorData: {
+    primarySalesReceiver: "0x6bd62FeB486Bf699Ac04eD6DC09dE36D11720509",
     traitsSetupData: {
       traitTypeNames: [
         "View",
@@ -97,7 +98,6 @@ const projectConfig: ProjectConfig = {
         BigNumber.from(80)
       ],
     },
-    primarySalesReceiver: "0x6bd62FeB486Bf699Ac04eD6DC09dE36D11720509",
   },
   setupData: {
     auctionExponential: false,

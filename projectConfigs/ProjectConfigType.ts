@@ -8,6 +8,7 @@ interface ProjectConfig {
     royaltySalesReceiver: string;
   };
   traitsConstructorData: {
+    primarySalesReceiver: string;
     traitsSetupData: {
       traitTypeNames: string[];
       traitTypeValues: string[];
@@ -16,7 +17,6 @@ interface ProjectConfig {
       traitTypeIndexes: number[];
       traitMaxSupplys: BigNumber[];
     };
-    primarySalesReceiver: string;
   };
   setupData: {
     auctionExponential: boolean;
