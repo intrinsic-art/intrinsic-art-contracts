@@ -25,9 +25,7 @@ const CreateProject = async (hre: HardhatRuntimeEnvironment): Promise<void> => {
     config.artworkConstructorData.symbol,
     config.artworkConstructorData.artistAddress,
     projectRegistry.address,
-    config.artworkConstructorData.royaltyFeeNumerator,
-    config.artworkConstructorData.royaltyPayees,
-    config.artworkConstructorData.royaltyShares,
+    config.artworkConstructorData.royaltySalesReceiver,
     {
       stringStorageSlot: 0,
       stringStorageAddress: stringStorageDeployResult.address,
@@ -50,8 +48,7 @@ const CreateProject = async (hre: HardhatRuntimeEnvironment): Promise<void> => {
   const traitsConstructorArgs = [
     projectRegistry.address,
     config.traitsConstructorData.traitsSetupData,
-    config.traitsConstructorData.primarySalesPayees,
-    config.traitsConstructorData.primarySalesShares,
+    config.traitsConstructorData.primarySalesReceiver,
   ];
 
   const traitsDeployResult = await deploy("OneRingTraits", {
