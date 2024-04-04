@@ -6,9 +6,7 @@ const projectConfig: ProjectConfig = {
     name: "One Ring",
     symbol: "ONE-RING",
     artistAddress: "0x02d53D2C706252814D7264edb7FAf15686939702", //todo: update this back to heeey's address: 0x49f2495a1FB4fD0Fc90a10706B598B4594409A88
-    royaltyFeeNumerator: BigNumber.from(750),
-    royaltyPayees: ["0x49f2495a1FB4fD0Fc90a10706B598B4594409A88", "0xAa9D46AE079851116967c6573f961B304095C34a"],
-    royaltyShares: [BigNumber.from(500), BigNumber.from(250)],
+    royaltySalesReceiver: "0x6bd62FeB486Bf699Ac04eD6DC09dE36D11720509",
   },
   traitsConstructorData: {
     traitsSetupData: {
@@ -175,8 +173,7 @@ const projectConfig: ProjectConfig = {
         BigNumber.from(200), 
       ],
     },
-    primarySalesPayees: ["0xAa9D46AE079851116967c6573f961B304095C34a"],
-    primarySalesShares: [BigNumber.from(100)],
+    primarySalesReceiver: "0x6bd62FeB486Bf699Ac04eD6DC09dE36D11720509",
   },
   setupData: {
     auctionExponential: false,

@@ -6,9 +6,7 @@ const projectConfig: ProjectConfig = {
     name: "Metta",
     symbol: "METTA",
     artistAddress: "0x6bd62FeB486Bf699Ac04eD6DC09dE36D11720509", //todo: update this back to Matto address: 0xA6a4Fe416F8Bf46bc3bCA068aC8b1fC4DF760653
-    royaltyFeeNumerator: BigNumber.from(750),
-    royaltyPayees: ["0xA6a4Fe416F8Bf46bc3bCA068aC8b1fC4DF760653", "0xAa9D46AE079851116967c6573f961B304095C34a"],
-    royaltyShares: [BigNumber.from(500), BigNumber.from(250)],
+    royaltySalesReceiver: "0x6bd62FeB486Bf699Ac04eD6DC09dE36D11720509"
   },
   traitsConstructorData: {
     traitsSetupData: {
@@ -99,8 +97,7 @@ const projectConfig: ProjectConfig = {
         BigNumber.from(80)
       ],
     },
-    primarySalesPayees: ["0xAa9D46AE079851116967c6573f961B304095C34a"],
-    primarySalesShares: [BigNumber.from(100)],
+    primarySalesReceiver: "0x6bd62FeB486Bf699Ac04eD6DC09dE36D11720509",
   },
   setupData: {
     auctionExponential: false,

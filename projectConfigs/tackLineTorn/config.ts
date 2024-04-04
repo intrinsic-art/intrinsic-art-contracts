@@ -6,9 +6,7 @@ const projectConfig: ProjectConfig = {
     name: "Tack Line Torn",
     symbol: "TACK-LINE-TORN",
     artistAddress: "0x96D96D8Aea29bB81aBa09EeBF9fdE02542350354",
-    royaltyFeeNumerator: BigNumber.from(750),
-    royaltyPayees: ["0x96D96D8Aea29bB81aBa09EeBF9fdE02542350354", "0xAa9D46AE079851116967c6573f961B304095C34a"],
-    royaltyShares: [BigNumber.from(500), BigNumber.from(250)],
+    royaltySalesReceiver: "0x6bd62FeB486Bf699Ac04eD6DC09dE36D11720509",
   },
   traitsConstructorData: {
     traitsSetupData: {
@@ -52,8 +50,7 @@ const projectConfig: ProjectConfig = {
         BigNumber.from(50),
       ],
     },
-    primarySalesPayees: ["0xAa9D46AE079851116967c6573f961B304095C34a"],
-    primarySalesShares: [BigNumber.from(100)],
+    primarySalesReceiver: "0x6bd62FeB486Bf699Ac04eD6DC09dE36D11720509",
   },
   setupData: {
     auctionExponential: false,
