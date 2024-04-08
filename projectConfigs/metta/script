@@ -1,12 +1,13 @@
-console.log("Metta v5.6 Matto 2024");
+console.log("Metta v5.7 Matto 2024");
 let tokenEntropyPairs = createPairs(artwork.seed);
 let seed =
   getValue(0, 255) * getValue(0, 255) * getValue(0, 255) * getValue(0, 255);
 let R = (upperBound = 1) => mRando() * upperBound;
 const urlParams = new URLSearchParams(window.location.search);
 const portrait = urlParams.get("portrait");
-const delaySetting = urlParams.get("delay");
+const intervalSetting = urlParams.get("interval");
 const contSetting = urlParams.get("continuous");
+const freezeSetting = urlParams.get("freeze");
 let attributes = [];
 let p = [];
 let matte = 16;
@@ -14,7 +15,7 @@ let hue,
   width,
   height,
   canvas,
-  delayMS,
+  intervalMS,
   u,
   rando,
   nodes,
@@ -59,17 +60,27 @@ function setup() {
       width = height / 0.5625;
     }
   }
-  if (delaySetting && Number.isInteger(parseInt(delaySetting))) {
-    delayMS = parseInt(delaySetting);
-    delayMS = delayMS < 0 ? 0 : delayMS > 1000 ? 1000 : delayMS;
+  if (intervalSetting && Number.isInteger(parseInt(intervalSetting))) {
+    intervalMS = parseInt(intervalSetting);
+    intervalMS = intervalMS < 0 ? 0 : intervalMS > 1000 ? 1000 : intervalMS;
   } else {
-    delayMS = 25;
+    intervalMS = 25;
   }
-  console.log(`Delay between cycles is set to ${delayMS}ms.`);
+  console.log(`Interval between cycles is set to ${intervalMS}ms.`);
+  if (freezeSetting && Number.isInteger(parseInt(freezeSetting))) {
+    freeze = parseInt(freezeSetting);
+    if (freeze < 1) {
+      freeze = 1;
+    } 
+  } else {
+    freeze = 95;
+  }
   if (contSetting == "true") {
     console.log("Continuous mode enabled.");
     continuous = true;
     paused = false;
+  } else {
+    console.log(`Initial pause is set to occur after ${freeze} cycles.`);
   }
   canvas = document.createElement("canvas");
   canvas.width = width;
@@ -94,7 +105,6 @@ function setup() {
   cellDynamic = parseInt(artwork.traits.cellDynamic, 10);
   readOutAttributes();
   gradientShift = getValue(0, 360);
-  freeze = 95;
   seekerNodeMod = chaos == true ? 1 : nodes == 5 ? 3 : Math.floor(nodes / 2);
   u = ((thickness + 1) * Math.max(height, width)) / 2000;
   ctx.fillStyle = `hsl(0, 0%, 10%)`;
@@ -119,12 +129,12 @@ function setup() {
 
 function draw(timestamp) {
   let elapsedTime = timestamp - lastTime;
-  let targetDelay = continuous
-    ? delayMS
+  let targetInterval = continuous
+    ? intervalMS
     : count < freeze
     ? 1000 / (freeze - count + 3)
-    : delayMS;
-  if (elapsedTime > targetDelay) {
+    : intervalMS;
+  if (elapsedTime > targetInterval) {
     lastTime = timestamp;
     if (!paused || count < freeze) {
       count++;
