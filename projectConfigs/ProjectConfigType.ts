@@ -18,7 +18,19 @@ interface ProjectConfig {
       traitMaxSupplys: BigNumber[];
     };
   };
-  setupData: {
+  setupDataTestnet: {
+    auctionExponential: boolean;
+    auctionStartTime: number;
+    auctionEndTime: number;
+    auctionStartPrice: BigNumber;
+    auctionEndPrice: BigNumber;
+    auctionPriceSteps: number;
+    traitsSaleStartTime: number;
+    whitelistStartTime: number;
+    whitelistAddresses: string[];
+    whitelistAmounts: number[];
+  };
+  setupDataMainnet: {
     auctionExponential: boolean;
     auctionStartTime: number;
     auctionEndTime: number;

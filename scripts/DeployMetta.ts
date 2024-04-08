@@ -6,7 +6,22 @@ const CreateProject = async (hre: HardhatRuntimeEnvironment): Promise<void> => {
   const {
     deployments: { deploy, execute },
     getNamedAccounts,
+    getChainId,
   } = hre;
+
+  const chainId = await getChainId();
+  let testnet: boolean;
+
+  if (chainId === "84532") {
+    // Base Sepolia
+    testnet = true;
+  } else if (chainId === "8453") {
+    // Base Mainnet
+    testnet = false;
+  } else {
+    console.error("Invalid chain");
+    return;
+  }
 
   const { deployer } = await getNamedAccounts();
   const projectRegistry = await hre.ethers.getContract("ProjectRegistry");
@@ -94,37 +109,74 @@ const CreateProject = async (hre: HardhatRuntimeEnvironment): Promise<void> => {
 
   console.log("Registering project & scheduling auction...");
 
-  const encodedArtworkData = abiCoder.encode(
-    ["address", "uint256", "address[]", "uint256[]"],
-    [
-      traits.address,
-      hre.ethers.BigNumber.from(config.setupData.whitelistStartTime),
-      config.setupData.whitelistAddresses,
-      config.setupData.whitelistAmounts,
-    ]
-  );
-  const encodedTraitsData = abiCoder.encode(
-    [
-      "address",
-      "bool",
-      "uint256",
-      "uint256",
-      "uint256",
-      "uint256",
-      "uint256",
-      "uint256",
-    ],
-    [
-      artwork.address,
-      config.setupData.auctionExponential,
-      hre.ethers.BigNumber.from(config.setupData.auctionStartTime),
-      hre.ethers.BigNumber.from(config.setupData.auctionEndTime),
-      config.setupData.auctionStartPrice,
-      config.setupData.auctionEndPrice,
-      hre.ethers.BigNumber.from(config.setupData.auctionPriceSteps),
-      hre.ethers.BigNumber.from(config.setupData.traitsSaleStartTime),
-    ]
-  );
+  const encodedArtworkData = testnet
+    ? abiCoder.encode(
+        ["address", "uint256", "address[]", "uint256[]"],
+        [
+          traits.address,
+          hre.ethers.BigNumber.from(config.setupDataTestnet.whitelistStartTime),
+          config.setupDataTestnet.whitelistAddresses,
+          config.setupDataTestnet.whitelistAmounts,
+        ]
+      )
+    : abiCoder.encode(
+        ["address", "uint256", "address[]", "uint256[]"],
+        [
+          traits.address,
+          hre.ethers.BigNumber.from(config.setupDataMainnet.whitelistStartTime),
+          config.setupDataMainnet.whitelistAddresses,
+          config.setupDataMainnet.whitelistAmounts,
+        ]
+      );
+  const encodedTraitsData = testnet
+    ? abiCoder.encode(
+        [
+          "address",
+          "bool",
+          "uint256",
+          "uint256",
+          "uint256",
+          "uint256",
+          "uint256",
+          "uint256",
+        ],
+        [
+          artwork.address,
+          config.setupDataTestnet.auctionExponential,
+          hre.ethers.BigNumber.from(config.setupDataTestnet.auctionStartTime),
+          hre.ethers.BigNumber.from(config.setupDataTestnet.auctionEndTime),
+          config.setupDataTestnet.auctionStartPrice,
+          config.setupDataTestnet.auctionEndPrice,
+          hre.ethers.BigNumber.from(config.setupDataTestnet.auctionPriceSteps),
+          hre.ethers.BigNumber.from(
+            config.setupDataTestnet.traitsSaleStartTime
+          ),
+        ]
+      )
+    : abiCoder.encode(
+        [
+          "address",
+          "bool",
+          "uint256",
+          "uint256",
+          "uint256",
+          "uint256",
+          "uint256",
+          "uint256",
+        ],
+        [
+          artwork.address,
+          config.setupDataMainnet.auctionExponential,
+          hre.ethers.BigNumber.from(config.setupDataMainnet.auctionStartTime),
+          hre.ethers.BigNumber.from(config.setupDataMainnet.auctionEndTime),
+          config.setupDataMainnet.auctionStartPrice,
+          config.setupDataMainnet.auctionEndPrice,
+          hre.ethers.BigNumber.from(config.setupDataMainnet.auctionPriceSteps),
+          hre.ethers.BigNumber.from(
+            config.setupDataMainnet.traitsSaleStartTime
+          ),
+        ]
+      );
 
   await execute(
     "ProjectRegistry",

@@ -5,7 +5,7 @@ const projectConfig: ProjectConfig = {
   artworkConstructorData: {
     name: "One Ring",
     symbol: "ONE-RING",
-    artistAddress: "0x02d53D2C706252814D7264edb7FAf15686939702", //todo: update this back to heeey's address: 0x49f2495a1FB4fD0Fc90a10706B598B4594409A88
+    artistAddress: "0x49f2495a1FB4fD0Fc90a10706B598B4594409A88",
     royaltySalesReceiver: "0x6bd62FeB486Bf699Ac04eD6DC09dE36D11720509",
   },
   traitsConstructorData: {
@@ -175,21 +175,29 @@ const projectConfig: ProjectConfig = {
       ],
     },
   },
-  setupData: {
+  setupDataTestnet: {
     auctionExponential: false,
     auctionStartTime: Math.trunc(Date.now() / 1000) + 600,
     auctionEndTime: Math.trunc(Date.now() / 1000) + 600,
-    // auctionStartTime: 1711465200,
-    // auctionEndTime: 1711638000,
     auctionStartPrice: ethers.utils.parseEther("0.01"),
     auctionEndPrice: ethers.utils.parseEther("0.001"),
     auctionPriceSteps: 2,
     traitsSaleStartTime: Math.trunc(Date.now() / 1000) + 600,
     whitelistStartTime: Math.trunc(Date.now() / 1000) + 600,
-    // traitsSaleStartTime: 1711465200,
-    // whitelistStartTime: 1711465200,
     whitelistAddresses: ["0xAa9D46AE079851116967c6573f961B304095C34a", "0xA3a8D06505C85049D57F7fcF00432Ca7A7800055", "0x02d53D2C706252814D7264edb7FAf15686939702"],
     whitelistAmounts: [10, 10, 10]
+  },
+  setupDataMainnet: {
+    auctionExponential: false,
+    auctionStartTime: Math.trunc(Date.now() / 1000) + 600,
+    auctionEndTime: Math.trunc(Date.now() / 1000) + 600,
+    auctionStartPrice: ethers.utils.parseEther("0.01"),
+    auctionEndPrice: ethers.utils.parseEther("0.001"),
+    auctionPriceSteps: 2,
+    traitsSaleStartTime: Math.trunc(Date.now() / 1000) + 600,
+    whitelistStartTime: Math.trunc(Date.now() / 1000) + 600,
+    whitelistAddresses: [],
+    whitelistAmounts: []
   },
 };
 
