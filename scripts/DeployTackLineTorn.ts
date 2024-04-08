@@ -23,6 +23,8 @@ const CreateProject = async (hre: HardhatRuntimeEnvironment): Promise<void> => {
     return;
   }
 
+  console.log("testnet: ", testnet);
+
   const { deployer } = await getNamedAccounts();
   const projectRegistry = await hre.ethers.getContract("ProjectRegistry");
 
