@@ -12,20 +12,23 @@ import { expect } from "chai";
 import { ethers } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { BigNumber } from "ethers";
+import time from "./helpers/time";
 
 describe("Deployment and setup", function () {
   let projectRegistry: ProjectRegistry;
   let stringStorage: MockStringStorage;
-  let artwork: Artwork;
-  let traits: Traits;
+  let artwork1: Artwork;
+  let traits1: Traits;
+  let artwork2: Artwork;
+  let traits2: Traits;
 
   let deployer: SignerWithAddress;
   let artist: SignerWithAddress;
   let user1: SignerWithAddress;
   let whitelistedUser1: SignerWithAddress;
   let whitelistedUser2: SignerWithAddress;
-  let artistRevenueClaimer: SignerWithAddress;
-  let platformRevenueClaimer: SignerWithAddress;
+  let primarySalesReceiver: SignerWithAddress;
+  let royaltySalesReceiver: SignerWithAddress;
   let projectRegistryOwner: SignerWithAddress;
   let projectRegistryAdmin1: SignerWithAddress;
   let projectRegistryAdmin2: SignerWithAddress;
@@ -48,8 +51,8 @@ describe("Deployment and setup", function () {
       whitelistedUser1,
       whitelistedUser2,
       user1,
-      artistRevenueClaimer,
-      platformRevenueClaimer,
+      primarySalesReceiver,
+      royaltySalesReceiver,
       projectRegistryOwner,
       projectRegistryAdmin1,
       projectRegistryAdmin2,
@@ -62,50 +65,6 @@ describe("Deployment and setup", function () {
     );
 
     stringStorage = await new MockStringStorage__factory(deployer).deploy();
-  });
-
-  it("Artwork contract can't be deployed with invalid array lengths", async () => {
-    await expect(
-      new Artwork__factory(deployer).deploy(
-        "Intrinsic.art Disentanglement",
-        "INSC",
-        artist.address,
-        projectRegistry.address,
-        1000,
-        [artistRevenueClaimer.address],
-        [90, 10],
-        { stringStorageSlot: 0, stringStorageAddress: stringStorage.address },
-        { stringStorageSlot: 1, stringStorageAddress: stringStorage.address }
-      )
-    ).to.be.revertedWith("InvalidArrayLengths()");
-
-    await expect(
-      new Artwork__factory(deployer).deploy(
-        "Intrinsic.art Disentanglement",
-        "INSC",
-        artist.address,
-        projectRegistry.address,
-        1000,
-        [artistRevenueClaimer.address, platformRevenueClaimer.address],
-        [90],
-        { stringStorageSlot: 0, stringStorageAddress: stringStorage.address },
-        { stringStorageSlot: 1, stringStorageAddress: stringStorage.address }
-      )
-    ).to.be.revertedWith("InvalidArrayLengths()");
-
-    await expect(
-      new Artwork__factory(deployer).deploy(
-        "Intrinsic.art Disentanglement",
-        "INSC",
-        artist.address,
-        projectRegistry.address,
-        1000,
-        [],
-        [],
-        { stringStorageSlot: 0, stringStorageAddress: stringStorage.address },
-        { stringStorageSlot: 1, stringStorageAddress: stringStorage.address }
-      )
-    ).to.be.revertedWith("NoPayees()");
   });
 
   it("Only an admin can update the base URI on the project registry", async () => {
@@ -126,38 +85,7 @@ describe("Deployment and setup", function () {
     await expect(
       new Traits__factory(deployer).deploy(
         projectRegistry.address,
-        {
-          traitTypeNames: ["Hair Color", "Eye Color"],
-          traitTypeValues: ["hairColor", "eyeColor"],
-          traitNames: ["Blonde", "Brown", "Black", "Green", "Blue"],
-          traitValues: ["blonde", "brown", "black", "green", "blue"],
-          traitTypeIndexes: [0, 0, 0, 1, 1],
-          traitMaxSupplys: [10, 20, 30, 40, 50],
-        },
-        [artistRevenueClaimer.address],
-        [90, 10]
-      )
-    ).to.be.revertedWith("InvalidArrayLengths()");
-
-    await expect(
-      new Traits__factory(deployer).deploy(
-        projectRegistry.address,
-        {
-          traitTypeNames: ["Hair Color", "Eye Color"],
-          traitTypeValues: ["hairColor", "eyeColor"],
-          traitNames: ["Blonde", "Brown", "Black", "Green", "Blue"],
-          traitValues: ["blonde", "brown", "black", "green", "blue"],
-          traitTypeIndexes: [0, 0, 0, 1, 1],
-          traitMaxSupplys: [10, 20, 30, 40, 50],
-        },
-        [artistRevenueClaimer.address, platformRevenueClaimer.address],
-        [90]
-      )
-    ).to.be.revertedWith("InvalidArrayLengths()");
-
-    await expect(
-      new Traits__factory(deployer).deploy(
-        projectRegistry.address,
+        primarySalesReceiver.address,
         {
           traitTypeNames: ["Hair Color"],
           traitTypeValues: ["hairColor", "eyeColor"],
@@ -165,15 +93,14 @@ describe("Deployment and setup", function () {
           traitValues: ["blonde", "brown", "black", "green", "blue"],
           traitTypeIndexes: [0, 0, 0, 1, 1],
           traitMaxSupplys: [10, 20, 30, 40, 50],
-        },
-        [artistRevenueClaimer.address, platformRevenueClaimer.address],
-        [90, 10]
+        }
       )
     ).to.be.revertedWith("InvalidArrayLengths()");
 
     await expect(
       new Traits__factory(deployer).deploy(
         projectRegistry.address,
+        primarySalesReceiver.address,
         {
           traitTypeNames: ["Hair Color", "Eye Color"],
           traitTypeValues: ["hairColor", "eyeColor"],
@@ -181,15 +108,14 @@ describe("Deployment and setup", function () {
           traitValues: ["blonde", "brown", "black", "green", "blue"],
           traitTypeIndexes: [0, 0, 0, 1, 1],
           traitMaxSupplys: [10, 20, 30, 40, 50],
-        },
-        [artistRevenueClaimer.address, platformRevenueClaimer.address],
-        [90, 10]
+        }
       )
     ).to.be.revertedWith("InvalidArrayLengths()");
 
     await expect(
       new Traits__factory(deployer).deploy(
         projectRegistry.address,
+        primarySalesReceiver.address,
         {
           traitTypeNames: ["Hair Color", "Eye Color"],
           traitTypeValues: ["hairColor", "eyeColor"],
@@ -197,15 +123,14 @@ describe("Deployment and setup", function () {
           traitValues: ["blonde", "brown", "black", "green"],
           traitTypeIndexes: [0, 0, 0, 1, 1],
           traitMaxSupplys: [10, 20, 30, 40, 50],
-        },
-        [artistRevenueClaimer.address, platformRevenueClaimer.address],
-        [90, 10]
+        }
       )
     ).to.be.revertedWith("InvalidArrayLengths()");
 
     await expect(
       new Traits__factory(deployer).deploy(
         projectRegistry.address,
+        primarySalesReceiver.address,
         {
           traitTypeNames: ["Hair Color", "Eye Color"],
           traitTypeValues: ["hairColor", "eyeColor"],
@@ -213,15 +138,14 @@ describe("Deployment and setup", function () {
           traitValues: ["blonde", "brown", "black", "green", "blue"],
           traitTypeIndexes: [0, 0, 0, 1],
           traitMaxSupplys: [10, 20, 30, 40, 50],
-        },
-        [artistRevenueClaimer.address, platformRevenueClaimer.address],
-        [90, 10]
+        }
       )
     ).to.be.revertedWith("InvalidArrayLengths()");
 
     await expect(
       new Traits__factory(deployer).deploy(
         projectRegistry.address,
+        primarySalesReceiver.address,
         {
           traitTypeNames: ["Hair Color", "Eye Color"],
           traitTypeValues: ["hairColor", "eyeColor"],
@@ -229,28 +153,25 @@ describe("Deployment and setup", function () {
           traitValues: ["blonde", "brown", "black", "green", "blue"],
           traitTypeIndexes: [0, 0, 0, 1, 1],
           traitMaxSupplys: [10, 20, 30, 40],
-        },
-        [artistRevenueClaimer.address, platformRevenueClaimer.address],
-        [90, 10]
+        }
       )
     ).to.be.revertedWith("InvalidArrayLengths()");
   });
 
   it("Auction can't be scheduled with invalid times or prices", async () => {
-    artwork = await new Artwork__factory(deployer).deploy(
+    artwork1 = await new Artwork__factory(deployer).deploy(
       "Intrinsic.art Disentanglement",
       "INSC",
       artist.address,
       projectRegistry.address,
-      1000,
-      [artistRevenueClaimer.address, platformRevenueClaimer.address],
-      [90, 10],
+      royaltySalesReceiver.address,
       { stringStorageSlot: 0, stringStorageAddress: stringStorage.address },
       { stringStorageSlot: 1, stringStorageAddress: stringStorage.address }
     );
 
-    traits = await new Traits__factory(deployer).deploy(
+    traits1 = await new Traits__factory(deployer).deploy(
       projectRegistry.address,
+      primarySalesReceiver.address,
       {
         traitTypeNames: ["Hair Color", "Eye Color"],
         traitTypeValues: ["hairColor", "eyeColor"],
@@ -258,9 +179,7 @@ describe("Deployment and setup", function () {
         traitValues: ["blonde", "brown", "black", "green", "blue"],
         traitTypeIndexes: [0, 0, 0, 1, 1],
         traitMaxSupplys: [10, 20, 30, 40, 50],
-      },
-      [artistRevenueClaimer.address, platformRevenueClaimer.address],
-      [90, 10]
+      }
     );
 
     // should be invalid since auction start time is after end time
@@ -276,7 +195,7 @@ describe("Deployment and setup", function () {
     const encodedArtworkData = abiCoder.encode(
       ["address", "uint256", "address[]", "uint256[]"],
       [
-        traits.address,
+        traits1.address,
         whitelistStartTime,
         [whitelistedUser1.address, whitelistedUser2.address],
         [1, 1],
@@ -294,7 +213,7 @@ describe("Deployment and setup", function () {
         "uint256",
       ],
       [
-        artwork.address,
+        artwork1.address,
         false,
         auctionStartTime,
         auctionEndTime,
@@ -309,9 +228,9 @@ describe("Deployment and setup", function () {
       projectRegistry
         .connect(projectRegistryAdmin1)
         .registerProject(
-          artwork.address,
+          artwork1.address,
           encodedArtworkData,
-          traits.address,
+          traits1.address,
           encodedTraitsData
         )
     ).to.be.revertedWith("InvalidAuction()");
@@ -336,20 +255,19 @@ describe("Deployment and setup", function () {
     );
     expect(await projectRegistry.admins(deployer.address)).to.eq(false);
 
-    artwork = await new Artwork__factory(deployer).deploy(
+    artwork1 = await new Artwork__factory(deployer).deploy(
       "Intrinsic.art Disentanglement",
       "INSC",
       artist.address,
       projectRegistry.address,
-      1000,
-      [artistRevenueClaimer.address, platformRevenueClaimer.address],
-      [90, 10],
+      royaltySalesReceiver.address,
       { stringStorageSlot: 0, stringStorageAddress: stringStorage.address },
       { stringStorageSlot: 1, stringStorageAddress: stringStorage.address }
     );
 
-    traits = await new Traits__factory(deployer).deploy(
+    traits1 = await new Traits__factory(deployer).deploy(
       projectRegistry.address,
+      primarySalesReceiver.address,
       {
         traitTypeNames: ["Hair Color", "Eye Color"],
         traitTypeValues: ["hairColor", "eyeColor"],
@@ -357,9 +275,7 @@ describe("Deployment and setup", function () {
         traitValues: ["blonde", "brown", "black", "green", "blue"],
         traitTypeIndexes: [0, 0, 0, 1, 1],
         traitMaxSupplys: [10, 20, 30, 40, 50],
-      },
-      [artistRevenueClaimer.address, platformRevenueClaimer.address],
-      [90, 10]
+      }
     );
 
     // should be invalid since auction start time is after end time
@@ -375,7 +291,7 @@ describe("Deployment and setup", function () {
     const encodedArtworkData = abiCoder.encode(
       ["address", "uint256", "address[]", "uint256[]"],
       [
-        traits.address,
+        traits1.address,
         whitelistStartTime,
         [whitelistedUser1.address, whitelistedUser2.address],
         [1, 1],
@@ -393,7 +309,7 @@ describe("Deployment and setup", function () {
         "uint256",
       ],
       [
-        artwork.address,
+        artwork1.address,
         false,
         auctionStartTime,
         auctionEndTime,
@@ -407,9 +323,9 @@ describe("Deployment and setup", function () {
     await projectRegistry
       .connect(projectRegistryAdmin1)
       .registerProject(
-        artwork.address,
+        artwork1.address,
         encodedArtworkData,
-        traits.address,
+        traits1.address,
         encodedTraitsData
       );
 
@@ -417,16 +333,16 @@ describe("Deployment and setup", function () {
       projectRegistry
         .connect(user1)
         .registerProject(
-          artwork.address,
+          artwork1.address,
           encodedArtworkData,
-          traits.address,
+          traits1.address,
           encodedTraitsData
         )
     ).to.be.revertedWith("OnlyAdmin()");
 
     expect(await projectRegistry.projects(1)).to.deep.eq([
-      artwork.address,
-      traits.address,
+      artwork1.address,
+      traits1.address,
     ]);
 
     await expect(
@@ -497,21 +413,19 @@ describe("Deployment and setup", function () {
   });
 
   it("Address that isn't project registry can't setup artwork contract", async () => {
-    artwork = await new Artwork__factory(deployer).deploy(
+    artwork1 = await new Artwork__factory(deployer).deploy(
       "Intrinsic.art Disentanglement",
       "INSC",
       artist.address,
       projectRegistry.address,
-      1000,
-      [artistRevenueClaimer.address, platformRevenueClaimer.address],
-      [90, 10],
+      royaltySalesReceiver.address,
       { stringStorageSlot: 0, stringStorageAddress: stringStorage.address },
       { stringStorageSlot: 1, stringStorageAddress: stringStorage.address }
     );
 
     const encodedArtworkData = abiCoder.encode(["address"], [user1.address]);
     await expect(
-      artwork.connect(user1).setup(encodedArtworkData)
+      artwork1.connect(user1).setup(encodedArtworkData)
     ).to.be.revertedWith("OnlyProjectRegistry()");
   });
 
@@ -537,7 +451,7 @@ describe("Deployment and setup", function () {
         "uint256",
       ],
       [
-        artwork.address,
+        artwork1.address,
         false,
         auctionStartTime,
         auctionEndTime,
@@ -548,8 +462,9 @@ describe("Deployment and setup", function () {
       ]
     );
 
-    traits = await new Traits__factory(deployer).deploy(
+    traits1 = await new Traits__factory(deployer).deploy(
       projectRegistry.address,
+      royaltySalesReceiver.address,
       {
         traitTypeNames: ["Hair Color", "Eye Color"],
         traitTypeValues: ["hairColor", "eyeColor"],
@@ -557,31 +472,28 @@ describe("Deployment and setup", function () {
         traitValues: ["blonde", "brown", "black", "green", "blue"],
         traitTypeIndexes: [0, 0, 0, 1, 1],
         traitMaxSupplys: [10, 20, 30, 40, 50],
-      },
-      [artistRevenueClaimer.address, platformRevenueClaimer.address],
-      [90, 10]
+      }
     );
 
     await expect(
-      traits.connect(user1).setup(encodedTraitsData)
+      traits1.connect(user1).setup(encodedTraitsData)
     ).to.be.revertedWith("OnlyProjectRegistry()");
   });
 
   it("Project can't be registered if either contract address is address zero", async () => {
-    artwork = await new Artwork__factory(deployer).deploy(
+    artwork1 = await new Artwork__factory(deployer).deploy(
       "Intrinsic.art Disentanglement",
       "INSC",
       artist.address,
       projectRegistry.address,
-      1000,
-      [artistRevenueClaimer.address, platformRevenueClaimer.address],
-      [90, 10],
+      royaltySalesReceiver.address,
       { stringStorageSlot: 0, stringStorageAddress: stringStorage.address },
       { stringStorageSlot: 1, stringStorageAddress: stringStorage.address }
     );
 
-    traits = await new Traits__factory(deployer).deploy(
+    traits1 = await new Traits__factory(deployer).deploy(
       projectRegistry.address,
+      primarySalesReceiver.address,
       {
         traitTypeNames: ["Hair Color", "Eye Color"],
         traitTypeValues: ["hairColor", "eyeColor"],
@@ -589,9 +501,7 @@ describe("Deployment and setup", function () {
         traitValues: ["blonde", "brown", "black", "green", "blue"],
         traitTypeIndexes: [0, 0, 0, 1, 1],
         traitMaxSupplys: [10, 20, 30, 40, 50],
-      },
-      [artistRevenueClaimer.address, platformRevenueClaimer.address],
-      [90, 10]
+      }
     );
 
     currentTime = (await ethers.provider.getBlock("latest")).timestamp;
@@ -606,7 +516,7 @@ describe("Deployment and setup", function () {
     const encodedArtworkData = abiCoder.encode(
       ["address", "uint256", "address[]", "uint256[]"],
       [
-        traits.address,
+        traits1.address,
         whitelistStartTime,
         [whitelistedUser1.address, whitelistedUser2.address],
         [1, 1],
@@ -624,7 +534,7 @@ describe("Deployment and setup", function () {
         "uint256",
       ],
       [
-        artwork.address,
+        artwork1.address,
         false,
         auctionStartTime,
         auctionEndTime,
@@ -639,7 +549,7 @@ describe("Deployment and setup", function () {
       projectRegistry
         .connect(projectRegistryAdmin1)
         .registerProject(
-          artwork.address,
+          artwork1.address,
           encodedArtworkData,
           ethers.constants.AddressZero,
           encodedTraitsData
@@ -652,9 +562,290 @@ describe("Deployment and setup", function () {
         .registerProject(
           ethers.constants.AddressZero,
           encodedArtworkData,
-          traits.address,
+          traits1.address,
           encodedTraitsData
         )
     ).to.be.revertedWith("InvalidAddress()");
+  });
+
+  it("A project can be deregistered", async () => {
+    projectRegistry = await new ProjectRegistry__factory(deployer).deploy(
+      projectRegistryOwner.address,
+      [projectRegistryAdmin1.address, projectRegistryAdmin2.address],
+      "test URI"
+    );
+
+    artwork1 = await new Artwork__factory(deployer).deploy(
+      "Intrinsic.art Disentanglement",
+      "INSC",
+      artist.address,
+      projectRegistry.address,
+      royaltySalesReceiver.address,
+      { stringStorageSlot: 0, stringStorageAddress: stringStorage.address },
+      { stringStorageSlot: 1, stringStorageAddress: stringStorage.address }
+    );
+
+    artwork2 = await new Artwork__factory(deployer).deploy(
+      "Intrinsic.art Disentanglement",
+      "INSC",
+      artist.address,
+      projectRegistry.address,
+      royaltySalesReceiver.address,
+      { stringStorageSlot: 0, stringStorageAddress: stringStorage.address },
+      { stringStorageSlot: 1, stringStorageAddress: stringStorage.address }
+    );
+
+    traits1 = await new Traits__factory(deployer).deploy(
+      projectRegistry.address,
+      primarySalesReceiver.address,
+      {
+        traitTypeNames: ["Hair Color", "Eye Color"],
+        traitTypeValues: ["hairColor", "eyeColor"],
+        traitNames: ["Blonde", "Brown", "Black", "Green", "Blue"],
+        traitValues: ["blonde", "brown", "black", "green", "blue"],
+        traitTypeIndexes: [0, 0, 0, 1, 1],
+        traitMaxSupplys: [10, 20, 30, 40, 50],
+      }
+    );
+
+    traits2 = await new Traits__factory(deployer).deploy(
+      projectRegistry.address,
+      primarySalesReceiver.address,
+      {
+        traitTypeNames: ["Hair Color", "Eye Color"],
+        traitTypeValues: ["hairColor", "eyeColor"],
+        traitNames: ["Blonde", "Brown", "Black", "Green", "Blue"],
+        traitValues: ["blonde", "brown", "black", "green", "blue"],
+        traitTypeIndexes: [0, 0, 0, 1, 1],
+        traitMaxSupplys: [10, 20, 30, 40, 50],
+      }
+    );
+
+    currentTime = (await ethers.provider.getBlock("latest")).timestamp;
+    auctionStartTime = currentTime + 110;
+    auctionEndTime = auctionStartTime + 210;
+    auctionStartPrice = ethers.utils.parseEther("1");
+    auctionEndPrice = ethers.utils.parseEther("0.1");
+    auctionPriceSteps = 4;
+    traitsSaleStartTime = currentTime + 300;
+    whitelistStartTime = currentTime + 110;
+
+    const encodedArtworkData1 = abiCoder.encode(
+      ["address", "uint256", "address[]", "uint256[]"],
+      [
+        traits1.address,
+        whitelistStartTime,
+        [whitelistedUser1.address, whitelistedUser2.address],
+        [1, 1],
+      ]
+    );
+    const encodedTraitsData1 = abiCoder.encode(
+      [
+        "address",
+        "bool",
+        "uint256",
+        "uint256",
+        "uint256",
+        "uint256",
+        "uint256",
+        "uint256",
+      ],
+      [
+        artwork1.address,
+        false,
+        auctionStartTime,
+        auctionEndTime,
+        auctionStartPrice,
+        auctionEndPrice,
+        auctionPriceSteps,
+        traitsSaleStartTime,
+      ]
+    );
+
+    // Register the first project
+    await projectRegistry
+      .connect(projectRegistryAdmin1)
+      .registerProject(
+        artwork1.address,
+        encodedArtworkData1,
+        traits1.address,
+        encodedTraitsData1
+      );
+
+    const encodedArtworkData2 = abiCoder.encode(
+      ["address", "uint256", "address[]", "uint256[]"],
+      [
+        traits2.address,
+        whitelistStartTime,
+        [whitelistedUser1.address, whitelistedUser2.address],
+        [1, 1],
+      ]
+    );
+    const encodedTraitsData2 = abiCoder.encode(
+      [
+        "address",
+        "bool",
+        "uint256",
+        "uint256",
+        "uint256",
+        "uint256",
+        "uint256",
+        "uint256",
+      ],
+      [
+        artwork2.address,
+        false,
+        auctionStartTime,
+        auctionEndTime,
+        auctionStartPrice,
+        auctionEndPrice,
+        auctionPriceSteps,
+        traitsSaleStartTime,
+      ]
+    );
+
+    // Register the second project
+    await projectRegistry
+      .connect(projectRegistryAdmin1)
+      .registerProject(
+        artwork2.address,
+        encodedArtworkData2,
+        traits2.address,
+        encodedTraitsData2
+      );
+
+    expect((await projectRegistry.projects(1)).artwork).to.eq(artwork1.address);
+    expect((await projectRegistry.projects(1)).traits).to.eq(traits1.address);
+    expect((await projectRegistry.projects(2)).artwork).to.eq(artwork2.address);
+    expect((await projectRegistry.projects(2)).traits).to.eq(traits2.address);
+
+    await expect(
+      projectRegistry.connect(user1).deregisterProject(2)
+    ).to.be.revertedWith("OnlyAdmin()");
+
+    await expect(
+      projectRegistry.connect(projectRegistryAdmin1).deregisterProject(1)
+    ).to.be.revertedWith("OnlyDeregisterLastProject()");
+
+    expect(await projectRegistry.projectCount()).to.eq(2);
+
+    await projectRegistry.connect(projectRegistryAdmin1).deregisterProject(2);
+
+    expect(await projectRegistry.projectCount()).to.eq(1);
+
+    expect((await projectRegistry.projects(1)).artwork).to.eq(artwork1.address);
+    expect((await projectRegistry.projects(1)).traits).to.eq(traits1.address);
+    expect((await projectRegistry.projects(2)).artwork).to.eq(
+      ethers.constants.AddressZero
+    );
+    expect((await projectRegistry.projects(2)).traits).to.eq(
+      ethers.constants.AddressZero
+    );
+
+    await projectRegistry.connect(projectRegistryAdmin1).deregisterProject(1);
+
+    expect(await projectRegistry.projectCount()).to.eq(0);
+
+    expect((await projectRegistry.projects(1)).artwork).to.eq(
+      ethers.constants.AddressZero
+    );
+    expect((await projectRegistry.projects(1)).traits).to.eq(
+      ethers.constants.AddressZero
+    );
+    expect((await projectRegistry.projects(2)).artwork).to.eq(
+      ethers.constants.AddressZero
+    );
+    expect((await projectRegistry.projects(2)).traits).to.eq(
+      ethers.constants.AddressZero
+    );
+  });
+
+  it("A project can't be deregistered if the auction has started'", async () => {
+    projectRegistry = await new ProjectRegistry__factory(deployer).deploy(
+      projectRegistryOwner.address,
+      [projectRegistryAdmin1.address, projectRegistryAdmin2.address],
+      "test URI"
+    );
+
+    artwork1 = await new Artwork__factory(deployer).deploy(
+      "Intrinsic.art Disentanglement",
+      "INSC",
+      artist.address,
+      projectRegistry.address,
+      royaltySalesReceiver.address,
+      { stringStorageSlot: 0, stringStorageAddress: stringStorage.address },
+      { stringStorageSlot: 1, stringStorageAddress: stringStorage.address }
+    );
+
+    traits1 = await new Traits__factory(deployer).deploy(
+      projectRegistry.address,
+      primarySalesReceiver.address,
+      {
+        traitTypeNames: ["Hair Color", "Eye Color"],
+        traitTypeValues: ["hairColor", "eyeColor"],
+        traitNames: ["Blonde", "Brown", "Black", "Green", "Blue"],
+        traitValues: ["blonde", "brown", "black", "green", "blue"],
+        traitTypeIndexes: [0, 0, 0, 1, 1],
+        traitMaxSupplys: [10, 20, 30, 40, 50],
+      }
+    );
+
+    currentTime = (await ethers.provider.getBlock("latest")).timestamp;
+    auctionStartTime = currentTime + 110;
+    auctionEndTime = auctionStartTime + 210;
+    auctionStartPrice = ethers.utils.parseEther("1");
+    auctionEndPrice = ethers.utils.parseEther("0.1");
+    auctionPriceSteps = 4;
+    traitsSaleStartTime = currentTime + 300;
+    whitelistStartTime = currentTime + 110;
+
+    const encodedArtworkData1 = abiCoder.encode(
+      ["address", "uint256", "address[]", "uint256[]"],
+      [
+        traits1.address,
+        whitelistStartTime,
+        [whitelistedUser1.address, whitelistedUser2.address],
+        [1, 1],
+      ]
+    );
+    const encodedTraitsData1 = abiCoder.encode(
+      [
+        "address",
+        "bool",
+        "uint256",
+        "uint256",
+        "uint256",
+        "uint256",
+        "uint256",
+        "uint256",
+      ],
+      [
+        artwork1.address,
+        false,
+        auctionStartTime,
+        auctionEndTime,
+        auctionStartPrice,
+        auctionEndPrice,
+        auctionPriceSteps,
+        traitsSaleStartTime,
+      ]
+    );
+
+    // Register the first project
+    await projectRegistry
+      .connect(projectRegistryAdmin1)
+      .registerProject(
+        artwork1.address,
+        encodedArtworkData1,
+        traits1.address,
+        encodedTraitsData1
+      );
+
+    // Move forward in time so auction is active
+    await time.increase(time.duration.seconds(300));
+
+    await expect(
+      projectRegistry.connect(projectRegistryAdmin1).deregisterProject(1)
+    ).to.be.revertedWith("AuctionIsLive()");
   });
 });

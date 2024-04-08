@@ -10,6 +10,7 @@ interface IProjectRegistry {
     error OnlyAdmin();
     error InvalidAddress();
     error InvalidArrayLengths();
+    error OnlyDeregisterLastProject();
 
     event BaseURIUpdated(string baseURI);
     event ProjectRegistered(
@@ -17,6 +18,7 @@ interface IProjectRegistry {
         address indexed artwork,
         address indexed traits
     );
+    event ProjectDeregistered(uint256 indexed projectId);
     event AdminAdded(address indexed account);
     event AdminRemoved(address indexed account);
 
@@ -42,6 +44,14 @@ interface IProjectRegistry {
         address _traits,
         bytes calldata _traitsData
     ) external;
+
+    /**
+     * Deregisters a project and zeroes out the addresses in the project mapping
+     * Will revert if called after a projects auction has started
+     *
+     * @param _projectId the ID of the project
+     */
+    function deregisterProject(uint256 _projectId) external;
 
     /**
      * Executes an arbitrary number of external function calls

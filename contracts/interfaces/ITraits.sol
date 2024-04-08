@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: GNU GPLv3
 pragma solidity =0.8.19;
 
+import {IBaseSetup} from "./IBaseSetup.sol";
 import {IERC1155} from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 
-interface ITraits is IERC1155 {
+interface ITraits is IBaseSetup, IERC1155 {
     struct TraitType {
         string name;
         string value;
@@ -46,13 +47,8 @@ interface ITraits is IERC1155 {
     error AuctionNotLive();
     error InvalidTokenId();
     error TraitsSaleStartTime();
-
-    /**
-     * Sets the address of the Artwork contract and the auction configuration
-     *
-     * @param _data bytes data containt the artwork contract address and auction data
-     */
-    function setup(bytes calldata _data) external;
+    error InvalidArrayLengths();
+    error Cancelled();
 
     /**
      * Updates the schedule of the dutch auction, can only
