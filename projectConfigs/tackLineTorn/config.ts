@@ -6,10 +6,12 @@ const projectConfig: ProjectConfig = {
     name: "Tack Line Torn",
     symbol: "TACK-LINE-TORN",
     artistAddress: "0x96D96D8Aea29bB81aBa09EeBF9fdE02542350354",
-    royaltySalesReceiver: "0x6bd62FeB486Bf699Ac04eD6DC09dE36D11720509",
+    royaltySalesReceiverTestnet: "0x6bd62FeB486Bf699Ac04eD6DC09dE36D11720509",
+    royaltySalesReceiverMainnet: "0x6bd62FeB486Bf699Ac04eD6DC09dE36D11720509",
   },
   traitsConstructorData: {
-    primarySalesReceiver: "0x6bd62FeB486Bf699Ac04eD6DC09dE36D11720509",
+    primarySalesReceiverTestnet: "0x6bd62FeB486Bf699Ac04eD6DC09dE36D11720509",
+    primarySalesReceiverMainnet: "0x6bd62FeB486Bf699Ac04eD6DC09dE36D11720509",
     traitsSetupData: {
       traitTypeNames: ["Palette", "Complexity", "Organization"],
       traitTypeValues: ["palette", "complexity", "organization"],

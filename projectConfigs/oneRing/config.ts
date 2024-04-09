@@ -6,10 +6,12 @@ const projectConfig: ProjectConfig = {
     name: "One Ring",
     symbol: "ONE-RING",
     artistAddress: "0x49f2495a1FB4fD0Fc90a10706B598B4594409A88",
-    royaltySalesReceiver: "0x6bd62FeB486Bf699Ac04eD6DC09dE36D11720509",
+    royaltySalesReceiverTestnet: "0x6bd62FeB486Bf699Ac04eD6DC09dE36D11720509",
+    royaltySalesReceiverMainnet: "0x6bd62FeB486Bf699Ac04eD6DC09dE36D11720509",
   },
   traitsConstructorData: {
-    primarySalesReceiver: "0x6bd62FeB486Bf699Ac04eD6DC09dE36D11720509",
+    primarySalesReceiverTestnet: "0x6bd62FeB486Bf699Ac04eD6DC09dE36D11720509",
+    primarySalesReceiverMainnet: "0x6bd62FeB486Bf699Ac04eD6DC09dE36D11720509",
     traitsSetupData: {
       traitTypeNames: [
         "Background Hue",

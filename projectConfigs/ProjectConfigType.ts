@@ -5,10 +5,12 @@ interface ProjectConfig {
     name: string;
     symbol: string;
     artistAddress: string;
-    royaltySalesReceiver: string;
+    royaltySalesReceiverTestnet: string;
+    royaltySalesReceiverMainnet: string;
   };
   traitsConstructorData: {
-    primarySalesReceiver: string;
+    primarySalesReceiverTestnet: string;
+    primarySalesReceiverMainnet: string;
     traitsSetupData: {
       traitTypeNames: string[];
       traitTypeValues: string[];

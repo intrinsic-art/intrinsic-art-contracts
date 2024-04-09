@@ -37,12 +37,20 @@ const CreateProject = async (hre: HardhatRuntimeEnvironment): Promise<void> => {
 
   console.log("Deploying artwork contract...");
 
+  const royaltySalesReceiver = testnet
+    ? config.artworkConstructorData.royaltySalesReceiverTestnet
+    : config.artworkConstructorData.royaltySalesReceiverMainnet;
+
+  const primarySalesReceiver = testnet
+    ? config.traitsConstructorData.primarySalesReceiverTestnet
+    : config.traitsConstructorData.primarySalesReceiverMainnet;
+
   const artworkConstructorArgs = [
     config.artworkConstructorData.name,
     config.artworkConstructorData.symbol,
     config.artworkConstructorData.artistAddress,
     projectRegistry.address,
-    config.artworkConstructorData.royaltySalesReceiver,
+    royaltySalesReceiver,
     {
       stringStorageSlot: 0,
       stringStorageAddress: stringStorageDeployResult.address,
@@ -64,7 +72,7 @@ const CreateProject = async (hre: HardhatRuntimeEnvironment): Promise<void> => {
 
   const traitsConstructorArgs = [
     projectRegistry.address,
-    config.traitsConstructorData.primarySalesReceiver,
+    primarySalesReceiver,
     config.traitsConstructorData.traitsSetupData,
   ];
 
