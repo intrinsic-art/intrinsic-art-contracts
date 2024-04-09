@@ -27,8 +27,8 @@ describe("Artwork and Traits", function () {
   let user2: SignerWithAddress;
   let whitelistedUser1: SignerWithAddress;
   let whitelistedUser2: SignerWithAddress;
-  let artistRevenueClaimer: SignerWithAddress;
-  let platformRevenueClaimer: SignerWithAddress;
+  let primarySalesReceiver: SignerWithAddress;
+  let royaltySalesReceiver: SignerWithAddress;
   let projectRegistryOwner: SignerWithAddress;
   let projectRegistryAdmin: SignerWithAddress;
 
@@ -52,8 +52,8 @@ describe("Artwork and Traits", function () {
       whitelistedUser2,
       user1,
       user2,
-      artistRevenueClaimer,
-      platformRevenueClaimer,
+      primarySalesReceiver,
+      royaltySalesReceiver,
       projectRegistryOwner,
       projectRegistryAdmin,
     ] = await ethers.getSigners();
@@ -73,15 +73,14 @@ describe("Artwork and Traits", function () {
       "INSC",
       artist.address,
       projectRegistry.address,
-      1000,
-      [artistRevenueClaimer.address, platformRevenueClaimer.address],
-      [90, 10],
+      royaltySalesReceiver.address,
       { stringStorageSlot: 0, stringStorageAddress: stringStorage.address },
       { stringStorageSlot: 1, stringStorageAddress: stringStorage.address }
     );
 
     traits = await new Traits__factory(deployer).deploy(
       projectRegistry.address,
+      primarySalesReceiver.address,
       {
         traitTypeNames: ["Hair Color", "Eye Color"],
         traitTypeValues: ["hairColor", "eyeColor"],
@@ -89,9 +88,7 @@ describe("Artwork and Traits", function () {
         traitValues: ["blonde", "brown", "black", "green", "blue"],
         traitTypeIndexes: [0, 0, 0, 1, 1],
         traitMaxSupplys: [10, 20, 30, 40, 50],
-      },
-      [artistRevenueClaimer.address, platformRevenueClaimer.address],
-      [90, 10]
+      }
     );
 
     auctionDuration = 100;
@@ -154,12 +151,12 @@ describe("Artwork and Traits", function () {
     expect(await artwork.metadataJSON()).to.eq("Test JSON");
     expect(await artwork.projectRegistry()).to.eq(projectRegistry.address);
     expect(await artwork.royaltyInfo(0, 1000)).to.deep.eq([
-      artwork.address,
-      BigNumber.from(100),
+      royaltySalesReceiver.address,
+      BigNumber.from(75),
     ]);
     expect(await artwork.royaltyInfo(5, 3000)).to.deep.eq([
-      artwork.address,
-      BigNumber.from(300),
+      royaltySalesReceiver.address,
+      BigNumber.from(225),
     ]);
     expect(await artwork.nextTokenId()).to.eq(0);
     expect(await artwork.VERSION()).to.eq("1.0");
@@ -167,12 +164,6 @@ describe("Artwork and Traits", function () {
     expect(await artwork.tokenURI(0)).to.eq(
       `https://intrinsic.art/${artwork.address.toLowerCase()}/0`
     );
-
-    expect(await artwork.totalShares()).to.eq(100);
-    expect(await artwork.shares(artistRevenueClaimer.address)).to.eq(90);
-    expect(await artwork.shares(platformRevenueClaimer.address)).to.eq(10);
-    expect(await artwork.payee(0)).to.eq(artistRevenueClaimer.address);
-    expect(await artwork.payee(1)).to.eq(platformRevenueClaimer.address);
   });
 
   it("Initializes the Traits contract", async () => {
@@ -189,13 +180,13 @@ describe("Artwork and Traits", function () {
     expect(await traits.supportsInterface("0xd9b67a26")).to.eq(true);
 
     expect(await traits.royaltyInfo(0, 1000)).to.deep.eq([
-      artwork.address,
-      BigNumber.from(100),
+      royaltySalesReceiver.address,
+      BigNumber.from(75),
     ]);
 
     expect(await traits.royaltyInfo(5, 3000)).to.deep.eq([
-      artwork.address,
-      BigNumber.from(300),
+      royaltySalesReceiver.address,
+      BigNumber.from(225),
     ]);
 
     expect(await traits.traits()).to.deep.eq([
@@ -338,7 +329,6 @@ describe("Artwork and Traits", function () {
       });
 
     expect(await ethers.provider.getBalance(artwork.address)).to.eq(0);
-    expect(await ethers.provider.getBalance(traits.address)).to.eq(ethAmount);
 
     expect(await artwork.ownerOf(0)).to.eq(user1.address);
 
@@ -525,9 +515,6 @@ describe("Artwork and Traits", function () {
     expect(await traits.balanceOf(user1.address, 2)).to.eq(0);
     expect(await traits.balanceOf(user1.address, 3)).to.eq(0);
     expect(await traits.balanceOf(user1.address, 4)).to.eq(1);
-
-    expect(await ethers.provider.getBalance(artwork.address)).to.eq(0);
-    expect(await ethers.provider.getBalance(traits.address)).to.eq(ethAmount);
 
     expect(await artwork.ownerOf(0)).to.eq(user1.address);
 
@@ -945,24 +932,13 @@ describe("Artwork and Traits", function () {
     ).to.be.revertedWith("InvalidArrayLengths()");
   });
 
-  it("Traits primary sales payment splitting is handled correctly", async () => {
-    const artistRevenueClaimerInitialBalance = await ethers.provider.getBalance(
-      artistRevenueClaimer.address
+  it("Traits primary sales are sent to the correct address", async () => {
+    const primarySalesReceiverInitialBalance = await ethers.provider.getBalance(
+      primarySalesReceiver.address
     );
-    const platformRevenueClaimerInitialBalance =
-      await ethers.provider.getBalance(platformRevenueClaimer.address);
 
     // Move forward in time so auction is active
     await time.increase(time.duration.seconds(300));
-
-    expect(await traits.totalShares()).to.eq(100);
-
-    expect(await traits.totalReleasedETH()).to.eq(0);
-    expect(await traits.releasedETH(artistRevenueClaimer.address)).to.eq(0);
-    expect(await traits.releasedETH(platformRevenueClaimer.address)).to.eq(0);
-    expect(await traits.releasableETH(artistRevenueClaimer.address)).to.eq(0);
-    expect(await traits.releasableETH(platformRevenueClaimer.address)).to.eq(0);
-    expect(await ethers.provider.getBalance(traits.address)).to.eq(0);
 
     const ethRevenue1 = (await traits.traitPrice()).mul(10);
 
@@ -970,62 +946,9 @@ describe("Artwork and Traits", function () {
       value: ethRevenue1,
     });
 
-    expect(await traits.totalReleasedETH()).to.eq(0);
-    expect(await traits.releasedETH(artistRevenueClaimer.address)).to.eq(0);
-    expect(await traits.releasedETH(platformRevenueClaimer.address)).to.eq(0);
-    expect(await traits.releasableETH(artistRevenueClaimer.address)).to.eq(
-      ethRevenue1.mul(90).div(100)
-    );
-    expect(await traits.releasableETH(platformRevenueClaimer.address)).to.eq(
-      ethRevenue1.mul(10).div(100)
-    );
-    expect(await ethers.provider.getBalance(traits.address)).to.eq(ethRevenue1);
     expect(
-      await ethers.provider.getBalance(artistRevenueClaimer.address)
-    ).to.eq(artistRevenueClaimerInitialBalance);
-    expect(
-      await ethers.provider.getBalance(platformRevenueClaimer.address)
-    ).to.eq(platformRevenueClaimerInitialBalance);
-
-    // Platform revenue is released
-    const tx1 = await traits.connect(platformRevenueClaimer).releaseETH();
-    const receipt1 = await tx1.wait();
-    const tx1Gas = receipt1.cumulativeGasUsed.mul(receipt1.effectiveGasPrice);
-
-    const platformRevenueClaimed1 = ethRevenue1.mul(10).div(100);
-
-    expect(await traits.totalReleasedETH()).to.eq(platformRevenueClaimed1);
-    expect(await traits.releasedETH(artistRevenueClaimer.address)).to.eq(0);
-    expect(await traits.releasedETH(platformRevenueClaimer.address)).to.eq(
-      platformRevenueClaimed1
-    );
-    expect(await traits.releasableETH(artistRevenueClaimer.address)).to.eq(
-      ethRevenue1.mul(90).div(100)
-    );
-    expect(await traits.releasableETH(platformRevenueClaimer.address)).to.eq(0);
-    expect(await ethers.provider.getBalance(traits.address)).to.eq(
-      ethRevenue1.sub(platformRevenueClaimed1)
-    );
-    expect(
-      await ethers.provider.getBalance(artistRevenueClaimer.address)
-    ).to.eq(artistRevenueClaimerInitialBalance);
-    expect(
-      await ethers.provider.getBalance(platformRevenueClaimer.address)
-    ).to.eq(
-      platformRevenueClaimerInitialBalance
-        .add(platformRevenueClaimed1)
-        .sub(tx1Gas)
-    );
-
-    // Platform revenue cannot be released again since releasable amount is zero
-    await expect(
-      traits.connect(platformRevenueClaimer).releaseETH()
-    ).to.be.revertedWith("NoPaymentDue()");
-
-    // User that isn't setup as a payee can't release to themselves
-    await expect(traits.connect(user1).releaseETH()).to.be.revertedWith(
-      "NoShares()"
-    );
+      await ethers.provider.getBalance(primarySalesReceiver.address)
+    ).to.eq(primarySalesReceiverInitialBalance.add(ethRevenue1));
 
     const ethRevenue2 = (await traits.traitPrice()).mul(20);
 
@@ -1033,120 +956,11 @@ describe("Artwork and Traits", function () {
       value: ethRevenue2,
     });
 
-    expect(await traits.totalReleasedETH()).to.eq(platformRevenueClaimed1);
-    expect(await traits.releasedETH(artistRevenueClaimer.address)).to.eq(0);
-    expect(await traits.releasedETH(platformRevenueClaimer.address)).to.eq(
-      platformRevenueClaimed1
-    );
-    expect(await traits.releasableETH(artistRevenueClaimer.address)).to.eq(
-      ethRevenue1.add(ethRevenue2).mul(90).div(100)
-    );
-    expect(await traits.releasableETH(platformRevenueClaimer.address)).to.eq(
-      ethRevenue2.mul(10).div(100)
-    );
-    expect(await ethers.provider.getBalance(traits.address)).to.eq(
-      ethRevenue1.sub(platformRevenueClaimed1).add(ethRevenue2)
-    );
     expect(
-      await ethers.provider.getBalance(artistRevenueClaimer.address)
-    ).to.eq(artistRevenueClaimerInitialBalance);
-    expect(
-      await ethers.provider.getBalance(platformRevenueClaimer.address)
+      await ethers.provider.getBalance(primarySalesReceiver.address)
     ).to.eq(
-      platformRevenueClaimerInitialBalance
-        .add(platformRevenueClaimed1)
-        .sub(tx1Gas)
+      primarySalesReceiverInitialBalance.add(ethRevenue1).add(ethRevenue2)
     );
-
-    const platformRevenueClaimed2 = ethRevenue2.mul(10).div(100);
-
-    // Platform revenue is released
-    const tx2 = await traits.connect(platformRevenueClaimer).releaseETH();
-    const receipt2 = await tx2.wait();
-    const tx2Gas = receipt2.cumulativeGasUsed.mul(receipt2.effectiveGasPrice);
-
-    expect(await traits.totalReleasedETH()).to.eq(
-      platformRevenueClaimed1.add(platformRevenueClaimed2)
-    );
-    expect(await traits.releasedETH(artistRevenueClaimer.address)).to.eq(0);
-    expect(await traits.releasedETH(platformRevenueClaimer.address)).to.eq(
-      platformRevenueClaimed1.add(platformRevenueClaimed2)
-    );
-    expect(await traits.releasableETH(artistRevenueClaimer.address)).to.eq(
-      ethRevenue1.add(ethRevenue2).mul(90).div(100)
-    );
-    expect(await traits.releasableETH(platformRevenueClaimer.address)).to.eq(0);
-    expect(await ethers.provider.getBalance(traits.address)).to.eq(
-      ethRevenue1
-        .sub(platformRevenueClaimed1)
-        .add(ethRevenue2)
-        .sub(platformRevenueClaimed2)
-    );
-    expect(
-      await ethers.provider.getBalance(artistRevenueClaimer.address)
-    ).to.eq(artistRevenueClaimerInitialBalance);
-    expect(
-      await ethers.provider.getBalance(platformRevenueClaimer.address)
-    ).to.eq(
-      platformRevenueClaimerInitialBalance
-        .add(platformRevenueClaimed1)
-        .add(platformRevenueClaimed2)
-        .sub(tx1Gas)
-        .sub(tx2Gas)
-    );
-
-    const artistRevenueClaimed1 = ethRevenue1.add(ethRevenue2).mul(90).div(100);
-
-    // Artist revenue is released
-    const tx3 = await traits.connect(artistRevenueClaimer).releaseETH();
-    const receipt3 = await tx3.wait();
-    const tx3Gas = receipt3.cumulativeGasUsed.mul(receipt3.effectiveGasPrice);
-
-    expect(await traits.totalReleasedETH()).to.eq(
-      platformRevenueClaimed1
-        .add(platformRevenueClaimed2)
-        .add(artistRevenueClaimed1)
-    );
-    expect(await traits.releasedETH(artistRevenueClaimer.address)).to.eq(
-      artistRevenueClaimed1
-    );
-    expect(await traits.releasedETH(platformRevenueClaimer.address)).to.eq(
-      platformRevenueClaimed1.add(platformRevenueClaimed2)
-    );
-    expect(await traits.releasableETH(artistRevenueClaimer.address)).to.eq(0);
-    expect(await traits.releasableETH(platformRevenueClaimer.address)).to.eq(0);
-    expect(await ethers.provider.getBalance(traits.address)).to.eq(
-      ethRevenue1
-        .sub(platformRevenueClaimed1)
-        .add(ethRevenue2)
-        .sub(platformRevenueClaimed2)
-        .sub(artistRevenueClaimed1)
-    );
-    expect(
-      await ethers.provider.getBalance(artistRevenueClaimer.address)
-    ).to.eq(
-      artistRevenueClaimerInitialBalance.add(artistRevenueClaimed1).sub(tx3Gas)
-    );
-    expect(
-      await ethers.provider.getBalance(platformRevenueClaimer.address)
-    ).to.eq(
-      platformRevenueClaimerInitialBalance
-        .add(platformRevenueClaimed1)
-        .add(platformRevenueClaimed2)
-        .sub(tx1Gas)
-        .sub(tx2Gas)
-    );
-    expect(await ethers.provider.getBalance(traits.address)).to.eq(0);
-
-    // Platform revenue cannot be released again since releasable amount is zero
-    await expect(
-      traits.connect(platformRevenueClaimer).releaseETH()
-    ).to.be.revertedWith("NoPaymentDue()");
-
-    // Artist revenue cannot be released again since releasable amount is zero
-    await expect(
-      traits.connect(artistRevenueClaimer).releaseETH()
-    ).to.be.revertedWith("NoPaymentDue()");
   });
 
   it("Trait total supplys cannot exceed max supplys", async () => {
@@ -1320,64 +1134,6 @@ describe("Artwork and Traits", function () {
     ).to.be.revertedWith("MaxSupply()");
   });
 
-  it("Artwork contract allows for royalties to be claimed correctly", async () => {
-    // Send 10 ETH to royalty splitter
-    await user1.sendTransaction({
-      to: artwork.address,
-      value: ethers.utils.parseEther("10"),
-    });
-
-    // Platform claimer should have 1 ETH releasable
-    expect(await artwork.releasableETH(platformRevenueClaimer.address)).to.eq(
-      ethers.utils.parseEther("1")
-    );
-
-    // Artist should have 9 ETH releasable
-    expect(await artwork.releasableETH(artistRevenueClaimer.address)).to.eq(
-      ethers.utils.parseEther("9")
-    );
-
-    const platformETHBalanceBeforeRelease = await ethers.provider.getBalance(
-      platformRevenueClaimer.address
-    );
-
-    // Platform releases its payment
-    const tx1 = await artwork.connect(platformRevenueClaimer).releaseETH();
-    const receipt1 = await tx1.wait();
-    const tx1Gas = receipt1.cumulativeGasUsed.mul(receipt1.effectiveGasPrice);
-
-    // Platform claimer balance should have increased by 1 ETH
-    expect(
-      (await ethers.provider.getBalance(platformRevenueClaimer.address))
-        .sub(platformETHBalanceBeforeRelease)
-        .add(tx1Gas)
-    ).to.eq(ethers.utils.parseEther("1"));
-
-    // Platform claimer should have 0 ETH releasable
-    expect(await artwork.releasableETH(platformRevenueClaimer.address)).to.eq(
-      ethers.utils.parseEther("0")
-    );
-
-    // Reverts if attempting to release when releaseable is zero
-    await expect(artwork.connect(user1).releaseETH()).to.be.revertedWith("");
-
-    const artistETHBalanceBeforeRelease = await ethers.provider.getBalance(
-      artistRevenueClaimer.address
-    );
-
-    // Artist releases its payment
-    const tx2 = await artwork.connect(artistRevenueClaimer).releaseETH();
-    const receipt2 = await tx2.wait();
-    const tx2Gas = receipt2.cumulativeGasUsed.mul(receipt2.effectiveGasPrice);
-
-    // Artist claimer balance should have increased by 9 ETH
-    expect(
-      (await ethers.provider.getBalance(artistRevenueClaimer.address))
-        .sub(artistETHBalanceBeforeRelease)
-        .add(tx2Gas)
-    ).to.eq(ethers.utils.parseEther("9"));
-  });
-
   it("Artwork with the same hash cannot be created", async () => {
     // Move forward in time so auction is active
     await time.increase(time.duration.seconds(120));
@@ -1398,5 +1154,29 @@ describe("Artwork and Traits", function () {
         value: ethAmount,
       })
     ).to.be.revertedWith("HashAlreadyUsed()");
+  });
+
+  it("A deregistered project can't be minted from", async () => {
+    await projectRegistry.connect(projectRegistryAdmin).deregisterProject(1);
+
+    // Move forward in time so auction is active
+    await time.increase(time.duration.seconds(120));
+
+    expect(await ethers.provider.getBalance(artwork.address)).to.eq(0);
+    expect(await ethers.provider.getBalance(traits.address)).to.eq(0);
+
+    const ethAmount = (await traits.traitPrice()).mul(2);
+
+    await expect(
+      artwork.connect(user1).mintTraitsAndArtwork([0, 3], [1, 1], [0, 3], 100, {
+        value: ethAmount,
+      })
+    ).to.be.revertedWith("Cancelled()");
+
+    await expect(
+      traits.connect(user1).mintTraits(user1.address, [1, 4], [2, 2], {
+        value: ethAmount,
+      })
+    ).to.be.revertedWith("Cancelled()");
   });
 });

@@ -5,11 +5,12 @@ interface ProjectConfig {
     name: string;
     symbol: string;
     artistAddress: string;
-    royaltyFeeNumerator: BigNumber;
-    royaltyPayees: string[];
-    royaltyShares: BigNumber[];
+    royaltySalesReceiverTestnet: string;
+    royaltySalesReceiverMainnet: string;
   };
   traitsConstructorData: {
+    primarySalesReceiverTestnet: string;
+    primarySalesReceiverMainnet: string;
     traitsSetupData: {
       traitTypeNames: string[];
       traitTypeValues: string[];
@@ -18,12 +19,20 @@ interface ProjectConfig {
       traitTypeIndexes: number[];
       traitMaxSupplys: BigNumber[];
     };
-    primarySalesPayees: string[];
-    primarySalesShares: BigNumber[];
-    royaltyPayees: string[];
-    royaltyShares: BigNumber[];
   };
-  setupData: {
+  setupDataTestnet: {
+    auctionExponential: boolean;
+    auctionStartTime: number;
+    auctionEndTime: number;
+    auctionStartPrice: BigNumber;
+    auctionEndPrice: BigNumber;
+    auctionPriceSteps: number;
+    traitsSaleStartTime: number;
+    whitelistStartTime: number;
+    whitelistAddresses: string[];
+    whitelistAmounts: number[];
+  };
+  setupDataMainnet: {
     auctionExponential: boolean;
     auctionStartTime: number;
     auctionEndTime: number;

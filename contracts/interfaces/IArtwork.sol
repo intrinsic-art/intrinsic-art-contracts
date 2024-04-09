@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: GNU GPLv3
 pragma solidity =0.8.19;
 
+import {IBaseSetup} from "./IBaseSetup.sol";
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {IERC2981} from "@openzeppelin/contracts/interfaces/IERC2981.sol";
 
-interface IArtwork is IERC2981, IERC721 {
+interface IArtwork is IBaseSetup, IERC2981, IERC721 {
     struct ArtworkData {
         bytes32 hash;
         uint256[] traitTokenIds;
@@ -27,6 +28,8 @@ interface IArtwork is IERC2981, IERC721 {
     error NoWhitelistMints();
     error AuctionIsLive();
     error HashAlreadyUsed();
+    error InvalidArrayLengths();
+    error Cancelled();
 
     event ArtworkMinted(
         uint256 indexed artworkTokenId,
@@ -45,13 +48,6 @@ interface IArtwork is IERC2981, IERC721 {
     );
     event WhitelistArtworkMinted(uint256 indexed tokenId, address indexed caller);
     event ProofArtworkMinted(uint256 indexed tokenId, address indexed caller);
-
-    /**
-     * Sets up the contract
-     *
-     * @param _data bytes containing address of the traits contract and whitelist data
-     */
-    function setup(bytes calldata _data) external;
 
     /**
      * Updates the whitelisted addresses and amounts they can claim

@@ -1,5 +1,5 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import config from "../projectConfigs/metta/config";
+import config from "../projectConfigs/oneRing/config";
 
 const CreateProject = async (hre: HardhatRuntimeEnvironment): Promise<void> => {
   const abiCoder = hre.ethers.utils.defaultAbiCoder;
@@ -30,7 +30,7 @@ const CreateProject = async (hre: HardhatRuntimeEnvironment): Promise<void> => {
 
   console.log("Deploying string storage contract...");
 
-  const stringStorageDeployResult = await deploy("MettaStringStorage", {
+  const stringStorageDeployResult = await deploy("OneRingStringStorage", {
     log: true,
     from: deployer,
   });
@@ -61,7 +61,7 @@ const CreateProject = async (hre: HardhatRuntimeEnvironment): Promise<void> => {
     },
   ];
 
-  const artworkDeployResult = await deploy("MettaArtwork", {
+  const artworkDeployResult = await deploy("OneRingArtwork", {
     contract: "Artwork",
     log: true,
     from: deployer,
@@ -76,7 +76,7 @@ const CreateProject = async (hre: HardhatRuntimeEnvironment): Promise<void> => {
     config.traitsConstructorData.traitsSetupData,
   ];
 
-  const traitsDeployResult = await deploy("MettaTraits", {
+  const traitsDeployResult = await deploy("OneRingTraits", {
     contract: "Traits",
     log: true,
     from: deployer,

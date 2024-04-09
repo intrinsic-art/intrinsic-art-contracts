@@ -53,8 +53,9 @@ npx hardhat deploy --network baseSepolia
 ```
 Deploy project contracts, verify on Etherscan, and register project on registry
 ```shell
-npx hardhat DeployTackLineTorn --network baseSepolia
 npx hardhat DeployMetta --network baseSepolia
+npx hardhat DeployTackLineTorn --network baseSepolia
+npx hardhat DeployOneRing --network baseSepolia
 ```
 
 ## Escapify Project Scripts & Descriptions

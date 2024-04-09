@@ -1,27 +1,28 @@
 // SPDX-License-Identifier: GNU GPLv3
 pragma solidity =0.8.19;
 
-import {ITraits} from "./interfaces/ITraits.sol";
+import {ITraits, IBaseSetup} from "./interfaces/ITraits.sol";
 import {IArtwork} from "./interfaces/IArtwork.sol";
 import {IProjectRegistry} from "./interfaces/IProjectRegistry.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {ERC2981} from "@openzeppelin/contracts/token/common/ERC2981.sol";
 import {ERC1155} from "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
-import {PaymentSplitter} from "./PaymentSplitter.sol";
 import {ERC1155Supply} from "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
 
 /**
  * Implements ERC-1155 standard for trait tokens,
  * and provides Dutch Auction functionality for initial trait sales
  */
-contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
+contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply {
     using Strings for uint256;
     using Strings for address;
 
     bool public auctionExponential;
+    bool public cancelled;
     string public constant VERSION = "1.0";
     IArtwork public artwork;
     IProjectRegistry public projectRegistry;
+    address payable public primarySalesReceiver;
     uint256 public auctionStartTime;
     uint256 public auctionEndTime;
     uint256 public auctionStartPrice;
@@ -43,13 +44,18 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
         _;
     }
 
+    modifier notCancelled() {
+        if (cancelled) revert Cancelled();
+        _;
+    }
+
     constructor(
         address _projectRegistry,
-        TraitsSetup memory _traitsSetup,
-        address[] memory _primarySalesPayees,
-        uint256[] memory _primarySalesShares
-    ) ERC1155("") PaymentSplitter(_primarySalesPayees, _primarySalesShares) {
+        address _primarySalesReceiver,
+        TraitsSetup memory _traitsSetup
+    ) ERC1155("") {
         projectRegistry = IProjectRegistry(_projectRegistry);
+        primarySalesReceiver = payable(_primarySalesReceiver);
 
         _createTraitsAndTypes(
             _traitsSetup.traitTypeNames,
@@ -61,7 +67,7 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
         );
     }
 
-    /** @inheritdoc ITraits*/
+    /** @inheritdoc IBaseSetup*/
     function setup(bytes calldata _data) external onlyProjectRegistry {
         if (address(artwork) != address(0)) revert AlreadySetup();
 
@@ -101,6 +107,13 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
         );
     }
 
+    /** @inheritdoc IBaseSetup*/
+    function cancel() external onlyProjectRegistry {
+        if (block.timestamp >= auctionStartTime) revert AuctionIsLive();
+
+        cancelled = true;
+    }
+
     /** @inheritdoc ITraits*/
     function updateAuction(
         uint256 _auctionStartTime,
@@ -129,7 +142,7 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
         address _recipient,
         uint256[] calldata _traitTokenIds,
         uint256[] calldata _traitAmounts
-    ) external payable {
+    ) external payable notCancelled {
         if (_traitTokenIds.length != _traitAmounts.length)
             revert InvalidArrayLengths();
         if (
@@ -153,13 +166,15 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
         if (msg.value < _traitCount * traitPrice()) revert InvalidEthAmount();
 
         _mintBatch(_recipient, _traitTokenIds, _traitAmounts, "");
+
+        primarySalesReceiver.transfer(msg.value);
     }
 
     /** @inheritdoc ITraits*/
     function mintTraitsWhitelistOrProof(
         address _recipient,
         uint256[] calldata _traitTokenIds
-    ) external onlyArtwork {
+    ) external onlyArtwork notCancelled {
         if (_traitTokenIds.length != _traitTypes.length)
             revert InvalidArrayLengths();
 
@@ -186,7 +201,7 @@ contract Traits is ITraits, ERC2981, ERC1155, ERC1155Supply, PaymentSplitter {
     function transferTraitsToMintArtwork(
         address _caller,
         uint256[] calldata _traitTokenIds
-    ) external onlyArtwork {
+    ) external onlyArtwork notCancelled {
         if (_traitTokenIds.length != _traitTypes.length)
             revert InvalidArrayLengths();
 

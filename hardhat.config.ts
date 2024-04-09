@@ -11,6 +11,7 @@ import "hardhat-abi-exporter";
 import "solidity-coverage";
 import DeployMetta from "./scripts/DeployMetta";
 import DeployTackLineTorn from "./scripts/DeployTackLineTorn";
+import DeployOneRing from "./scripts/DeployOneRing";
 
 dotenv.config();
 
@@ -21,6 +22,12 @@ task("DeployMetta", "Deploys the project").setAction(async (taskArgs, hre) => {
 task("DeployTackLineTorn", "Deploys the project").setAction(
   async (taskArgs, hre) => {
     await DeployTackLineTorn(hre);
+  }
+);
+
+task("DeployOneRing", "Deploys the project").setAction(
+  async (taskArgs, hre) => {
+    await DeployOneRing(hre);
   }
 );
 
@@ -53,16 +60,15 @@ const config: HardhatUserConfig = {
   namedAccounts: {
     deployer: {
       default: 0,
-      mainnet: `privatekey://${process.env.MAINNET_DEPLOYER_PRIVATE_KEY}`,
-      sepolia: `privatekey://${process.env.SEPOLIA_DEPLOYER_PRIVATE_KEY}`,
-      baseSepolia: `privatekey://${process.env.SEPOLIA_DEPLOYER_PRIVATE_KEY}`,
+      baseMainnet: `privatekey://${process.env.BASE_MAINNET_DEPLOYER_PRIVATE_KEY}`,
+      baseSepolia: `privatekey://${process.env.BASE_SEPOLIA_DEPLOYER_PRIVATE_KEY}`,
     },
   },
   networks: {
-    mainnet: {
-      chainId: 1,
-      url: process.env.MAINNET_PROVIDER,
-      accounts: [process.env.MAINNET_DEPLOYER_PRIVATE_KEY || ""],
+    baseMainnet: {
+      chainId: 8453,
+      url: process.env.BASE_MAINNET_PROVIDER,
+      accounts: [process.env.BASE_MAINNET_DEPLOYER_PRIVATE_KEY || ""],
       saveDeployments: true,
     },
     baseSepolia: {
@@ -71,20 +77,21 @@ const config: HardhatUserConfig = {
       accounts: [process.env.BASE_SEPOLIA_DEPLOYER_PRIVATE_KEY || ""],
       saveDeployments: true,
     },
-    sepolia: {
-      chainId: 11155111,
-      url: process.env.SEPOLIA_PROVIDER,
-      accounts: [process.env.SEPOLIA_DEPLOYER_PRIVATE_KEY || ""],
-      saveDeployments: true,
-    },
   },
   etherscan: {
     apiKey: {
-      mainnet: `${process.env.ETHERSCAN_API_KEY}`,
-      sepolia: `${process.env.ETHERSCAN_API_KEY}`,
+      baseMainnet: `${process.env.BASESCAN_API_KEY}`,
       baseSepolia: `${process.env.BASESCAN_API_KEY}`,
     },
     customChains: [
+      {
+        network: "baseMainnet",
+        chainId: 8453,
+        urls: {
+          apiURL: "https://api.basescan.org/api",
+          browserURL: "https://basescan.org/",
+        },
+      },
       {
         network: "baseSepolia",
         chainId: 84532,
