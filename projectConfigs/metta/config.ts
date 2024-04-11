@@ -103,12 +103,12 @@ const projectConfig: ProjectConfig = {
   },
   setupDataTestnet: {
     auctionExponential: false,
-    auctionStartTime: Math.trunc(Date.now() / 1000) + 600,
-    auctionEndTime: Math.trunc(Date.now() / 1000) + 600,
+    auctionStartTime: 1712872800,
+    auctionEndTime: 1713045600,
     auctionStartPrice: ethers.utils.parseEther("0.01"),
     auctionEndPrice: ethers.utils.parseEther("0.002"),
     auctionPriceSteps: 2,
-    traitsSaleStartTime: Math.trunc(Date.now() / 1000) + 600,
+    traitsSaleStartTime: 1713045600,
     whitelistStartTime: Math.trunc(Date.now() / 1000) + 600,
     whitelistAddresses: ["0xAa9D46AE079851116967c6573f961B304095C34a", "0xA3a8D06505C85049D57F7fcF00432Ca7A7800055", "0x02d53D2C706252814D7264edb7FAf15686939702"],
     whitelistAmounts: [10, 10, 10]
