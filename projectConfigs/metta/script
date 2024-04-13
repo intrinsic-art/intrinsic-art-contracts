@@ -1,4 +1,4 @@
-console.log("Metta v5.7 Matto 2024");
+console.log("Metta v5.8 Matto 2024");
 let tokenEntropyPairs = createPairs(artwork.seed);
 let seed =
   getValue(0, 255) * getValue(0, 255) * getValue(0, 255) * getValue(0, 255);
@@ -8,6 +8,7 @@ const portrait = urlParams.get("portrait");
 const intervalSetting = urlParams.get("interval");
 const contSetting = urlParams.get("continuous");
 const freezeSetting = urlParams.get("freeze");
+const hueLockSetting = urlParams.get("huelock");
 let attributes = [];
 let p = [];
 let matte = 16;
@@ -31,6 +32,7 @@ let hue,
   colorMode,
   gradientShift,
   seekerNodeMod;
+let hueLock = false;
 let continuous = false;
 let paused = true;
 let count = 0;
@@ -59,6 +61,10 @@ function setup() {
       height = window.innerHeight;
       width = height / 0.5625;
     }
+  }
+  if (hueLockSetting == "true") {
+    hueLock = true;
+    console.log("Hue lock enabled.");
   }
   if (intervalSetting && Number.isInteger(parseInt(intervalSetting))) {
     intervalMS = parseInt(intervalSetting);
@@ -314,7 +320,7 @@ function moveTowardNClosest(n) {
       p[i].x = R(width * 1.5) - width / 4;
       p[i].y = R(height * 1.5) - height / 4;
       p[i].r = 0;
-      if (i == 0) {
+      if (i == 0 && !hueLock) {
         let newHue = rando % 2 == 0 ? hue - 10 : hue + 10;
         if (newHue < 0) {
           newHue = 360 + newHue;
@@ -373,14 +379,19 @@ function updateMatte() {
   })`;
 }
 
-canvas.addEventListener("dblclick", function (event) {
-  console.log("Canvas double-clicked:", event);
+function handlePause() {
   paused = !paused;
+  let message = `at Frame ${count}`;
+  console.log(paused ? `Paused ${message}` : `Unpaused ${message}`);
+}
+
+canvas.addEventListener("dblclick", function (event) {
+  handlePause();
 });
 
 document.addEventListener("keydown", function (event) {
   if (event.key === " ") {
-    paused = !paused;
+    handlePause();
   } else if (event.key === "s" || event.key === "S") {
     let link = document.createElement("a");
     link.download = `Metta.png`;
@@ -470,8 +481,6 @@ function readOutAttributes() {
   for (i = 0; i < attributes.length; i++) {
     console.log(attributes[i].trait_type + ": " + attributes[i].value);
   }
-  console.log("");
-  sessionStorage.setItem("attributes", JSON.stringify(attributes));
   function addAttribute(trait_type, value) {
     if (typeof value == "boolean") {
       value = value.toString();
