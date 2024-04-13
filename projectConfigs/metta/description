@@ -15,5 +15,6 @@ Hotkeys for Interaction:
 Customization via URL Parameters:
 - 'portrait=true' switches to a vertical aspect ratio (9x16)
 - 'continuous=true' disables the initial pause feature
+- 'huelock=true' disables the automatic hue shift
 - 'interval=<0-1000>' sets the interval in milliseconds between draw cycles (defaults to 25)
 - 'freeze=<1-?>' sets the cycle at which "Metta" will initially pause (defaults to 95)
