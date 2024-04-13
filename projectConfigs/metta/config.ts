@@ -115,13 +115,13 @@ const projectConfig: ProjectConfig = {
   },
   setupDataMainnet: {
     auctionExponential: false,
-    auctionStartTime: 1714064400,
-    auctionEndTime: 1714068000,
+    auctionStartTime: 1714496400,
+    auctionEndTime: 1714500000,
     auctionStartPrice: ethers.utils.parseEther("0.01"),
     auctionEndPrice: ethers.utils.parseEther("0.002"),
     auctionPriceSteps: 9,
-    traitsSaleStartTime: 1714068000,
-    whitelistStartTime: 1713891600,
+    traitsSaleStartTime: 1714500000,
+    whitelistStartTime: 1714323600,
     whitelistAddresses: [],
     whitelistAmounts: []
   },
