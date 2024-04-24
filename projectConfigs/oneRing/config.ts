@@ -16,10 +16,12 @@ const projectConfig: ProjectConfig = {
       traitTypeNames: [
         "Ring Hue",
         "Ring Tone",
+        "Harmony"
       ],
       traitTypeValues: [
         "pH",
         "pT",
+        "rH"
       ],
       traitNames: [
         "Red",
@@ -42,6 +44,11 @@ const projectConfig: ProjectConfig = {
         "Darker",
         "White",
         "Black",
+        "Monochrome",
+        "Analog",
+        "Triad",
+        "Complementary",
+        "Wild",
       ],
       traitValues: [
         "0",
@@ -64,10 +71,16 @@ const projectConfig: ProjectConfig = {
         "5",
         "6",
         "7",
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
       ],
       traitTypeIndexes: [
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        1, 1, 1, 1, 1, 1, 1, 1
+        1, 1, 1, 1, 1, 1, 1, 1,
+        2, 2, 2, 2, 2
       ],
       traitMaxSupplys: [
         BigNumber.from(100),
@@ -90,6 +103,11 @@ const projectConfig: ProjectConfig = {
         BigNumber.from(150),
         BigNumber.from(150),
         BigNumber.from(150),
+        BigNumber.from(240),
+        BigNumber.from(240),
+        BigNumber.from(240),
+        BigNumber.from(240),
+        BigNumber.from(240),
       ],
     },
   },
