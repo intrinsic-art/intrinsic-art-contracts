@@ -12,6 +12,7 @@ import "solidity-coverage";
 import DeployMetta from "./scripts/DeployMetta";
 import DeployTackLineTorn from "./scripts/DeployTackLineTorn";
 import DeployOneRing from "./scripts/DeployOneRing";
+import UpdateWhitelist from "./scripts/UpdateWhitelist";
 
 dotenv.config();
 
@@ -28,6 +29,12 @@ task("DeployTackLineTorn", "Deploys the project").setAction(
 task("DeployOneRing", "Deploys the project").setAction(
   async (taskArgs, hre) => {
     await DeployOneRing(hre);
+  }
+);
+
+task("UpdateWhitelist", "Updates the whitelist").setAction(
+  async (taskArgs, hre) => {
+    await UpdateWhitelist(hre);
   }
 );
 
