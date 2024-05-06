@@ -13,8 +13,13 @@ import DeployMetta from "./scripts/DeployMetta";
 import DeployTackLineTorn from "./scripts/DeployTackLineTorn";
 import DeployOneRing from "./scripts/DeployOneRing";
 import UpdateWhitelist from "./scripts/UpdateWhitelist";
+import DeregisterProject from "./scripts/DeregisterProject";
 
 dotenv.config();
+
+task("DeregisterProject", "Deregisters the project").setAction(async (taskArgs, hre) => {
+  await DeregisterProject(hre);
+});
 
 task("DeployMetta", "Deploys the project").setAction(async (taskArgs, hre) => {
   await DeployMetta(hre);
