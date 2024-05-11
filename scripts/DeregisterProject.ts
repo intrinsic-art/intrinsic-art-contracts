@@ -26,7 +26,7 @@ const DeregisterProject = async (hre: HardhatRuntimeEnvironment): Promise<void> 
 
   const { deployer } = await getNamedAccounts();
 
-  const projectId = 2;
+  const projectId = 3;
 
   await execute(
     "ProjectRegistry",
