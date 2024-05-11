@@ -29,7 +29,7 @@ const UpdateWhitelist = async (hre: HardhatRuntimeEnvironment): Promise<void> =>
   const updateWhitelistData = (
     await hre.ethers.getContractFactory("Artwork", deployer)
   ).interface.encodeFunctionData("updateWhitelist", [
-    1714137950, // whitelistStartTime
+    1715212800, // whitelistStartTime
     [
       "0xcaF6Fd54fB74C95B28F5e94952ca21B46E4071cc",
       "0xA9838826d5Ef448e8D01f603eE3725039fea6351",
